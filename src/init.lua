@@ -458,6 +458,9 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         OptionButton.Parent = OptionFrame
         UILib.RoundCorner(4).Parent = OptionButton
 
+        local pad = Instance.new("UIPadding", OptionButton)
+        pad.PaddingLeft = UDim.new(0, 8)
+
         local optionStroke = Instance.new("UIStroke", OptionButton)
         optionStroke.Color = UILib.Theme.Border
         optionStroke.Transparency = 0.9
@@ -532,6 +535,9 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             selAllBtn.Parent = controlFrame
             UILib.RoundCorner(4).Parent = selAllBtn
 
+            local pad1 = Instance.new("UIPadding", selAllBtn)
+            pad1.PaddingLeft = UDim.new(0, 8)
+
             local clearBtn = Instance.new("TextButton")
             clearBtn.Size = UDim2.new(0.48, 0, 1, 0)
             clearBtn.Position = UDim2.new(0.52, 0, 0, 0)
@@ -543,6 +549,9 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             clearBtn.AutoButtonColor = false
             clearBtn.Parent = controlFrame
             UILib.RoundCorner(4).Parent = clearBtn
+
+            local pad2 = Instance.new("UIPadding", clearBtn)
+            pad2.PaddingLeft = UDim.new(0, 8)
 
             selAllBtn.MouseButton1Click:Connect(function()
                 selected = table.clone(options)
@@ -985,6 +994,7 @@ function Window.new(title)
     selfObj.ActiveTab = nil
     selfObj.Visible = true
     selfObj.Components = {}
+    selfObj.ToggleKey = Enum.KeyCode.V
 
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "SugarUILibEnhanced"
@@ -1178,7 +1188,7 @@ function Window.new(title)
         end)
     end
 
-    setupToggleKey(Enum.KeyCode.RightShift)
+    setupToggleKey(Enum.KeyCode.V)
 
     -- show/hide анимации
     function selfObj:Show()
@@ -1192,7 +1202,10 @@ function Window.new(title)
         selfObj.Visible = false
         UILib.Tween(OuterFrame, {Position = UDim2.new(0.5, -250, 0.5, -200 + 24)}, 0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
         UILib.Tween(Frame, {BackgroundTransparency = 1}, 0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-        task.delay(0.18, function() if not selfObj.Visible then OuterFrame.Visible = false end end)
+        task.delay(0.18, function() 
+            if not selfObj.Visible then OuterFrame.Visible = false end 
+            Notifications:Notify("Info", "GUI hidden. Press " .. selfObj.ToggleKey.Name .. " to show.", 5, "Info")
+        end)
     end
 
     -- инициално показываем с анимацией
@@ -1211,7 +1224,7 @@ function Window.new(title)
         overlay.BackgroundColor3 = Color3.fromRGB(0,0,0)
         overlay.BackgroundTransparency = 0.5
         overlay.Parent = ScreenGui
-        overlay.ZIndex = 100
+        overlay.ZIndex = 999
 
         local panel = Instance.new("Frame")
         panel.Size = UDim2.new(0, 300, 0, 150)
@@ -1219,16 +1232,23 @@ function Window.new(title)
         panel.BackgroundColor3 = UILib.Theme.Panel
         UILib.RoundCorner(8).Parent = panel
         panel.Parent = overlay
-        panel.ZIndex = 101
+        panel.ZIndex = 1000
+
+        UILib.AddShadow(panel, 0.5, 10)
+        local stroke = Instance.new("UIStroke", panel)
+        stroke.Color = UILib.Theme.Border
+        stroke.Transparency = 0.8
 
         local titleLbl = Instance.new("TextLabel")
-        titleLbl.Size = UDim2.new(1,0,0,30)
+        titleLbl.Size = UDim2.new(1,-20,0,30)
+        titleLbl.Position = UDim2.new(0,10,0,10)
         titleLbl.Text = title
         titleLbl.TextColor3 = UILib.Theme.Text
         titleLbl.Font = Enum.Font.GothamBold
         titleLbl.TextSize = 16
         titleLbl.BackgroundTransparency = 1
         titleLbl.Parent = panel
+        titleLbl.ZIndex = 1001
 
         local msgLbl = Instance.new("TextLabel")
         msgLbl.Size = UDim2.new(1, -20, 0, 60)
@@ -1240,6 +1260,7 @@ function Window.new(title)
         msgLbl.BackgroundTransparency = 1
         msgLbl.TextWrapped = true
         msgLbl.Parent = panel
+        msgLbl.ZIndex = 1001
 
         local yesBtn = ButtonComponent.new(panel, "Yes", function()
             overlay:Destroy()
@@ -1247,6 +1268,7 @@ function Window.new(title)
         end)
         yesBtn.Instance.Size = UDim2.new(0.4, 0, 0, 30)
         yesBtn.Instance.Position = UDim2.new(0.1, 0, 1, -40)
+        yesBtn.Instance.ZIndex = 1001
 
         local noBtn = ButtonComponent.new(panel, "No", function()
             overlay:Destroy()
@@ -1254,6 +1276,7 @@ function Window.new(title)
         end)
         noBtn.Instance.Size = UDim2.new(0.4, 0, 0, 30)
         noBtn.Instance.Position = UDim2.new(0.5, 0, 1, -40)
+        noBtn.Instance.ZIndex = 1001
     end
 
     selfObj.ScreenGui = ScreenGui
@@ -1274,6 +1297,7 @@ function Window.new(title)
 
     function selfObj:SetToggleKey(key)
         setupToggleKey(key)
+        selfObj.ToggleKey = key
         UILib.CurrentConfig["ToggleKey"] = key.Name
     end
 
