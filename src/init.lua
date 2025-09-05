@@ -911,4 +911,49 @@ function UILib:CreateWindow(title)
     return Window.new(title)
 end
 
+-- ======================
+-- Test Code: Create a sample window with elements
+-- ======================
+local window = UILib:CreateWindow("Test Sugar UI Ultimate")
+
+-- Set a custom keybind example
+window:SetKeybind(Enum.KeyCode.F1)
+
+local tab1 = window:AddTab("General")
+tab1:AddSection("Controls")
+local toggle1 = tab1:AddToggle("Enable Feature", true, function(state)
+    print("Toggle state:", state)
+    window.Config["Enable Feature"] = state
+end)
+tab1:AddButton("Test Button", function()
+    print("Button clicked!")
+    window.Notify("Button Clicked", "You pressed the test button.", 3)
+end)
+tab1:AddSlider("Volume", 0, 100, 50, function(val)
+    print("Slider value:", val)
+    window.Config["Volume"] = val
+end)
+
+local tab2 = window:AddTab("Advanced")
+tab2:AddSection("Options")
+tab2:AddDropdown("Select Mode", {"Easy", "Medium", "Hard"}, "Medium", function(selected)
+    print("Dropdown selected:", selected)
+    window.Config["Select Mode"] = selected
+end)
+tab2:AddMultiSelect("Choose Perks", {"Speed", "Strength", "Agility", "Luck"}, {"Speed", "Luck"}, function(selected)
+    print("Multi selected:", table.concat(selected, ", "))
+    window.Config["Choose Perks"] = selected
+end)
+tab2:AddButton("Save Config", function()
+    window:SaveConfig()
+end)
+tab2:AddButton("Load Config", function()
+    window:LoadConfig()
+    -- Simulate applying config
+    toggle1.Set(window.Config["Enable Feature"] or true, false)
+end)
+
+-- Notify on start
+window.Notify("Welcome", "Sugar UI Ultimate is ready! Press F1 to toggle.", 5)
+
 return UILib
