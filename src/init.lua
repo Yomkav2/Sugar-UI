@@ -5,13 +5,12 @@ UILib.__index = UILib
 -- Сервисы
 local TweenService = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local TextService = game:GetService("TextService")
 
 -- ======================
--- Расширенная тема с большей глубиной
+-- Расширенная тема
 -- ======================
 local Theme = {
     Background = Color3.fromRGB(20, 20, 20),
@@ -27,6 +26,10 @@ local Theme = {
     Success = Color3.fromRGB(76, 175, 80),
     Warning = Color3.fromRGB(255, 193, 7),
     Error = Color3.fromRGB(244, 67, 54),
+    Toggle = Color3.fromRGB(30, 30, 30),
+    ToggleBox = Color3.fromRGB(200, 200, 200),
+    Button = Color3.fromRGB(30, 30, 30),
+    ButtonHover = Color3.fromRGB(50, 50, 50),
 }
 
 -- ======================
@@ -120,85 +123,59 @@ local function RoundCorner(cornerRadius)
 end
 
 -- ======================
--- Компонент кнопки (с эффектом ripple)
+-- Компонент кнопки
 -- ======================
 local ButtonComponent = {}
 ButtonComponent.__index = ButtonComponent
 
 function ButtonComponent.new(parent, text, callback)
     local self = setmetatable({}, ButtonComponent)
-    local wrapper = Instance.new("Frame")
-    wrapper.Size = UDim2.new(1, 0, 0, 40)
-    wrapper.BackgroundTransparency = 1
-    wrapper.Parent = parent
-    
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, 0, 1, 0)
-    btn.BackgroundColor3 = Theme.Panel
-    btn.TextColor3 = Theme.Text
-    btn.Font = Enum.Font.GothamSemibold
-    btn.TextSize = 14
-    btn.Text = text or "Button"
-    btn.BorderSizePixel = 0
-    btn.AutoButtonColor = false
-    btn.Parent = wrapper
 
-    RoundCorner(6).Parent = btn
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, -10, 0, 30)
+    Btn.Position = UDim2.new(0, 5, 0, #parent:GetChildren() * 35)
+    Btn.BackgroundColor3 = Theme.Button
+    Btn.Text = text or "Button"
+    Btn.TextColor3 = Theme.Text
+    Btn.Font = Enum.Font.Gotham
+    Btn.TextSize = 14
+    Btn.AutoButtonColor = false
+    Btn.Parent = parent
+    RoundCorner(6).Parent = Btn
 
-    local stroke = Instance.new("UIStroke", btn)
+    local stroke = Instance.new("UIStroke", Btn)
     stroke.Color = Theme.Border
     stroke.Transparency = 0.8
     stroke.Thickness = 1
 
-    -- Ripple effect
-    local rippleHolder = Instance.new("Frame")
-    rippleHolder.Size = UDim2.new(1, 0, 1, 0)
-    rippleHolder.BackgroundTransparency = 1
-    rippleHolder.ClipsDescendants = true
-    rippleHolder.Parent = btn
-
-    btn.MouseEnter:Connect(function()
-        Tween(btn, {BackgroundColor3 = Theme.AccentSoft}, 0.15)
-    end)
-    
-    btn.MouseLeave:Connect(function()
-        Tween(btn, {BackgroundColor3 = Theme.Panel}, 0.15)
+    Btn.MouseEnter:Connect(function()
+        Tween(Btn, {BackgroundColor3 = Theme.ButtonHover}, 0.2)
     end)
 
-    if type(callback) == "function" then
-        btn.MouseButton1Click:Connect(function()
-            -- Ripple animation
+    Btn.MouseLeave:Connect(function()
+        Tween(Btn, {BackgroundColor3 = Theme.Button}, 0.2)
+    end)
+
+    Btn.MouseButton1Click:Connect(function()
+        if callback then
             local ripple = Instance.new("Frame")
             ripple.Size = UDim2.new(0, 0, 0, 0)
             ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
             ripple.BackgroundColor3 = Theme.Highlight
             ripple.BackgroundTransparency = 0.7
             ripple.AnchorPoint = Vector2.new(0.5, 0.5)
-            ripple.Parent = rippleHolder
+            ripple.Parent = Btn
             RoundCorner(100).Parent = ripple
             
             Tween(ripple, {Size = UDim2.new(2, 0, 2, 0), BackgroundTransparency = 1}, 0.4, Enum.EasingStyle.Quad)
             task.delay(0.4, function() ripple:Destroy() end)
 
             pcall(callback)
-            Tween(btn, {BackgroundColor3 = Theme.AccentDark}, 0.1)
-            task.delay(0.1, function()
-                if btn and btn.Parent then
-                    Tween(btn, {BackgroundColor3 = Theme.AccentSoft}, 0.15)
-                end
-            end)
-        end)
-    end
+        end
+    end)
 
-    self._wrapper = wrapper
-    self._button = btn
+    self.Instance = Btn
     return self
-end
-
-function ButtonComponent:SetText(text)
-    if self._button then
-        self._button.Text = text
-    end
 end
 
 -- ======================
@@ -209,74 +186,69 @@ ToggleComponent.__index = ToggleComponent
 
 function ToggleComponent.new(parent, text, default, callback, configKey)
     local self = setmetatable({}, ToggleComponent)
-    local state = default == true
-    local wrapper = Instance.new("Frame")
-    wrapper.Size = UDim2.new(1, 0, 0, 40)
-    wrapper.BackgroundTransparency = 1
-    wrapper.Parent = parent
+    self.State = default or false
 
-    local bg = Instance.new("Frame")
-    bg.Size = UDim2.new(1, 0, 1, 0)
-    bg.BackgroundColor3 = Theme.Panel
-    bg.BorderSizePixel = 0
-    bg.Parent = wrapper
-    RoundCorner(6).Parent = bg
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, -10, 0, 30)
+    Frame.Position = UDim2.new(0, 5, 0, #parent:GetChildren() * 35)
+    Frame.BackgroundColor3 = Theme.Toggle
+    Frame.Parent = parent
+    RoundCorner(6).Parent = Frame
 
-    local stroke = Instance.new("UIStroke", bg)
+    local stroke = Instance.new("UIStroke", Frame)
     stroke.Color = Theme.Border
     stroke.Transparency = 0.8
     stroke.Thickness = 1
 
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0.7, 0, 1, 0)
-    label.Position = UDim2.new(0, 12, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = text or "Toggle"
-    label.TextColor3 = Theme.Text
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 14
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = bg
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0.8, 0, 1, 0)
+    Label.BackgroundTransparency = 1
+    Label.Text = text or "Toggle"
+    Label.TextColor3 = Theme.Text
+    Label.Font = Enum.Font.Gotham
+    Label.TextSize = 14
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = Frame
 
-    local toggleHolder = Instance.new("Frame")
-    toggleHolder.Size = UDim2.new(0, 50, 0, 24)
-    toggleHolder.Position = UDim2.new(1, -62, 0.5, -12)
-    toggleHolder.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-    toggleHolder.Parent = bg
-    RoundCorner(12).Parent = toggleHolder
+    local Box = Instance.new("Frame")
+    Box.Size = UDim2.new(0, 20, 0, 20)
+    Box.Position = UDim2.new(0.9, 0, 0.5, -10)
+    Box.BackgroundColor3 = self.State and Theme.Accent or Theme.ToggleBox
+    Box.Parent = Frame
+    RoundCorner(10).Parent = Box
 
-    local knob = Instance.new("Frame")
-    knob.Size = UDim2.new(0, 22, 0, 22)
-    knob.Position = UDim2.new(state and 0.55 or 0.05, 0, 0.5, -11)
-    knob.BackgroundColor3 = state and Theme.Accent or Color3.fromRGB(200, 200, 200)
-    knob.Parent = toggleHolder
-    RoundCorner(11).Parent = knob
+    AddShadow(Box, 0.5, 4)
 
-    AddShadow(knob, 0.5, 4)
-
-    local function set_state(newState, fire)
-        state = not not newState
-        Tween(knob, {Position = UDim2.new(state and 0.55 or 0.05, 0, 0.5, -11)}, 0.15)
-        Tween(knob, {BackgroundColor3 = state and Theme.Accent or Color3.fromRGB(200, 200, 200)}, 0.15)
-        if fire and type(callback) == "function" then
-            pcall(callback, state)
-        end
-        if configKey then
-            UILib.CurrentConfig[configKey] = state
-        end
-    end
-
-    bg.InputBegan:Connect(function(input)
+    Frame.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            set_state(not state, true)
+            self.State = not self.State
+            Tween(Box, {
+                BackgroundColor3 = self.State and Theme.Accent or Theme.ToggleBox
+            }, 0.2)
+            if callback then
+                pcall(callback, self.State)
+            end
+            if configKey then
+                UILib.CurrentConfig[configKey] = self.State
+            end
         end
     end)
 
-    self._wrapper = wrapper
-    self._state = state
-    self.Set = set_state
-    self.Get = function() return state end
-    
+    self.Instance = Frame
+    self.Set = function(newState, fire)
+        self.State = not not newState
+        Tween(Box, {
+            BackgroundColor3 = self.State and Theme.Accent or Theme.ToggleBox
+        }, 0.2)
+        if fire and callback then
+            pcall(callback, self.State)
+        end
+        if configKey then
+            UILib.CurrentConfig[configKey] = self.State
+        end
+    end
+    self.Get = function() return self.State end
+
     return self
 end
 
@@ -291,74 +263,65 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
     local value = default or min
     min = min or 0
     max = max or 100
-    
-    local wrapper = Instance.new("Frame")
-    wrapper.Size = UDim2.new(1, 0, 0, 60)
-    wrapper.BackgroundTransparency = 1
-    wrapper.Parent = parent
 
-    local bg = Instance.new("Frame")
-    bg.Size = UDim2.new(1, 0, 1, 0)
-    bg.BackgroundColor3 = Theme.Panel
-    bg.BorderSizePixel = 0
-    bg.Parent = wrapper
-    RoundCorner(6).Parent = bg
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, -10, 0, 50)
+    Frame.Position = UDim2.new(0, 5, 0, #parent:GetChildren() * 35)
+    Frame.BackgroundColor3 = Theme.Panel
+    Frame.Parent = parent
+    RoundCorner(6).Parent = Frame
 
-    local stroke = Instance.new("UIStroke", bg)
+    local stroke = Instance.new("UIStroke", Frame)
     stroke.Color = Theme.Border
     stroke.Transparency = 0.8
     stroke.Thickness = 1
 
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -24, 0, 20)
-    label.Position = UDim2.new(0, 12, 0, 8)
-    label.BackgroundTransparency = 1
-    label.Text = text or "Slider"
-    label.TextColor3 = Theme.Text
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 14
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = bg
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0.8, 0, 0, 20)
+    Label.Position = UDim2.new(0, 5, 0, 5)
+    Label.BackgroundTransparency = 1
+    Label.Text = text or "Slider"
+    Label.TextColor3 = Theme.Text
+    Label.Font = Enum.Font.Gotham
+    Label.TextSize = 14
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = Frame
 
-    local valueLabel = Instance.new("TextLabel")
-    valueLabel.Size = UDim2.new(0, 60, 0, 20)
-    valueLabel.Position = UDim2.new(1, -72, 0, 8)
-    valueLabel.BackgroundTransparency = 1
-    valueLabel.Text = tostring(value)
-    valueLabel.TextColor3 = Theme.Muted
-    valueLabel.Font = Enum.Font.GothamMedium
-    valueLabel.TextSize = 14
-    valueLabel.TextXAlignment = Enum.TextXAlignment.Right
-    valueLabel.Parent = bg
+    local ValueLabel = Instance.new("TextLabel")
+    ValueLabel.Size = UDim2.new(0.2, 0, 0, 20)
+    ValueLabel.Position = UDim2.new(0.8, 0, 0, 5)
+    ValueLabel.BackgroundTransparency = 1
+    ValueLabel.Text = tostring(math.floor(value))
+    ValueLabel.TextColor3 = Theme.Muted
+    ValueLabel.Font = Enum.Font.GothamMedium
+    ValueLabel.TextSize = 14
+    ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+    ValueLabel.Parent = Frame
 
-    local track = Instance.new("Frame")
-    track.Size = UDim2.new(1, -24, 0, 6)
-    track.Position = UDim2.new(0, 12, 0, 34)
-    track.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
-    track.BorderSizePixel = 0
-    track.Parent = bg
-    RoundCorner(3).Parent = track
+    local Track = Instance.new("Frame")
+    Track.Size = UDim2.new(1, -10, 0, 6)
+    Track.Position = UDim2.new(0, 5, 0, 30)
+    Track.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
+    Track.BorderSizePixel = 0
+    Track.Parent = Frame
+    RoundCorner(3).Parent = Track
 
-    local fill = Instance.new("Frame")
-    fill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
-    fill.BackgroundColor3 = Theme.Accent
-    fill.BorderSizePixel = 0
-    fill.Parent = track
-    RoundCorner(3).Parent = fill
-
-    -- No knob, drag on track
+    local Fill = Instance.new("Frame")
+    Fill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
+    Fill.BackgroundColor3 = Theme.Accent
+    Fill.BorderSizePixel = 0
+    Fill.Parent = Track
+    RoundCorner(3).Parent = Fill
 
     local dragging = false
 
     local function set_value(newValue, fire)
         newValue = math.clamp(newValue, min, max)
         value = newValue
-        valueLabel.Text = tostring(math.floor(value))
-        
+        ValueLabel.Text = tostring(math.floor(value))
         local fillSize = (value - min) / (max - min)
-        Tween(fill, {Size = UDim2.new(fillSize, 0, 1, 0)}, 0.1)
-        
-        if fire and type(callback) == "function" then
+        Tween(Fill, {Size = UDim2.new(fillSize, 0, 1, 0)}, 0.1)
+        if fire and callback then
             pcall(callback, value)
         end
         if configKey then
@@ -367,12 +330,12 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
     end
 
     local function update_from_mouse(input)
-        local positionX = math.clamp(input.Position.X - track.AbsolutePosition.X, 0, track.AbsoluteSize.X)
-        local newValue = min + (positionX / track.AbsoluteSize.X) * (max - min)
+        local positionX = math.clamp(input.Position.X - Track.AbsolutePosition.X, 0, Track.AbsoluteSize.X)
+        local newValue = min + (positionX / Track.AbsoluteSize.X) * (max - min)
         set_value(newValue, true)
     end
 
-    track.InputBegan:Connect(function(input)
+    Track.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
             update_from_mouse(input)
@@ -391,10 +354,10 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
         end
     end)
 
-    self._wrapper = wrapper
+    self.Instance = Frame
     self.SetValue = set_value
     self.GetValue = function() return value end
-    
+
     return self
 end
 
@@ -408,75 +371,69 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     local self = setmetatable({}, DropdownComponent)
     local isOpen = false
     local selected = multiSelect and (default or {}) or (default or options[1])
-    local multiSelect = multiSelect or false
-    
-    local wrapper = Instance.new("Frame")
-    wrapper.Size = UDim2.new(1, 0, 0, 40)
-    wrapper.BackgroundTransparency = 1
-    wrapper.ClipsDescendants = true
-    wrapper.Parent = parent
+    multiSelect = multiSelect or false
 
-    local bg = Instance.new("Frame")
-    bg.Size = UDim2.new(1, 0, 0, 40)
-    bg.BackgroundColor3 = Theme.Panel
-    bg.BorderSizePixel = 0
-    bg.Parent = wrapper
-    RoundCorner(6).Parent = bg
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, -10, 0, 30)
+    Frame.Position = UDim2.new(0, 5, 0, #parent:GetChildren() * 35)
+    Frame.BackgroundColor3 = Theme.Panel
+    Frame.ClipsDescendants = true
+    Frame.Parent = parent
+    RoundCorner(6).Parent = Frame
 
-    local stroke = Instance.new("UIStroke", bg)
+    local stroke = Instance.new("UIStroke", Frame)
     stroke.Color = Theme.Border
     stroke.Transparency = 0.8
     stroke.Thickness = 1
 
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(0.7, 0, 1, 0)
-    label.Position = UDim2.new(0, 12, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = text or "Dropdown"
-    label.TextColor3 = Theme.Text
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 14
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = bg
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0.7, 0, 1, 0)
+    Label.BackgroundTransparency = 1
+    Label.Text = text or "Dropdown"
+    Label.TextColor3 = Theme.Text
+    Label.Font = Enum.Font.Gotham
+    Label.TextSize = 14
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = Frame
 
-    local arrow = Instance.new("ImageLabel")
-    arrow.Size = UDim2.new(0, 16, 0, 16)
-    arrow.Position = UDim2.new(1, -28, 0.5, -8)
-    arrow.BackgroundTransparency = 1
-    arrow.Image = "rbxassetid://6031094678"
-    arrow.ImageColor3 = Theme.Muted
-    arrow.Rotation = 0
-    arrow.Parent = bg
+    local Arrow = Instance.new("ImageLabel")
+    Arrow.Size = UDim2.new(0, 16, 0, 16)
+    Arrow.Position = UDim2.new(1, -20, 0.5, -8)
+    Arrow.BackgroundTransparency = 1
+    Arrow.Image = "rbxassetid://6031094678"
+    Arrow.ImageColor3 = Theme.Muted
+    Arrow.Rotation = 0
+    Arrow.Parent = Frame
 
-    local valueLabel = Instance.new("TextLabel")
-    valueLabel.Size = UDim2.new(0.25, 0, 1, 0)
-    valueLabel.Position = UDim2.new(0.75, -12, 0, 0)
-    valueLabel.BackgroundTransparency = 1
-    valueLabel.Text = multiSelect and "Multiple" or tostring(selected)
-    valueLabel.TextColor3 = Theme.Muted
-    valueLabel.Font = Enum.Font.GothamMedium
-    valueLabel.TextSize = 14
-    valueLabel.TextXAlignment = Enum.TextXAlignment.Right
-    valueLabel.Parent = bg
+    local ValueLabel = Instance.new("TextLabel")
+    ValueLabel.Size = UDim2.new(0.25, 0, 1, 0)
+    ValueLabel.Position = UDim2.new(0.75, -5, 0, 0)
+    ValueLabel.BackgroundTransparency = 1
+    ValueLabel.Text = multiSelect and "Multiple" or tostring(selected)
+    ValueLabel.TextColor3 = Theme.Muted
+    ValueLabel.Font = Enum.Font.GothamMedium
+    ValueLabel.TextSize = 14
+    ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+    ValueLabel.Parent = Frame
 
-    local optionsFrame = Instance.new("Frame")
-    optionsFrame.Size = UDim2.new(1, 0, 0, 0)
-    optionsFrame.Position = UDim2.new(0, 0, 0, 40)
-    optionsFrame.BackgroundColor3 = Theme.Panel
-    optionsFrame.BorderSizePixel = 0
-    optionsFrame.ClipsDescendants = true
-    optionsFrame.Parent = wrapper
-    RoundCorner(6).Parent = optionsFrame
+    local OptionsFrame = Instance.new("Frame")
+    OptionsFrame.Size = UDim2.new(1, 0, 0, 0)
+    OptionsFrame.Position = UDim2.new(0, 0, 0, 30)
+    OptionsFrame.BackgroundColor3 = Theme.Panel
+    OptionsFrame.BorderSizePixel = 0
+    OptionsFrame.ClipsDescendants = true
+    OptionsFrame.Parent = Frame
+    RoundCorner(6).Parent = OptionsFrame
 
-    local optionsList = Instance.new("UIListLayout", optionsFrame)
+    local optionsList = Instance.new("UIListLayout", OptionsFrame)
     optionsList.SortOrder = Enum.SortOrder.LayoutOrder
 
     local function update_value_display()
         if multiSelect then
             local count = #selected
-            valueLabel.Text = count > 0 and ("Selected: " .. count) or "None"
+            ValueLabel.Text = count > 0 and ("Selected: " .. count) or "None"
         else
-            valueLabel.Text = tostring(selected)
+            ValueLabel.Text = tostring(selected)
         end
     end
 
@@ -495,7 +452,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         
         update_value_display()
         
-        if type(callback) == "function" then
+        if callback then
             pcall(callback, multiSelect and selected or option)
         end
         
@@ -505,51 +462,51 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     end
 
     local function create_option(option)
-        local optionFrame = Instance.new("Frame")
-        optionFrame.Size = UDim2.new(1, 0, 0, 30)
-        optionFrame.BackgroundTransparency = 1
-        optionFrame.LayoutOrder = #optionsFrame:GetChildren()
-        optionFrame.Parent = optionsFrame
+        local OptionFrame = Instance.new("Frame")
+        OptionFrame.Size = UDim2.new(1, 0, 0, 30)
+        OptionFrame.BackgroundTransparency = 1
+        OptionFrame.LayoutOrder = #OptionsFrame:GetChildren()
+        OptionFrame.Parent = OptionsFrame
 
-        local optionButton = Instance.new("TextButton")
-        optionButton.Size = UDim2.new(1, -12, 1, -6)
-        optionButton.Position = UDim2.new(0, 6, 0, 3)
-        optionButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
-        optionButton.Text = tostring(option)
-        optionButton.TextColor3 = Theme.Text
-        optionButton.Font = Enum.Font.Gotham
-        optionButton.TextSize = 14
-        optionButton.AutoButtonColor = false
-        optionButton.Parent = optionFrame
-        RoundCorner(4).Parent = optionButton
+        local OptionButton = Instance.new("TextButton")
+        OptionButton.Size = UDim2.new(1, -10, 1, -6)
+        OptionButton.Position = UDim2.new(0, 5, 0, 3)
+        OptionButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        OptionButton.Text = tostring(option)
+        OptionButton.TextColor3 = Theme.Text
+        OptionButton.Font = Enum.Font.Gotham
+        OptionButton.TextSize = 14
+        OptionButton.AutoButtonColor = false
+        OptionButton.Parent = OptionFrame
+        RoundCorner(4).Parent = OptionButton
 
         if multiSelect then
-            local check = Instance.new("Frame")
-            check.Size = UDim2.new(0, 16, 0, 16)
-            check.Position = UDim2.new(1, -22, 0.5, -8)
-            check.BackgroundColor3 = Theme.Accent
-            check.Visible = table.find(selected, option) ~= nil
-            check.BorderSizePixel = 0
-            check.Parent = optionButton
-            RoundCorner(4).Parent = check
+            local Check = Instance.new("Frame")
+            Check.Size = UDim2.new(0, 16, 0, 16)
+            Check.Position = UDim2.new(1, -22, 0.5, -8)
+            Check.BackgroundColor3 = Theme.Accent
+            Check.Visible = table.find(selected, option) ~= nil
+            Check.BorderSizePixel = 0
+            Check.Parent = OptionButton
+            RoundCorner(4).Parent = Check
 
-            local checkIcon = Instance.new("ImageLabel")
-            checkIcon.Size = UDim2.new(0, 12, 0, 12)
-            checkIcon.Position = UDim2.new(0.5, -6, 0.5, -6)
-            checkIcon.BackgroundTransparency = 1
-            checkIcon.Image = "rbxassetid://6031094667"
-            checkIcon.ImageColor3 = Theme.Highlight
-            checkIcon.Parent = check
+            local CheckIcon = Instance.new("ImageLabel")
+            CheckIcon.Size = UDim2.new(0, 12, 0, 12)
+            CheckIcon.Position = UDim2.new(0.5, -6, 0.5, -6)
+            CheckIcon.BackgroundTransparency = 1
+            CheckIcon.Image = "rbxassetid://6031094667"
+            CheckIcon.ImageColor3 = Theme.Highlight
+            CheckIcon.Parent = Check
 
-            optionButton.MouseButton1Click:Connect(function()
+            OptionButton.MouseButton1Click:Connect(function()
                 toggle_option(option)
-                check.Visible = table.find(selected, option) ~= nil
+                Check.Visible = table.find(selected, option) ~= nil
             end)
         else
-            optionButton.BackgroundColor3 = (selected == option) and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(40, 40, 40)
-            optionButton.MouseButton1Click:Connect(function()
+            OptionButton.BackgroundColor3 = (selected == option) and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(40, 40, 40)
+            OptionButton.MouseButton1Click:Connect(function()
                 toggle_option(option)
-                for _, child in ipairs(optionsFrame:GetChildren()) do
+                for _, child in ipairs(OptionsFrame:GetChildren()) do
                     if child:IsA("Frame") then
                         local btn = child:FindFirstChildWhichIsA("TextButton")
                         if btn then
@@ -560,26 +517,26 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             end)
         end
 
-        optionButton.MouseEnter:Connect(function()
-            Tween(optionButton, {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}, 0.1)
+        OptionButton.MouseEnter:Connect(function()
+            Tween(OptionButton, {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}, 0.1)
         end)
 
-        optionButton.MouseLeave:Connect(function()
+        OptionButton.MouseLeave:Connect(function()
             local targetColor = multiSelect and Color3.fromRGB(40, 40, 40) or ((selected == option) and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(40, 40, 40))
-            Tween(optionButton, {BackgroundColor3 = targetColor}, 0.1)
+            Tween(OptionButton, {BackgroundColor3 = targetColor}, 0.1)
         end)
     end
 
     local function toggle_dropdown()
         isOpen = not isOpen
         if isOpen then
-            Tween(arrow, {Rotation = 180}, 0.2)
-            Tween(optionsFrame, {Size = UDim2.new(1, 0, 0, math.min(#options * 30, 180))}, 0.2)
-            Tween(wrapper, {Size = UDim2.new(1, 0, 0, 40 + math.min(#options * 30, 180))}, 0.2)
+            Tween(Arrow, {Rotation = 180}, 0.2)
+            Tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, math.min(#options * 30, 180))}, 0.2)
+            Tween(Frame, {Size = UDim2.new(1, -10, 0, 30 + math.min(#options * 30, 180))}, 0.2)
         else
-            Tween(arrow, {Rotation = 0}, 0.2)
-            Tween(optionsFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.2)
-            Tween(wrapper, {Size = UDim2.new(1, 0, 0, 40)}, 0.2)
+            Tween(Arrow, {Rotation = 0}, 0.2)
+            Tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.2)
+            Tween(Frame, {Size = UDim2.new(1, -10, 0, 30)}, 0.2)
         end
     end
 
@@ -587,7 +544,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         create_option(option)
     end
 
-    bg.InputBegan:Connect(function(input)
+    Frame.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             toggle_dropdown()
         end
@@ -595,7 +552,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
 
     update_value_display()
 
-    self._wrapper = wrapper
+    self.Instance = Frame
     self.IsOpen = function() return isOpen end
     self.Toggle = toggle_dropdown
     self.SetValue = function(value)
@@ -605,8 +562,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             selected = value or options[1]
         end
         update_value_display()
-        -- Update options visuals
-        for _, child in ipairs(optionsFrame:GetChildren()) do
+        for _, child in ipairs(OptionsFrame:GetChildren()) do
             if child:IsA("Frame") then
                 local btn = child:FindFirstChildWhichIsA("TextButton")
                 if btn then
@@ -623,7 +579,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         end
     end
     self.GetValue = function() return selected end
-    
+
     return self
 end
 
@@ -638,11 +594,12 @@ function SectionComponent.new(parent, title)
     local wrapper = Instance.new("Frame")
     wrapper.Size = UDim2.new(1, 0, 0, 30)
     wrapper.BackgroundTransparency = 1
+    wrapper.Position = UDim2.new(0, 0, 0, #parent:GetChildren() * 35)
     wrapper.Parent = parent
 
     local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -24, 1, 0)
-    label.Position = UDim2.new(0, 12, 0, 0)
+    label.Size = UDim2.new(1, -10, 1, 0)
+    label.Position = UDim2.new(0, 5, 0, 0)
     label.BackgroundTransparency = 1
     label.Text = title or "Section"
     label.TextColor3 = Theme.Muted
@@ -652,8 +609,8 @@ function SectionComponent.new(parent, title)
     label.Parent = wrapper
 
     local line = Instance.new("Frame")
-    line.Size = UDim2.new(1, -24, 0, 1)
-    line.Position = UDim2.new(0, 12, 1, -1)
+    line.Size = UDim2.new(1, -10, 0, 1)
+    line.Position = UDim2.new(0, 5, 1, -1)
     line.BackgroundColor3 = Theme.Border
     line.BorderSizePixel = 0
     line.Parent = wrapper
@@ -673,7 +630,7 @@ function NotificationSystem.new(screenGui)
     self.Notifications = {}
     self.Container = Instance.new("Frame")
     self.Container.Size = UDim2.new(0, 300, 1, 0)
-    self.Container.Position = UDim2.new(1, -320, 0, 40)  -- Чуть выше
+    self.Container.Position = UDim2.new(1, -320, 0, 40) -- Чуть выше
     self.Container.BackgroundTransparency = 1
     self.Container.Parent = screenGui
 
@@ -718,9 +675,9 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     icon.BackgroundTransparency = 1
     icon.Image = ({
         Info = "rbxassetid://6031280882",
-        Success = "rbxassetid://6031094667",  -- Галочка
-        Warning = "rbxassetid://6031094687",  -- Восклицательный знак
-        Error = "rbxassetid://6031094688"    -- Крестик
+        Success = "rbxassetid://6031094667", -- Галочка
+        Warning = "rbxassetid://6031094687", -- Восклицательный знак
+        Error = "rbxassetid://6031094688" -- Крестик
     })[notifType] or "rbxassetid://6031280882"
     icon.ImageColor3 = Theme.Text
     icon.Parent = notification
@@ -759,7 +716,6 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     closeButton.TextSize = 18
     closeButton.Parent = notification
 
-    -- Calculate height based on message text
     local textHeight = 0
     if message then
         local size = TextService:GetTextSize(message, 12, Enum.Font.Gotham, Vector2.new(240, 1000))
@@ -769,7 +725,6 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     local totalHeight = math.clamp(52 + textHeight, 60, 120)
     messageLabel.Size = UDim2.new(1, -48, 0, textHeight)
 
-    -- Animation
     Tween(notification, {Size = UDim2.new(1, 0, 0, totalHeight)}, 0.3)
     
     closeButton.MouseButton1Click:Connect(function()
@@ -820,6 +775,7 @@ Window.__index = Window
 
 local function createTab(selfObj, name)
     local layoutOrderCounter = 0
+    local tabComponents = {} -- Локальный список компонентов вкладки
 
     local btnWrap = Instance.new("Frame")
     btnWrap.Size = UDim2.new(1, 0, 0, 40)
@@ -876,7 +832,7 @@ local function createTab(selfObj, name)
     padding.PaddingRight = UDim.new(0, 4)
 
     tabBtn.MouseButton1Click:Connect(function()
-        for k, v in pairs(selfObj.Pages) do 
+        for _, v in pairs(selfObj.Pages) do 
             v.Visible = false 
         end
         page.Visible = true
@@ -897,38 +853,47 @@ local function createTab(selfObj, name)
         page = page,
         pageInner = scrollingFrame,
         layoutOrderCounter = layoutOrderCounter,
-        components = {},  -- To store components for config apply
+        components = tabComponents, -- Привязываем локальный список компонентов
         AddSection = function(_, ttl) 
             layoutOrderCounter = layoutOrderCounter + 1
             local sec = SectionComponent.new(scrollingFrame, ttl)
             sec._wrapper.LayoutOrder = layoutOrderCounter
             return sec 
         end,
-        AddButton = function(_, txt, cb)  -- Buttons don't save in config
+        AddButton = function(_, txt, cb)
             layoutOrderCounter = layoutOrderCounter + 1
             local btn = ButtonComponent.new(scrollingFrame, txt, cb)
-            btn._wrapper.LayoutOrder = layoutOrderCounter
+            btn.Instance.LayoutOrder = layoutOrderCounter
             return btn
         end,
         AddToggle = function(_, txt, def, cb, configKey)
             layoutOrderCounter = layoutOrderCounter + 1
             local tog = ToggleComponent.new(scrollingFrame, txt, def, cb, configKey)
-            tog._wrapper.LayoutOrder = layoutOrderCounter
-            if configKey then table.insert(tabObj.components, {type = "toggle", key = configKey, obj = tog}) end
+            tog.Instance.LayoutOrder = layoutOrderCounter
+            if configKey then
+                table.insert(tabComponents, {type = "toggle", key = configKey, obj = tog})
+                table.insert(selfObj.Components, {type = "toggle", key = configKey, obj = tog})
+            end
             return tog
         end,
         AddSlider = function(_, txt, min, max, def, cb, configKey)
             layoutOrderCounter = layoutOrderCounter + 1
             local slider = SliderComponent.new(scrollingFrame, txt, min, max, def, cb, configKey)
-            slider._wrapper.LayoutOrder = layoutOrderCounter
-            if configKey then table.insert(tabObj.components, {type = "slider", key = configKey, obj = slider}) end
+            slider.Instance.LayoutOrder = layoutOrderCounter
+            if configKey then
+                table.insert(tabComponents, {type = "slider", key = configKey, obj = slider})
+                table.insert(selfObj.Components, {type = "slider", key = configKey, obj = slider})
+            end
             return slider
         end,
         AddDropdown = function(_, txt, options, def, cb, multi, configKey)
             layoutOrderCounter = layoutOrderCounter + 1
             local drop = DropdownComponent.new(scrollingFrame, txt, options, def, cb, multi, configKey)
-            drop._wrapper.LayoutOrder = layoutOrderCounter
-            if configKey then table.insert(tabObj.components, {type = "dropdown", key = configKey, obj = drop}) end
+            drop.Instance.LayoutOrder = layoutOrderCounter
+            if configKey then
+                table.insert(tabComponents, {type = "dropdown", key = configKey, obj = drop})
+                table.insert(selfObj.Components, {type = "dropdown", key = configKey, obj = drop})
+            end
             return drop
         end,
     }
@@ -952,7 +917,7 @@ function Window.new(title)
     selfObj.Pages = {}
     selfObj.ActiveTab = nil
     selfObj.Visible = true
-    selfObj.Components = {}  -- Global components list for config
+    selfObj.Components = {} -- Глобальный список компонентов для конфига
 
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "SugarUILibEnhanced"
@@ -975,7 +940,6 @@ function Window.new(title)
     OuterFrame.BackgroundTransparency = 1
     OuterFrame.Parent = ScreenGui
 
-    -- Тень
     local ShadowFrame = Instance.new("ImageLabel")
     ShadowFrame.Size = UDim2.new(1, 20, 1, 20)
     ShadowFrame.Position = UDim2.new(0, -10, 0, -10)
@@ -997,7 +961,6 @@ function Window.new(title)
 
     AddShadow(Frame, 0.3, 6)
 
-    -- Верхняя панель с заголовком
     local TopBar = Instance.new("Frame")
     TopBar.Size = UDim2.new(1, 0, 0, 48)
     TopBar.BackgroundColor3 = Theme.Panel
@@ -1044,7 +1007,6 @@ function Window.new(title)
         ScreenGui:Destroy() 
     end)
 
-    -- Боковая панель
     local Sidebar = Instance.new("Frame")
     Sidebar.Size = UDim2.new(0, 160, 1, -48)
     Sidebar.Position = UDim2.new(0, 0, 0, 48)
@@ -1067,17 +1029,14 @@ function Window.new(title)
     tabsPadding.PaddingRight = UDim.new(0, 8)
     tabsPadding.PaddingBottom = UDim.new(0, 16)
 
-    -- Контейнер страниц
     local PagesHolder = Instance.new("Frame")
     PagesHolder.Size = UDim2.new(1, -160, 1, -48)
     PagesHolder.Position = UDim2.new(0, 160, 0, 48)
     PagesHolder.BackgroundTransparency = 1
     PagesHolder.Parent = Frame
 
-    -- Система уведомлений
     local Notifications = NotificationSystem.new(ScreenGui)
 
-    -- Перетаскивание окна только за TopBar
     local dragging = false
     local dragInput, mousePos, framePos
     
@@ -1105,11 +1064,10 @@ function Window.new(title)
                 framePos.X.Scale, framePos.X.Offset + delta.X,
                 framePos.Y.Scale, framePos.Y.Offset + delta.Y
             )
-            Tween(OuterFrame, {Position = newPos}, 0.05, Enum.EasingStyle.Linear)  -- Плавное перемещение
+            Tween(OuterFrame, {Position = newPos}, 0.05, Enum.EasingStyle.Linear)
         end
     end)
 
-    -- Ресайз за правый нижний угол
     local resizeBtn = Instance.new("Frame")
     resizeBtn.Size = UDim2.new(0, 20, 0, 20)
     resizeBtn.Position = UDim2.new(1, 0, 1, 0)
@@ -1143,7 +1101,6 @@ function Window.new(title)
         end
     end)
 
-    -- Обработка горячих клавиш
     local toggleConnection
     local function setupToggleKey(key)
         if toggleConnection then
@@ -1170,9 +1127,6 @@ function Window.new(title)
 
     function selfObj:AddTab(name) 
         local tab = createTab(selfObj, name)
-        for _, comp in ipairs(tab.components) do
-            table.insert(selfObj.Components, comp)
-        end
         return tab 
     end
     
@@ -1192,6 +1146,7 @@ function Window.new(title)
     function selfObj:SetToggleKey(key)
         Config.ToggleKey = key
         setupToggleKey(key)
+        UILib.CurrentConfig["ToggleKey"] = tostring(key)
     end
     
     function selfObj:Notify(title, message, duration, type)
