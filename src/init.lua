@@ -250,7 +250,11 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
     UILib.RoundCorner(3).Parent = Track
 
     local Fill = Instance.new("Frame")
-    Fill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
+    local initialFill = 0
+    if max - min ~= 0 then
+        initialFill = (value - min) / (max - min)
+    end
+    Fill.Size = UDim2.new(initialFill, 0, 1, 0)
     Fill.BackgroundColor3 = UILib.Theme.Accent
     Fill.BorderSizePixel = 0
     Fill.Parent = Track
@@ -259,10 +263,15 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
     local dragging = false
 
     local function set_value(newValue, fire)
+        newValue = tonumber(newValue) or newValue
+        if type(newValue) ~= "number" then return end
         newValue = math.clamp(newValue, min, max)
         value = newValue
         ValueLabel.Text = tostring(math.floor(value))
-        local fillSize = (value - min) / (max - min)
+        local fillSize = 0
+        if max - min ~= 0 then
+            fillSize = (value - min) / (max - min)
+        end
         UILib.Tween(Fill, {Size = UDim2.new(fillSize, 0, 1, 0)}, 0.1)
         if fire and callback then
             pcall(callback, value)
@@ -326,7 +335,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     Frame.Size = UDim2.new(1, -10, 0, 30)
     Frame.BackgroundColor3 = UILib.Theme.Button
     Frame.BackgroundTransparency = 0
-    Frame.ClipsDescendants = true
+    Frame.ClipsDescendants = false -- позволяем опциям выходить за границы коробки
     Frame.Parent = parent
     UILib.RoundCorner(6).Parent = Frame
 
@@ -427,7 +436,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             end
         else
             selected = option
-            self:Toggle()  -- Закрываем для single select
+            self.Toggle(self) -- закрываем для single select. вызываем через dot чтобы self правильно использовался
         end
         update_value_display()
         if callback then
@@ -560,7 +569,8 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
                 for _, obj in ipairs(optionObjects) do
                     if obj.check then
                         obj.check.BackgroundColor3 = UILib.Theme.Accent
-                        obj.check:FindFirstChild("ImageLabel").Visible = true
+                        local img = obj.check:FindFirstChildWhichIsA("ImageLabel")
+                        if img then img.Visible = true end
                     end
                 end
             end)
@@ -571,7 +581,8 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
                 for _, obj in ipairs(optionObjects) do
                     if obj.check then
                         obj.check.BackgroundColor3 = UILib.Theme.Panel
-                        obj.check:FindFirstChild("ImageLabel").Visible = false
+                        local img = obj.check:FindFirstChildWhichIsA("ImageLabel")
+                        if img then img.Visible = false end
                     end
                 end
             end)
@@ -614,7 +625,8 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         for _, obj in ipairs(optionObjects) do
             if obj.check then
                 obj.check.BackgroundColor3 = table.find(selected, obj.btn.Text) and UILib.Theme.Accent or UILib.Theme.Panel
-                obj.check:FindFirstChild("ImageLabel").Visible = table.find(selected, obj.btn.Text) ~= nil
+                local img = obj.check:FindFirstChildWhichIsA("ImageLabel")
+                if img then img.Visible = table.find(selected, obj.btn.Text) ~= nil end
             else
                 UILib.Tween(obj.btn, {BackgroundColor3 = (selected == obj.btn.Text) and UILib.Theme.AccentSoft or UILib.Theme.Panel}, 0.1)
             end
@@ -642,7 +654,8 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         for _, obj in ipairs(optionObjects) do
             if obj.check then
                 obj.check.BackgroundColor3 = table.find(selected, obj.btn.Text) and UILib.Theme.Accent or UILib.Theme.Panel
-                obj.check:FindFirstChild("ImageLabel").Visible = table.find(selected, obj.btn.Text) ~= nil
+                local img = obj.check:FindFirstChildWhichIsA("ImageLabel")
+                if img then img.Visible = table.find(selected, obj.btn.Text) ~= nil end
             else
                 UILib.Tween(obj.btn, {BackgroundColor3 = (selected == obj.btn.Text) and UILib.Theme.AccentSoft or UILib.Theme.Panel}, 0.1)
             end
@@ -1305,16 +1318,27 @@ function Window.new(title)
         return Notifications:Notify(title, message, duration, type)
     end
 
+    -- Исправленная логика применения конфигурации:
     function selfObj:ApplyConfig(config)
+        if not config or type(config) ~= "table" then return end
         for _, comp in ipairs(selfObj.Components) do
             local val = config[comp.key]
             if val ~= nil then
                 if comp.type == "toggle" then
-                    comp.obj:Set(val, false)
+                    -- Set ожидает (newState, fire)
+                    if type(comp.obj.Set) == "function" then
+                        comp.obj.Set(val, false)
+                    end
                 elseif comp.type == "slider" then
-                    comp.obj:SetValue(val, false)
+                    -- SetValue ожидает (newValue, fire)
+                    if type(comp.obj.SetValue) == "function" then
+                        local num = tonumber(val) or val
+                        comp.obj.SetValue(num, false)
+                    end
                 elseif comp.type == "dropdown" then
-                    comp.obj:SetValue(val)
+                    if type(comp.obj.SetValue) == "function" then
+                        comp.obj.SetValue(val)
+                    end
                 end
             end
         end
