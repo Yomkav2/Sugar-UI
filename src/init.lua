@@ -12,7 +12,7 @@ local TextService = game:GetService("TextService")
 -- ======================
 -- Расширенная тема
 -- ======================
-local Theme = {
+UILib.Theme = {
     Background = Color3.fromRGB(20, 20, 20),
     Panel = Color3.fromRGB(30, 30, 30),
     Accent = Color3.fromRGB(100, 181, 246),
@@ -31,6 +31,39 @@ local Theme = {
     Button = Color3.fromRGB(30, 30, 30),
     ButtonHover = Color3.fromRGB(50, 50, 50),
 }
+
+-- ======================
+-- Вспомогательные функции
+-- ======================
+function UILib.RoundCorner(cornerRadius)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, cornerRadius or 6)
+    return corner
+end
+
+function UILib.Tween(instance, props, duration, style, dir)
+    style = style or Enum.EasingStyle.Sine
+    dir = dir or Enum.EasingDirection.InOut
+    local tweenInfo = TweenInfo.new(duration or 0.2, style, dir)
+    local tween = TweenService:Create(instance, tweenInfo, props)
+    tween:Play()
+    return tween
+end
+
+function UILib.AddShadow(frame, transparency, size)
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "Shadow"
+    shadow.Size = UDim2.new(1, size or 10, 1, size or 10)
+    shadow.Position = UDim2.new(0, -(size or 10)/2, 0, -(size or 10)/2)
+    shadow.BackgroundTransparency = 1
+    shadow.Image = "rbxassetid://5554236805"
+    shadow.ImageColor3 = UILib.Theme.Shadow
+    shadow.ImageTransparency = transparency or 0.8
+    shadow.ScaleType = Enum.ScaleType.Slice
+    shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+    shadow.Parent = frame
+    return shadow
+end
 
 -- ======================
 -- Конфигурация и сохранение настроек
@@ -90,39 +123,6 @@ local function GetConfigList()
 end
 
 -- ======================
--- Вспомогательные функции
--- ======================
-local function Tween(instance, props, duration, style, dir)
-    style = style or Enum.EasingStyle.Sine
-    dir = dir or Enum.EasingDirection.InOut
-    local tweenInfo = TweenInfo.new(duration or 0.2, style, dir)
-    local tween = TweenService:Create(instance, tweenInfo, props)
-    tween:Play()
-    return tween
-end
-
-local function AddShadow(frame, transparency, size)
-    local shadow = Instance.new("ImageLabel")
-    shadow.Name = "Shadow"
-    shadow.Size = UDim2.new(1, size or 10, 1, size or 10)
-    shadow.Position = UDim2.new(0, -(size or 10)/2, 0, -(size or 10)/2)
-    shadow.BackgroundTransparency = 1
-    shadow.Image = "rbxassetid://5554236805"
-    shadow.ImageColor3 = Theme.Shadow
-    shadow.ImageTransparency = transparency or 0.8
-    shadow.ScaleType = Enum.ScaleType.Slice
-    shadow.SliceCenter = Rect.new(10, 10, 118, 118)
-    shadow.Parent = frame
-    return shadow
-end
-
-local function RoundCorner(cornerRadius)
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, cornerRadius or 6)
-    return corner
-end
-
--- ======================
 -- Компонент кнопки
 -- ======================
 local ButtonComponent = {}
@@ -134,26 +134,26 @@ function ButtonComponent.new(parent, text, callback)
     local Btn = Instance.new("TextButton")
     Btn.Size = UDim2.new(1, -10, 0, 30)
     Btn.Position = UDim2.new(0, 5, 0, #parent:GetChildren() * 35)
-    Btn.BackgroundColor3 = Theme.Button
+    Btn.BackgroundColor3 = UILib.Theme.Button
     Btn.Text = text or "Button"
-    Btn.TextColor3 = Theme.Text
+    Btn.TextColor3 = UILib.Theme.Text
     Btn.Font = Enum.Font.Gotham
     Btn.TextSize = 14
     Btn.AutoButtonColor = false
     Btn.Parent = parent
-    RoundCorner(6).Parent = Btn
+    UILib.RoundCorner(6).Parent = Btn
 
     local stroke = Instance.new("UIStroke", Btn)
-    stroke.Color = Theme.Border
+    stroke.Color = UILib.Theme.Border
     stroke.Transparency = 0.8
     stroke.Thickness = 1
 
     Btn.MouseEnter:Connect(function()
-        Tween(Btn, {BackgroundColor3 = Theme.ButtonHover}, 0.2)
+        UILib.Tween(Btn, {BackgroundColor3 = UILib.Theme.ButtonHover}, 0.2)
     end)
 
     Btn.MouseLeave:Connect(function()
-        Tween(Btn, {BackgroundColor3 = Theme.Button}, 0.2)
+        UILib.Tween(Btn, {BackgroundColor3 = UILib.Theme.Button}, 0.2)
     end)
 
     Btn.MouseButton1Click:Connect(function()
@@ -161,13 +161,13 @@ function ButtonComponent.new(parent, text, callback)
             local ripple = Instance.new("Frame")
             ripple.Size = UDim2.new(0, 0, 0, 0)
             ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
-            ripple.BackgroundColor3 = Theme.Highlight
+            ripple.BackgroundColor3 = UILib.Theme.Highlight
             ripple.BackgroundTransparency = 0.7
             ripple.AnchorPoint = Vector2.new(0.5, 0.5)
             ripple.Parent = Btn
-            RoundCorner(100).Parent = ripple
+            UILib.RoundCorner(100).Parent = ripple
             
-            Tween(ripple, {Size = UDim2.new(2, 0, 2, 0), BackgroundTransparency = 1}, 0.4, Enum.EasingStyle.Quad)
+            UILib.Tween(ripple, {Size = UDim2.new(2, 0, 2, 0), BackgroundTransparency = 1}, 0.4, Enum.EasingStyle.Quad)
             task.delay(0.4, function() ripple:Destroy() end)
 
             pcall(callback)
@@ -191,12 +191,12 @@ function ToggleComponent.new(parent, text, default, callback, configKey)
     local Frame = Instance.new("Frame")
     Frame.Size = UDim2.new(1, -10, 0, 30)
     Frame.Position = UDim2.new(0, 5, 0, #parent:GetChildren() * 35)
-    Frame.BackgroundColor3 = Theme.Toggle
+    Frame.BackgroundColor3 = UILib.Theme.Toggle
     Frame.Parent = parent
-    RoundCorner(6).Parent = Frame
+    UILib.RoundCorner(6).Parent = Frame
 
     local stroke = Instance.new("UIStroke", Frame)
-    stroke.Color = Theme.Border
+    stroke.Color = UILib.Theme.Border
     stroke.Transparency = 0.8
     stroke.Thickness = 1
 
@@ -204,7 +204,7 @@ function ToggleComponent.new(parent, text, default, callback, configKey)
     Label.Size = UDim2.new(0.8, 0, 1, 0)
     Label.BackgroundTransparency = 1
     Label.Text = text or "Toggle"
-    Label.TextColor3 = Theme.Text
+    Label.TextColor3 = UILib.Theme.Text
     Label.Font = Enum.Font.Gotham
     Label.TextSize = 14
     Label.TextXAlignment = Enum.TextXAlignment.Left
@@ -213,17 +213,17 @@ function ToggleComponent.new(parent, text, default, callback, configKey)
     local Box = Instance.new("Frame")
     Box.Size = UDim2.new(0, 20, 0, 20)
     Box.Position = UDim2.new(0.9, 0, 0.5, -10)
-    Box.BackgroundColor3 = self.State and Theme.Accent or Theme.ToggleBox
+    Box.BackgroundColor3 = self.State and UILib.Theme.Accent or UILib.Theme.ToggleBox
     Box.Parent = Frame
-    RoundCorner(10).Parent = Box
+    UILib.RoundCorner(10).Parent = Box
 
-    AddShadow(Box, 0.5, 4)
+    UILib.AddShadow(Box, 0.5, 4)
 
     Frame.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             self.State = not self.State
-            Tween(Box, {
-                BackgroundColor3 = self.State and Theme.Accent or Theme.ToggleBox
+            UILib.Tween(Box, {
+                BackgroundColor3 = self.State and UILib.Theme.Accent or UILib.Theme.ToggleBox
             }, 0.2)
             if callback then
                 pcall(callback, self.State)
@@ -237,8 +237,8 @@ function ToggleComponent.new(parent, text, default, callback, configKey)
     self.Instance = Frame
     self.Set = function(newState, fire)
         self.State = not not newState
-        Tween(Box, {
-            BackgroundColor3 = self.State and Theme.Accent or Theme.ToggleBox
+        UILib.Tween(Box, {
+            BackgroundColor3 = self.State and UILib.Theme.Accent or UILib.Theme.ToggleBox
         }, 0.2)
         if fire and callback then
             pcall(callback, self.State)
@@ -267,12 +267,12 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
     local Frame = Instance.new("Frame")
     Frame.Size = UDim2.new(1, -10, 0, 50)
     Frame.Position = UDim2.new(0, 5, 0, #parent:GetChildren() * 35)
-    Frame.BackgroundColor3 = Theme.Panel
+    Frame.BackgroundColor3 = UILib.Theme.Panel
     Frame.Parent = parent
-    RoundCorner(6).Parent = Frame
+    UILib.RoundCorner(6).Parent = Frame
 
     local stroke = Instance.new("UIStroke", Frame)
-    stroke.Color = Theme.Border
+    stroke.Color = UILib.Theme.Border
     stroke.Transparency = 0.8
     stroke.Thickness = 1
 
@@ -281,7 +281,7 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
     Label.Position = UDim2.new(0, 5, 0, 5)
     Label.BackgroundTransparency = 1
     Label.Text = text or "Slider"
-    Label.TextColor3 = Theme.Text
+    Label.TextColor3 = UILib.Theme.Text
     Label.Font = Enum.Font.Gotham
     Label.TextSize = 14
     Label.TextXAlignment = Enum.TextXAlignment.Left
@@ -292,7 +292,7 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
     ValueLabel.Position = UDim2.new(0.8, 0, 0, 5)
     ValueLabel.BackgroundTransparency = 1
     ValueLabel.Text = tostring(math.floor(value))
-    ValueLabel.TextColor3 = Theme.Muted
+    ValueLabel.TextColor3 = UILib.Theme.Muted
     ValueLabel.Font = Enum.Font.GothamMedium
     ValueLabel.TextSize = 14
     ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
@@ -304,14 +304,14 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
     Track.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
     Track.BorderSizePixel = 0
     Track.Parent = Frame
-    RoundCorner(3).Parent = Track
+    UILib.RoundCorner(3).Parent = Track
 
     local Fill = Instance.new("Frame")
     Fill.Size = UDim2.new((value - min) / (max - min), 0, 1, 0)
-    Fill.BackgroundColor3 = Theme.Accent
+    Fill.BackgroundColor3 = UILib.Theme.Accent
     Fill.BorderSizePixel = 0
     Fill.Parent = Track
-    RoundCorner(3).Parent = Fill
+    UILib.RoundCorner(3).Parent = Fill
 
     local dragging = false
 
@@ -320,7 +320,7 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
         value = newValue
         ValueLabel.Text = tostring(math.floor(value))
         local fillSize = (value - min) / (max - min)
-        Tween(Fill, {Size = UDim2.new(fillSize, 0, 1, 0)}, 0.1)
+        UILib.Tween(Fill, {Size = UDim2.new(fillSize, 0, 1, 0)}, 0.1)
         if fire and callback then
             pcall(callback, value)
         end
@@ -376,13 +376,13 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     local Frame = Instance.new("Frame")
     Frame.Size = UDim2.new(1, -10, 0, 30)
     Frame.Position = UDim2.new(0, 5, 0, #parent:GetChildren() * 35)
-    Frame.BackgroundColor3 = Theme.Panel
+    Frame.BackgroundColor3 = UILib.Theme.Panel
     Frame.ClipsDescendants = true
     Frame.Parent = parent
-    RoundCorner(6).Parent = Frame
+    UILib.RoundCorner(6).Parent = Frame
 
     local stroke = Instance.new("UIStroke", Frame)
-    stroke.Color = Theme.Border
+    stroke.Color = UILib.Theme.Border
     stroke.Transparency = 0.8
     stroke.Thickness = 1
 
@@ -390,7 +390,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     Label.Size = UDim2.new(0.7, 0, 1, 0)
     Label.BackgroundTransparency = 1
     Label.Text = text or "Dropdown"
-    Label.TextColor3 = Theme.Text
+    Label.TextColor3 = UILib.Theme.Text
     Label.Font = Enum.Font.Gotham
     Label.TextSize = 14
     Label.TextXAlignment = Enum.TextXAlignment.Left
@@ -401,7 +401,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     Arrow.Position = UDim2.new(1, -20, 0.5, -8)
     Arrow.BackgroundTransparency = 1
     Arrow.Image = "rbxassetid://6031094678"
-    Arrow.ImageColor3 = Theme.Muted
+    Arrow.ImageColor3 = UILib.Theme.Muted
     Arrow.Rotation = 0
     Arrow.Parent = Frame
 
@@ -410,7 +410,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     ValueLabel.Position = UDim2.new(0.75, -5, 0, 0)
     ValueLabel.BackgroundTransparency = 1
     ValueLabel.Text = multiSelect and "Multiple" or tostring(selected)
-    ValueLabel.TextColor3 = Theme.Muted
+    ValueLabel.TextColor3 = UILib.Theme.Muted
     ValueLabel.Font = Enum.Font.GothamMedium
     ValueLabel.TextSize = 14
     ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
@@ -419,11 +419,11 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     local OptionsFrame = Instance.new("Frame")
     OptionsFrame.Size = UDim2.new(1, 0, 0, 0)
     OptionsFrame.Position = UDim2.new(0, 0, 0, 30)
-    OptionsFrame.BackgroundColor3 = Theme.Panel
+    OptionsFrame.BackgroundColor3 = UILib.Theme.Panel
     OptionsFrame.BorderSizePixel = 0
     OptionsFrame.ClipsDescendants = true
     OptionsFrame.Parent = Frame
-    RoundCorner(6).Parent = OptionsFrame
+    UILib.RoundCorner(6).Parent = OptionsFrame
 
     local optionsList = Instance.new("UIListLayout", OptionsFrame)
     optionsList.SortOrder = Enum.SortOrder.LayoutOrder
@@ -447,7 +447,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             end
         else
             selected = option
-            toggle_dropdown()
+            self:Toggle()
         end
         
         update_value_display()
@@ -473,29 +473,29 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         OptionButton.Position = UDim2.new(0, 5, 0, 3)
         OptionButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
         OptionButton.Text = tostring(option)
-        OptionButton.TextColor3 = Theme.Text
+        OptionButton.TextColor3 = UILib.Theme.Text
         OptionButton.Font = Enum.Font.Gotham
         OptionButton.TextSize = 14
         OptionButton.AutoButtonColor = false
         OptionButton.Parent = OptionFrame
-        RoundCorner(4).Parent = OptionButton
+        UILib.RoundCorner(4).Parent = OptionButton
 
         if multiSelect then
             local Check = Instance.new("Frame")
             Check.Size = UDim2.new(0, 16, 0, 16)
             Check.Position = UDim2.new(1, -22, 0.5, -8)
-            Check.BackgroundColor3 = Theme.Accent
+            Check.BackgroundColor3 = UILib.Theme.Accent
             Check.Visible = table.find(selected, option) ~= nil
             Check.BorderSizePixel = 0
             Check.Parent = OptionButton
-            RoundCorner(4).Parent = Check
+            UILib.RoundCorner(4).Parent = Check
 
             local CheckIcon = Instance.new("ImageLabel")
             CheckIcon.Size = UDim2.new(0, 12, 0, 12)
             CheckIcon.Position = UDim2.new(0.5, -6, 0.5, -6)
             CheckIcon.BackgroundTransparency = 1
             CheckIcon.Image = "rbxassetid://6031094667"
-            CheckIcon.ImageColor3 = Theme.Highlight
+            CheckIcon.ImageColor3 = UILib.Theme.Highlight
             CheckIcon.Parent = Check
 
             OptionButton.MouseButton1Click:Connect(function()
@@ -510,7 +510,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
                     if child:IsA("Frame") then
                         local btn = child:FindFirstChildWhichIsA("TextButton")
                         if btn then
-                            Tween(btn, {BackgroundColor3 = (selected == btn.Text) and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(40, 40, 40)}, 0.1)
+                            UILib.Tween(btn, {BackgroundColor3 = (selected == btn.Text) and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(40, 40, 40)}, 0.1)
                         end
                     end
                 end
@@ -518,25 +518,25 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         end
 
         OptionButton.MouseEnter:Connect(function()
-            Tween(OptionButton, {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}, 0.1)
+            UILib.Tween(OptionButton, {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}, 0.1)
         end)
 
         OptionButton.MouseLeave:Connect(function()
             local targetColor = multiSelect and Color3.fromRGB(40, 40, 40) or ((selected == option) and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(40, 40, 40))
-            Tween(OptionButton, {BackgroundColor3 = targetColor}, 0.1)
+            UILib.Tween(OptionButton, {BackgroundColor3 = targetColor}, 0.1)
         end)
     end
 
-    local function toggle_dropdown()
+    function self:Toggle()
         isOpen = not isOpen
         if isOpen then
-            Tween(Arrow, {Rotation = 180}, 0.2)
-            Tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, math.min(#options * 30, 180))}, 0.2)
-            Tween(Frame, {Size = UDim2.new(1, -10, 0, 30 + math.min(#options * 30, 180))}, 0.2)
+            UILib.Tween(Arrow, {Rotation = 180}, 0.2)
+            UILib.Tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, math.min(#options * 30, 180))}, 0.2)
+            UILib.Tween(Frame, {Size = UDim2.new(1, -10, 0, 30 + math.min(#options * 30, 180))}, 0.2)
         else
-            Tween(Arrow, {Rotation = 0}, 0.2)
-            Tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.2)
-            Tween(Frame, {Size = UDim2.new(1, -10, 0, 30)}, 0.2)
+            UILib.Tween(Arrow, {Rotation = 0}, 0.2)
+            UILib.Tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.2)
+            UILib.Tween(Frame, {Size = UDim2.new(1, -10, 0, 30)}, 0.2)
         end
     end
 
@@ -546,7 +546,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
 
     Frame.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            toggle_dropdown()
+            self:Toggle()
         end
     end)
 
@@ -554,7 +554,6 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
 
     self.Instance = Frame
     self.IsOpen = function() return isOpen end
-    self.Toggle = toggle_dropdown
     self.SetValue = function(value)
         if multiSelect then
             selected = value or {}
@@ -572,7 +571,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
                             check.Visible = table.find(selected, btn.Text) ~= nil
                         end
                     else
-                        Tween(btn, {BackgroundColor3 = (selected == btn.Text) and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(40, 40, 40)}, 0.1)
+                        UILib.Tween(btn, {BackgroundColor3 = (selected == btn.Text) and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(40, 40, 40)}, 0.1)
                     end
                 end
             end
@@ -602,7 +601,7 @@ function SectionComponent.new(parent, title)
     label.Position = UDim2.new(0, 5, 0, 0)
     label.BackgroundTransparency = 1
     label.Text = title or "Section"
-    label.TextColor3 = Theme.Muted
+    label.TextColor3 = UILib.Theme.Muted
     label.Font = Enum.Font.GothamBold
     label.TextSize = 12
     label.TextXAlignment = Enum.TextXAlignment.Left
@@ -611,7 +610,7 @@ function SectionComponent.new(parent, title)
     local line = Instance.new("Frame")
     line.Size = UDim2.new(1, -10, 0, 1)
     line.Position = UDim2.new(0, 5, 1, -1)
-    line.BackgroundColor3 = Theme.Border
+    line.BackgroundColor3 = UILib.Theme.Border
     line.BorderSizePixel = 0
     line.Parent = wrapper
 
@@ -630,7 +629,7 @@ function NotificationSystem.new(screenGui)
     self.Notifications = {}
     self.Container = Instance.new("Frame")
     self.Container.Size = UDim2.new(0, 300, 1, 0)
-    self.Container.Position = UDim2.new(1, -320, 0, 40) -- Чуть выше
+    self.Container.Position = UDim2.new(1, -320, 0, 40)
     self.Container.BackgroundTransparency = 1
     self.Container.Parent = screenGui
 
@@ -649,23 +648,23 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     
     local notification = Instance.new("Frame")
     notification.Size = UDim2.new(1, 0, 0, 0)
-    notification.BackgroundColor3 = Theme.Panel
+    notification.BackgroundColor3 = UILib.Theme.Panel
     notification.BorderSizePixel = 0
     notification.ClipsDescendants = true
     notification.LayoutOrder = #self.Container:GetChildren()
     notification.Parent = self.Container
-    RoundCorner(6).Parent = notification
+    UILib.RoundCorner(6).Parent = notification
 
-    AddShadow(notification, 0.3, 8)
+    UILib.AddShadow(notification, 0.3, 8)
 
     local accent = Instance.new("Frame")
     accent.Size = UDim2.new(0, 4, 1, 0)
     accent.BackgroundColor3 = ({
-        Info = Theme.Accent,
-        Success = Theme.Success,
-        Warning = Theme.Warning,
-        Error = Theme.Error
-    })[notifType] or Theme.Accent
+        Info = UILib.Theme.Accent,
+        Success = UILib.Theme.Success,
+        Warning = UILib.Theme.Warning,
+        Error = UILib.Theme.Error
+    })[notifType] or UILib.Theme.Accent
     accent.BorderSizePixel = 0
     accent.Parent = notification
 
@@ -675,11 +674,11 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     icon.BackgroundTransparency = 1
     icon.Image = ({
         Info = "rbxassetid://6031280882",
-        Success = "rbxassetid://6031094667", -- Галочка
-        Warning = "rbxassetid://6031094687", -- Восклицательный знак
-        Error = "rbxassetid://6031094688" -- Крестик
+        Success = "rbxassetid://6031094667",
+        Warning = "rbxassetid://6031094687",
+        Error = "rbxassetid://6031094688"
     })[notifType] or "rbxassetid://6031280882"
-    icon.ImageColor3 = Theme.Text
+    icon.ImageColor3 = UILib.Theme.Text
     icon.Parent = notification
 
     local titleLabel = Instance.new("TextLabel")
@@ -687,7 +686,7 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     titleLabel.Position = UDim2.new(0, 44, 0, 12)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Text = title or "Notification"
-    titleLabel.TextColor3 = Theme.Text
+    titleLabel.TextColor3 = UILib.Theme.Text
     titleLabel.Font = Enum.Font.GothamBold
     titleLabel.TextSize = 14
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -698,7 +697,7 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     messageLabel.Position = UDim2.new(0, 44, 0, 32)
     messageLabel.BackgroundTransparency = 1
     messageLabel.Text = message or ""
-    messageLabel.TextColor3 = Theme.Muted
+    messageLabel.TextColor3 = UILib.Theme.Muted
     messageLabel.Font = Enum.Font.Gotham
     messageLabel.TextSize = 12
     messageLabel.TextXAlignment = Enum.TextXAlignment.Left
@@ -711,7 +710,7 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     closeButton.Position = UDim2.new(1, -32, 0, 8)
     closeButton.BackgroundTransparency = 1
     closeButton.Text = "×"
-    closeButton.TextColor3 = Theme.Muted
+    closeButton.TextColor3 = UILib.Theme.Muted
     closeButton.Font = Enum.Font.GothamBold
     closeButton.TextSize = 18
     closeButton.Parent = notification
@@ -725,18 +724,18 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     local totalHeight = math.clamp(52 + textHeight, 60, 120)
     messageLabel.Size = UDim2.new(1, -48, 0, textHeight)
 
-    Tween(notification, {Size = UDim2.new(1, 0, 0, totalHeight)}, 0.3)
+    UILib.Tween(notification, {Size = UDim2.new(1, 0, 0, totalHeight)}, 0.3)
     
     closeButton.MouseButton1Click:Connect(function()
         self:Remove(notification)
     end)
     
     closeButton.MouseEnter:Connect(function()
-        Tween(closeButton, {TextColor3 = Theme.Text}, 0.1)
+        UILib.Tween(closeButton, {TextColor3 = UILib.Theme.Text}, 0.1)
     end)
     
     closeButton.MouseLeave:Connect(function()
-        Tween(closeButton, {TextColor3 = Theme.Muted}, 0.1)
+        UILib.Tween(closeButton, {TextColor3 = UILib.Theme.Muted}, 0.1)
     end)
     
     if duration > 0 then
@@ -752,7 +751,7 @@ function NotificationSystem:Notify(title, message, duration, notifType)
 end
 
 function NotificationSystem:Remove(notification)
-    Tween(notification, {Size = UDim2.new(1, 0, 0, 0)}, 0.3)
+    UILib.Tween(notification, {Size = UDim2.new(1, 0, 0, 0)}, 0.3)
     task.delay(0.3, function()
         if notification.Parent then
             notification:Destroy()
@@ -775,7 +774,7 @@ Window.__index = Window
 
 local function createTab(selfObj, name)
     local layoutOrderCounter = 0
-    local tabComponents = {} -- Локальный список компонентов вкладки
+    local tabComponents = {}
 
     local btnWrap = Instance.new("Frame")
     btnWrap.Size = UDim2.new(1, 0, 0, 40)
@@ -789,7 +788,7 @@ local function createTab(selfObj, name)
     tabBtn.BackgroundTransparency = 1
     tabBtn.Text = name
     tabBtn.Font = Enum.Font.GothamMedium
-    tabBtn.TextColor3 = Theme.Muted
+    tabBtn.TextColor3 = UILib.Theme.Muted
     tabBtn.TextSize = 14
     tabBtn.AutoButtonColor = false
     tabBtn.TextXAlignment = Enum.TextXAlignment.Left
@@ -798,11 +797,11 @@ local function createTab(selfObj, name)
     local indicator = Instance.new("Frame")
     indicator.Size = UDim2.new(0, 3, 1, 0)
     indicator.Position = UDim2.new(0, -6, 0, 0)
-    indicator.BackgroundColor3 = Theme.Accent
+    indicator.BackgroundColor3 = UILib.Theme.Accent
     indicator.Visible = false
     indicator.BorderSizePixel = 0
     indicator.Parent = tabBtn
-    RoundCorner(1.5).Parent = indicator
+    UILib.RoundCorner(1.5).Parent = indicator
 
     local page = Instance.new("Frame")
     page.Size = UDim2.new(1, 0, 1, 0)
@@ -817,7 +816,7 @@ local function createTab(selfObj, name)
     scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
     scrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
     scrollingFrame.ScrollBarThickness = 4
-    scrollingFrame.ScrollBarImageColor3 = Theme.Border
+    scrollingFrame.ScrollBarImageColor3 = UILib.Theme.Border
     scrollingFrame.ScrollBarImageTransparency = 0.5
     scrollingFrame.Parent = page
 
@@ -839,7 +838,7 @@ local function createTab(selfObj, name)
         
         for _, t in ipairs(selfObj.Tabs) do
             t.indicator.Visible = (t.name == name)
-            Tween(t.button, {TextColor3 = (t.name == name) and Theme.Text or Theme.Muted}, 0.15)
+            UILib.Tween(t.button, {TextColor3 = (t.name == name) and UILib.Theme.Text or UILib.Theme.Muted}, 0.15)
         end
         
         selfObj.ActiveTab = name
@@ -853,7 +852,7 @@ local function createTab(selfObj, name)
         page = page,
         pageInner = scrollingFrame,
         layoutOrderCounter = layoutOrderCounter,
-        components = tabComponents, -- Привязываем локальный список компонентов
+        components = tabComponents,
         AddSection = function(_, ttl) 
             layoutOrderCounter = layoutOrderCounter + 1
             local sec = SectionComponent.new(scrollingFrame, ttl)
@@ -902,7 +901,7 @@ local function createTab(selfObj, name)
     selfObj.Pages[name] = page
 
     if not selfObj.ActiveTab then
-        tabBtn.TextColor3 = Theme.Text
+        tabBtn.TextColor3 = UILib.Theme.Text
         indicator.Visible = true
         page.Visible = true
         selfObj.ActiveTab = name
@@ -917,7 +916,7 @@ function Window.new(title)
     selfObj.Pages = {}
     selfObj.ActiveTab = nil
     selfObj.Visible = true
-    selfObj.Components = {} -- Глобальный список компонентов для конфига
+    selfObj.Components = {}
 
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "SugarUILibEnhanced"
@@ -945,7 +944,7 @@ function Window.new(title)
     ShadowFrame.Position = UDim2.new(0, -10, 0, -10)
     ShadowFrame.BackgroundTransparency = 1
     ShadowFrame.Image = "rbxassetid://5554236805"
-    ShadowFrame.ImageColor3 = Theme.Shadow
+    ShadowFrame.ImageColor3 = UILib.Theme.Shadow
     ShadowFrame.ImageTransparency = 0.7
     ShadowFrame.ScaleType = Enum.ScaleType.Slice
     ShadowFrame.SliceCenter = Rect.new(10, 10, 118, 118)
@@ -953,22 +952,22 @@ function Window.new(title)
 
     local Frame = Instance.new("Frame")
     Frame.Size = UDim2.new(1, 0, 1, 0)
-    Frame.BackgroundColor3 = Theme.Background
+    Frame.BackgroundColor3 = UILib.Theme.Background
     Frame.BorderSizePixel = 0
     Frame.ClipsDescendants = true
     Frame.Parent = OuterFrame
-    RoundCorner(8).Parent = Frame
+    UILib.RoundCorner(8).Parent = Frame
 
-    AddShadow(Frame, 0.3, 6)
+    UILib.AddShadow(Frame, 0.3, 6)
 
     local TopBar = Instance.new("Frame")
     TopBar.Size = UDim2.new(1, 0, 0, 48)
-    TopBar.BackgroundColor3 = Theme.Panel
+    TopBar.BackgroundColor3 = UILib.Theme.Panel
     TopBar.Parent = Frame
-    RoundCorner(8, 8, 0, 0).Parent = TopBar
+    UILib.RoundCorner(8).Parent = TopBar
 
     local topStroke = Instance.new("UIStroke", TopBar)
-    topStroke.Color = Theme.Border
+    topStroke.Color = UILib.Theme.Border
     topStroke.Transparency = 0.9
     topStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
@@ -977,7 +976,7 @@ function Window.new(title)
     TitleLbl.Position = UDim2.new(0, 16, 0, 0)
     TitleLbl.BackgroundTransparency = 1
     TitleLbl.Text = title or "Sugar UI"
-    TitleLbl.TextColor3 = Theme.Text
+    TitleLbl.TextColor3 = UILib.Theme.Text
     TitleLbl.Font = Enum.Font.GothamBold
     TitleLbl.TextSize = 16
     TitleLbl.TextXAlignment = Enum.TextXAlignment.Left
@@ -993,14 +992,14 @@ function Window.new(title)
     CloseBtn.TextColor3 = Color3.new(1, 1, 1)
     CloseBtn.BorderSizePixel = 0
     CloseBtn.Parent = TopBar
-    RoundCorner(8).Parent = CloseBtn
+    UILib.RoundCorner(8).Parent = CloseBtn
 
     CloseBtn.MouseEnter:Connect(function()
-        Tween(CloseBtn, {BackgroundColor3 = Color3.fromRGB(200, 50, 50)}, 0.15)
+        UILib.Tween(CloseBtn, {BackgroundColor3 = Color3.fromRGB(200, 50, 50)}, 0.15)
     end)
     
     CloseBtn.MouseLeave:Connect(function()
-        Tween(CloseBtn, {BackgroundColor3 = Color3.fromRGB(255, 77, 77)}, 0.15)
+        UILib.Tween(CloseBtn, {BackgroundColor3 = Color3.fromRGB(255, 77, 77)}, 0.15)
     end)
     
     CloseBtn.MouseButton1Click:Connect(function() 
@@ -1010,11 +1009,11 @@ function Window.new(title)
     local Sidebar = Instance.new("Frame")
     Sidebar.Size = UDim2.new(0, 160, 1, -48)
     Sidebar.Position = UDim2.new(0, 0, 0, 48)
-    Sidebar.BackgroundColor3 = Theme.Panel
+    Sidebar.BackgroundColor3 = UILib.Theme.Panel
     Sidebar.Parent = Frame
 
     local sideStroke = Instance.new("UIStroke", Sidebar)
-    sideStroke.Color = Theme.Border
+    sideStroke.Color = UILib.Theme.Border
     sideStroke.Transparency = 0.9
 
     local tabsLayout = Instance.new("UIListLayout", Sidebar)
@@ -1064,7 +1063,7 @@ function Window.new(title)
                 framePos.X.Scale, framePos.X.Offset + delta.X,
                 framePos.Y.Scale, framePos.Y.Offset + delta.Y
             )
-            Tween(OuterFrame, {Position = newPos}, 0.05, Enum.EasingStyle.Linear)
+            UILib.Tween(OuterFrame, {Position = newPos}, 0.05, Enum.EasingStyle.Linear)
         end
     end)
 
