@@ -8,6 +8,7 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
+local TextService = game:GetService("TextService")
 
 -- ======================
 -- Расширенная тема с большей глубиной
@@ -33,31 +34,56 @@ local Theme = {
 -- ======================
 local Config = {
     ToggleKey = Enum.KeyCode.RightShift,
-    ConfigFileName = "SugarUIConfig.json"
+    ConfigFolder = "SugarUI",
+    ConfigExtension = ".json"
 }
 
-local function SaveConfig(data)
+local function GetConfigPath(name)
+    return Config.ConfigFolder .. "/" .. name .. Config.ConfigExtension
+end
+
+local function SaveConfig(name, data)
     local success, result = pcall(function()
-        local json = HttpService:JSONEncode(data)
-        if not isfolder("SugarUI") then
-            makefolder("SugarUI")
+        if not isfolder(Config.ConfigFolder) then
+            makefolder(Config.ConfigFolder)
         end
-        writefile("SugarUI/" .. Config.ConfigFileName, json)
+        local json = HttpService:JSONEncode(data)
+        writefile(GetConfigPath(name), json)
     end)
     return success
 end
 
-local function LoadConfig()
+local function LoadConfig(name)
     local success, result = pcall(function()
-        if not isfolder("SugarUI") then
-            makefolder("SugarUI")
-        end
-        if isfile("SugarUI/" .. Config.ConfigFileName) then
-            local json = readfile("SugarUI/" .. Config.ConfigFileName)
+        if isfile(GetConfigPath(name)) then
+            local json = readfile(GetConfigPath(name))
             return HttpService:JSONDecode(json)
         end
     end)
     return success and result or {}
+end
+
+local function DeleteConfig(name)
+    local path = GetConfigPath(name)
+    if isfile(path) then
+        delfile(path)
+        return true
+    end
+    return false
+end
+
+local function GetConfigList()
+    if not isfolder(Config.ConfigFolder) then
+        makefolder(Config.ConfigFolder)
+    end
+    local files = listfiles(Config.ConfigFolder)
+    local configs = {}
+    for _, file in ipairs(files) do
+        if file:match("%.json$") then
+            table.insert(configs, file:match("([^/]+)%.json$"))
+        end
+    end
+    return configs
 end
 
 -- ======================
@@ -236,8 +262,7 @@ function ToggleComponent.new(parent, text, default, callback, configKey)
             pcall(callback, state)
         end
         if configKey then
-            UILib.Config[configKey] = state
-            SaveConfig(UILib.Config)
+            UILib.CurrentConfig[configKey] = state
         end
     end
 
@@ -321,16 +346,7 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
     fill.Parent = track
     RoundCorner(3).Parent = fill
 
-    local knob = Instance.new("Frame")
-    knob.Size = UDim2.new(0, 16, 0, 16)
-    knob.Position = UDim2.new((value - min) / (max - min), -8, 0.5, -8)
-    knob.BackgroundColor3 = Theme.Highlight
-    knob.BorderSizePixel = 0
-    knob.AnchorPoint = Vector2.new(0.5, 0.5)
-    knob.Parent = track
-    RoundCorner(8).Parent = knob
-
-    AddShadow(knob, 0.5, 4)
+    -- No knob, drag on track
 
     local dragging = false
 
@@ -341,37 +357,37 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
         
         local fillSize = (value - min) / (max - min)
         Tween(fill, {Size = UDim2.new(fillSize, 0, 1, 0)}, 0.1)
-        Tween(knob, {Position = UDim2.new(fillSize, -8, 0.5, -8)}, 0.1)
         
         if fire and type(callback) == "function" then
             pcall(callback, value)
         end
         if configKey then
-            UILib.Config[configKey] = value
-            SaveConfig(UILib.Config)
+            UILib.CurrentConfig[configKey] = value
         end
+    end
+
+    local function update_from_mouse(input)
+        local positionX = math.clamp(input.Position.X - track.AbsolutePosition.X, 0, track.AbsoluteSize.X)
+        local newValue = min + (positionX / track.AbsoluteSize.X) * (max - min)
+        set_value(newValue, true)
     end
 
     track.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = true
-            local positionX = input.Position.X - track.AbsolutePosition.X
-            local newValue = min + (positionX / track.AbsoluteSize.X) * (max - min)
-            set_value(newValue, true)
+            update_from_mouse(input)
         end
     end)
 
-    track.InputEnded:Connect(function(input)
+    UserInputService.InputEnded:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             dragging = false
         end
     end)
 
-    track.InputChanged:Connect(function(input)
+    UserInputService.InputChanged:Connect(function(input)
         if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
-            local positionX = input.Position.X - track.AbsolutePosition.X
-            local newValue = min + (positionX / track.AbsoluteSize.X) * (max - min)
-            set_value(newValue, true)
+            update_from_mouse(input)
         end
     end)
 
@@ -391,7 +407,7 @@ DropdownComponent.__index = DropdownComponent
 function DropdownComponent.new(parent, text, options, default, callback, multiSelect, configKey)
     local self = setmetatable({}, DropdownComponent)
     local isOpen = false
-    local selected = multiSelect and {} or (default or options[1])
+    local selected = multiSelect and (default or {}) or (default or options[1])
     local multiSelect = multiSelect or false
     
     local wrapper = Instance.new("Frame")
@@ -450,15 +466,14 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     optionsFrame.BorderSizePixel = 0
     optionsFrame.ClipsDescendants = true
     optionsFrame.Parent = wrapper
-    RoundCorner(0, 0, 6, 6).Parent = optionsFrame
+    RoundCorner(6).Parent = optionsFrame
 
     local optionsList = Instance.new("UIListLayout", optionsFrame)
     optionsList.SortOrder = Enum.SortOrder.LayoutOrder
 
     local function update_value_display()
         if multiSelect then
-            local count = 0
-            for _ in pairs(selected) do count = count + 1 end
+            local count = #selected
             valueLabel.Text = count > 0 and ("Selected: " .. count) or "None"
         else
             valueLabel.Text = tostring(selected)
@@ -467,10 +482,11 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
 
     local function toggle_option(option)
         if multiSelect then
-            if selected[option] then
-                selected[option] = nil
+            local index = table.find(selected, option)
+            if index then
+                table.remove(selected, index)
             else
-                selected[option] = true
+                table.insert(selected, option)
             end
         else
             selected = option
@@ -484,8 +500,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         end
         
         if configKey then
-            UILib.Config[configKey] = multiSelect and selected or option
-            SaveConfig(UILib.Config)
+            UILib.CurrentConfig[configKey] = multiSelect and selected or option
         end
     end
 
@@ -513,7 +528,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             check.Size = UDim2.new(0, 16, 0, 16)
             check.Position = UDim2.new(1, -22, 0.5, -8)
             check.BackgroundColor3 = Theme.Accent
-            check.Visible = selected[option] or false
+            check.Visible = table.find(selected, option) ~= nil
             check.BorderSizePixel = 0
             check.Parent = optionButton
             RoundCorner(4).Parent = check
@@ -525,8 +540,24 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             checkIcon.Image = "rbxassetid://6031094667"
             checkIcon.ImageColor3 = Theme.Highlight
             checkIcon.Parent = check
+
+            optionButton.MouseButton1Click:Connect(function()
+                toggle_option(option)
+                check.Visible = table.find(selected, option) ~= nil
+            end)
         else
             optionButton.BackgroundColor3 = (selected == option) and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(40, 40, 40)
+            optionButton.MouseButton1Click:Connect(function()
+                toggle_option(option)
+                for _, child in ipairs(optionsFrame:GetChildren()) do
+                    if child:IsA("Frame") then
+                        local btn = child:FindFirstChildWhichIsA("TextButton")
+                        if btn then
+                            Tween(btn, {BackgroundColor3 = (selected == btn.Text) and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(40, 40, 40)}, 0.1)
+                        end
+                    end
+                end
+            end)
         end
 
         optionButton.MouseEnter:Connect(function()
@@ -534,25 +565,8 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         end)
 
         optionButton.MouseLeave:Connect(function()
-            if not multiSelect then
-                Tween(optionButton, {BackgroundColor3 = (selected == option) and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(40, 40, 40)}, 0.1)
-            else
-                Tween(optionButton, {BackgroundColor3 = Color3.fromRGB(40, 40, 40)}, 0.1)
-            end
-        end)
-
-        optionButton.MouseButton1Click:Connect(function()
-            toggle_option(option)
-            if multiSelect then
-                check.Visible = selected[option] or false
-            else
-                for _, child in ipairs(optionsFrame:GetChildren()) do
-                    if child:IsA("Frame") and child ~= optionFrame then
-                        Tween(child:FindFirstChildWhichIsA("TextButton"), {BackgroundColor3 = Color3.fromRGB(40, 40, 40)}, 0.1)
-                    end
-                end
-                Tween(optionButton, {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}, 0.1)
-            end
+            local targetColor = multiSelect and Color3.fromRGB(40, 40, 40) or ((selected == option) and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(40, 40, 40))
+            Tween(optionButton, {BackgroundColor3 = targetColor}, 0.1)
         end)
     end
 
@@ -560,8 +574,8 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         isOpen = not isOpen
         if isOpen then
             Tween(arrow, {Rotation = 180}, 0.2)
-            Tween(optionsFrame, {Size = UDim2.new(1, 0, 0, math.min(#options * 36, 180))}, 0.2)
-            Tween(wrapper, {Size = UDim2.new(1, 0, 0, 40 + math.min(#options * 36, 180))}, 0.2)
+            Tween(optionsFrame, {Size = UDim2.new(1, 0, 0, math.min(#options * 30, 180))}, 0.2)
+            Tween(wrapper, {Size = UDim2.new(1, 0, 0, 40 + math.min(#options * 30, 180))}, 0.2)
         else
             Tween(arrow, {Rotation = 0}, 0.2)
             Tween(optionsFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.2)
@@ -579,19 +593,34 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         end
     end)
 
+    update_value_display()
+
     self._wrapper = wrapper
     self.IsOpen = function() return isOpen end
     self.Toggle = toggle_dropdown
     self.SetValue = function(value)
         if multiSelect then
-            selected = {}
-            for _, v in ipairs(value) do
-                selected[v] = true
-            end
+            selected = value or {}
         else
-            selected = value
+            selected = value or options[1]
         end
         update_value_display()
+        -- Update options visuals
+        for _, child in ipairs(optionsFrame:GetChildren()) do
+            if child:IsA("Frame") then
+                local btn = child:FindFirstChildWhichIsA("TextButton")
+                if btn then
+                    if multiSelect then
+                        local check = btn:FindFirstChild("Frame")
+                        if check then
+                            check.Visible = table.find(selected, btn.Text) ~= nil
+                        end
+                    else
+                        Tween(btn, {BackgroundColor3 = (selected == btn.Text) and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(40, 40, 40)}, 0.1)
+                    end
+                end
+            end
+        end
     end
     self.GetValue = function() return selected end
     
@@ -644,7 +673,7 @@ function NotificationSystem.new(screenGui)
     self.Notifications = {}
     self.Container = Instance.new("Frame")
     self.Container.Size = UDim2.new(0, 300, 1, 0)
-    self.Container.Position = UDim2.new(1, -320, 0, 20)
+    self.Container.Position = UDim2.new(1, -320, 0, 40)  -- Чуть выше
     self.Container.BackgroundTransparency = 1
     self.Container.Parent = screenGui
 
@@ -689,9 +718,9 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     icon.BackgroundTransparency = 1
     icon.Image = ({
         Info = "rbxassetid://6031280882",
-        Success = "rbxassetid://6031302931",
-        Warning = "rbxassetid://6031302936",
-        Error = "rbxassetid://6031302930"
+        Success = "rbxassetid://6031094667",  -- Галочка
+        Warning = "rbxassetid://6031094687",  -- Восклицательный знак
+        Error = "rbxassetid://6031094688"    -- Крестик
     })[notifType] or "rbxassetid://6031280882"
     icon.ImageColor3 = Theme.Text
     icon.Parent = notification
@@ -733,8 +762,7 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     -- Calculate height based on message text
     local textHeight = 0
     if message then
-        local textService = game:GetService("TextService")
-        local size = textService:GetTextSize(message, 12, Enum.Font.Gotham, Vector2.new(240, 1000))
+        local size = TextService:GetTextSize(message, 12, Enum.Font.Gotham, Vector2.new(240, 1000))
         textHeight = size.Y
     end
     
@@ -869,13 +897,14 @@ local function createTab(selfObj, name)
         page = page,
         pageInner = scrollingFrame,
         layoutOrderCounter = layoutOrderCounter,
+        components = {},  -- To store components for config apply
         AddSection = function(_, ttl) 
             layoutOrderCounter = layoutOrderCounter + 1
             local sec = SectionComponent.new(scrollingFrame, ttl)
             sec._wrapper.LayoutOrder = layoutOrderCounter
             return sec 
         end,
-        AddButton = function(_, txt, cb, configKey)
+        AddButton = function(_, txt, cb)  -- Buttons don't save in config
             layoutOrderCounter = layoutOrderCounter + 1
             local btn = ButtonComponent.new(scrollingFrame, txt, cb)
             btn._wrapper.LayoutOrder = layoutOrderCounter
@@ -885,18 +914,21 @@ local function createTab(selfObj, name)
             layoutOrderCounter = layoutOrderCounter + 1
             local tog = ToggleComponent.new(scrollingFrame, txt, def, cb, configKey)
             tog._wrapper.LayoutOrder = layoutOrderCounter
+            if configKey then table.insert(tabObj.components, {type = "toggle", key = configKey, obj = tog}) end
             return tog
         end,
         AddSlider = function(_, txt, min, max, def, cb, configKey)
             layoutOrderCounter = layoutOrderCounter + 1
             local slider = SliderComponent.new(scrollingFrame, txt, min, max, def, cb, configKey)
             slider._wrapper.LayoutOrder = layoutOrderCounter
+            if configKey then table.insert(tabObj.components, {type = "slider", key = configKey, obj = slider}) end
             return slider
         end,
         AddDropdown = function(_, txt, options, def, cb, multi, configKey)
             layoutOrderCounter = layoutOrderCounter + 1
             local drop = DropdownComponent.new(scrollingFrame, txt, options, def, cb, multi, configKey)
             drop._wrapper.LayoutOrder = layoutOrderCounter
+            if configKey then table.insert(tabObj.components, {type = "dropdown", key = configKey, obj = drop}) end
             return drop
         end,
     }
@@ -920,6 +952,7 @@ function Window.new(title)
     selfObj.Pages = {}
     selfObj.ActiveTab = nil
     selfObj.Visible = true
+    selfObj.Components = {}  -- Global components list for config
 
     local ScreenGui = Instance.new("ScreenGui")
     ScreenGui.Name = "SugarUILibEnhanced"
@@ -963,37 +996,6 @@ function Window.new(title)
     RoundCorner(8).Parent = Frame
 
     AddShadow(Frame, 0.3, 6)
-
-    -- Перетаскивание окна
-    local dragging = false
-    local dragInput, mousePos, framePos
-    
-    Frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            dragging = true
-            mousePos = input.Position
-            framePos = OuterFrame.Position
-            input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then dragging = false end
-            end)
-        end
-    end)
-    
-    Frame.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            dragInput = input
-        end
-    end)
-    
-    UserInputService.InputChanged:Connect(function(input)
-        if input == dragInput and dragging then
-            local delta = input.Position - mousePos
-            OuterFrame.Position = UDim2.new(
-                framePos.X.Scale, framePos.X.Offset + delta.X,
-                framePos.Y.Scale, framePos.Y.Offset + delta.Y
-            )
-        end
-    end)
 
     -- Верхняя панель с заголовком
     local TopBar = Instance.new("Frame")
@@ -1075,6 +1077,72 @@ function Window.new(title)
     -- Система уведомлений
     local Notifications = NotificationSystem.new(ScreenGui)
 
+    -- Перетаскивание окна только за TopBar
+    local dragging = false
+    local dragInput, mousePos, framePos
+    
+    TopBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            mousePos = input.Position
+            framePos = OuterFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+    
+    TopBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then
+            dragInput = input
+        end
+    end)
+    
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - mousePos
+            local newPos = UDim2.new(
+                framePos.X.Scale, framePos.X.Offset + delta.X,
+                framePos.Y.Scale, framePos.Y.Offset + delta.Y
+            )
+            Tween(OuterFrame, {Position = newPos}, 0.05, Enum.EasingStyle.Linear)  -- Плавное перемещение
+        end
+    end)
+
+    -- Ресайз за правый нижний угол
+    local resizeBtn = Instance.new("Frame")
+    resizeBtn.Size = UDim2.new(0, 20, 0, 20)
+    resizeBtn.Position = UDim2.new(1, 0, 1, 0)
+    resizeBtn.AnchorPoint = Vector2.new(1, 1)
+    resizeBtn.BackgroundTransparency = 1
+    resizeBtn.Parent = Frame
+
+    local resizing = false
+    local resizeMousePos, resizeFrameSize
+
+    resizeBtn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            resizing = true
+            resizeMousePos = input.Position
+            resizeFrameSize = OuterFrame.Size
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then resizing = false end
+            end)
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if resizing and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - resizeMousePos
+            local newSize = UDim2.new(
+                0, math.max(300, resizeFrameSize.X.Offset + delta.X),
+                0, math.max(200, resizeFrameSize.Y.Offset + delta.Y)
+            )
+            OuterFrame.Size = newSize
+            ShadowFrame.Size = UDim2.new(1, 20, 1, 20)
+        end
+    end)
+
     -- Обработка горячих клавиш
     local toggleConnection
     local function setupToggleKey(key)
@@ -1094,13 +1162,18 @@ function Window.new(title)
 
     selfObj.ScreenGui = ScreenGui
     selfObj.Frame = Frame
+    selfObj.OuterFrame = OuterFrame
     selfObj.Sidebar = Sidebar
     selfObj.PagesHolder = PagesHolder
     selfObj.Notifications = Notifications
     selfObj.GlobalContainer = PagesHolder
 
     function selfObj:AddTab(name) 
-        return createTab(selfObj, name) 
+        local tab = createTab(selfObj, name)
+        for _, comp in ipairs(tab.components) do
+            table.insert(selfObj.Components, comp)
+        end
+        return tab 
     end
     
     function selfObj:AddPage(name) 
@@ -1119,141 +1192,34 @@ function Window.new(title)
     function selfObj:SetToggleKey(key)
         Config.ToggleKey = key
         setupToggleKey(key)
-        SaveConfig(UILib.Config)
     end
     
     function selfObj:Notify(title, message, duration, type)
         return Notifications:Notify(title, message, duration, type)
     end
 
+    function selfObj:ApplyConfig(config)
+        for _, comp in ipairs(selfObj.Components) do
+            local val = config[comp.key]
+            if val ~= nil then
+                if comp.type == "toggle" then
+                    comp.obj:Set(val, false)
+                elseif comp.type == "slider" then
+                    comp.obj:SetValue(val, false)
+                elseif comp.type == "dropdown" then
+                    comp.obj:SetValue(val)
+                end
+            end
+        end
+    end
+
     return selfObj
 end
 
 function UILib:CreateWindow(title)
-    -- Загрузка конфигурации
-    UILib.Config = LoadConfig()
-    
+    UILib.CurrentConfig = {}
     local window = Window.new(title)
-    
-    -- Применение сохраненных настроек
-    if UILib.Config.ToggleKey then
-        window:SetToggleKey(UILib.Config.ToggleKey)
-    end
-    
     return window
 end
-
--- ======================
--- Тестовые элементы
--- ======================
-local function TestUI()
-    local window = UILib:CreateWindow("Sugar UI Enhanced")
-    
-    -- Вкладка 1: Основные элементы
-    local mainTab = window:AddTab("Main")
-    
-    mainTab:AddSection("Buttons")
-    
-    mainTab:AddButton("Test Button", function()
-        window:Notify("Info", "Button clicked!", 3, "Info")
-        print("Button clicked!")
-    end)
-    
-    mainTab:AddButton("Success Notification", function()
-        window:Notify("Success", "Operation completed successfully!", 3, "Success")
-    end)
-    
-    mainTab:AddButton("Warning Notification", function()
-        window:Notify("Warning", "This is a warning message!", 3, "Warning")
-    end)
-    
-    mainTab:AddButton("Error Notification", function()
-        window:Notify("Error", "An error occurred!", 3, "Error")
-    end)
-    
-    mainTab:AddSection("Toggles")
-    
-    mainTab:AddToggle("Enable Feature", false, function(state)
-        print("Feature enabled:", state)
-        window:Notify("Toggle", "Feature " .. (state and "enabled" or "disabled"), 2, "Info")
-    end, "FeatureEnabled")
-    
-    mainTab:AddToggle("Advanced Mode", true, function(state)
-        print("Advanced mode:", state)
-    end, "AdvancedMode")
-    
-    mainTab:AddSection("Sliders")
-    
-    mainTab:AddSlider("Volume", 0, 100, 50, function(value)
-        print("Volume set to:", value)
-    end, "VolumeLevel")
-    
-    mainTab:AddSlider("Brightness", 0, 100, 80, function(value)
-        print("Brightness set to:", value)
-    end, "BrightnessLevel")
-    
-    -- Вкладка 2: Дополнительные элементы
-    local settingsTab = window:AddTab("Settings")
-    
-    settingsTab:AddSection("Dropdowns")
-    
-    settingsTab:AddDropdown("Quality", {"Low", "Medium", "High", "Ultra"}, "High", function(value)
-        print("Quality set to:", value)
-        window:Notify("Settings", "Quality set to " .. value, 2, "Info")
-    end, false, "QualitySetting")
-    
-    settingsTab:AddDropdown("Multiple Selection", {"Option 1", "Option 2", "Option 3", "Option 4"}, nil, function(value)
-        print("Selected options:", value)
-    end, true, "MultiSelection")
-    
-    settingsTab:AddSection("Configuration")
-    
-    local keybindDropdown = settingsTab:AddDropdown("Toggle Key", 
-        {"RightShift", "LeftShift", "F1", "F2", "F3", "F4", "Insert", "Delete"}, 
-        "RightShift", 
-        function(value)
-            local keyEnum = Enum.KeyCode[value]
-            if keyEnum then
-                window:SetToggleKey(keyEnum)
-                window:Notify("Settings", "Toggle key set to " .. value, 2, "Success")
-            end
-        end,
-        false,
-        "ToggleKeySetting"
-    )
-    
-    settingsTab:AddButton("Save Configuration", function()
-        if SaveConfig(UILib.Config) then
-            window:Notify("Success", "Configuration saved!", 3, "Success")
-        else
-            window:Notify("Error", "Failed to save configuration!", 3, "Error")
-        end
-    end)
-    
-    settingsTab:AddButton("Load Configuration", function()
-        UILib.Config = LoadConfig()
-        window:Notify("Info", "Configuration loaded!", 3, "Info")
-    end)
-    
-    -- Вкладка 3: Информация
-    local infoTab = window:AddTab("Info")
-    
-    infoTab:AddSection("About")
-    
-    infoTab:AddButton("Show Credits", function()
-        window:Notify("Credits", "Sugar UI Enhanced\nCreated with ❤️", 5, "Info")
-    end)
-    
-    infoTab:AddButton("Print Config", function()
-        print("Current config:")
-        for k, v in pairs(UILib.Config) do
-            print(k, "=", v)
-        end
-        window:Notify("Info", "Config printed to console", 3, "Info")
-    end)
-end
-
--- Автоматически запустить тестовый интерфейс при загрузке
-TestUI()
 
 return UILib
