@@ -76,7 +76,6 @@ function ButtonComponent.new(parent, text, callback)
 
     local Btn = Instance.new("TextButton")
     Btn.Size = UDim2.new(1, -10, 0, 30)
-    -- убрал ручное позиционирование, используем LayoutOrder у родителя
     Btn.BackgroundColor3 = UILib.Theme.Button
     Btn.BackgroundTransparency = 0.2
     Btn.Text = text or "Button"
@@ -306,7 +305,7 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
 end
 
 -- ======================
--- Компонент выпадающего списка
+-- Компонент выпадающего списка (улучшенный)
 -- ======================
 local DropdownComponent = {}
 DropdownComponent.__index = DropdownComponent
@@ -337,7 +336,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     stroke.Thickness = 1
 
     local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(0.7, 0, 1, 0)
+    Label.Size = UDim2.new(0.65, 0, 1, 0)
     Label.BackgroundTransparency = 1
     Label.Text = text or "Dropdown"
     Label.TextColor3 = UILib.Theme.Text
@@ -347,8 +346,8 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     Label.Parent = Frame
 
     local Arrow = Instance.new("ImageLabel")
-    Arrow.Size = UDim2.new(0, 16, 0, 16)
-    Arrow.Position = UDim2.new(1, -28, 0.5, -8)
+    Arrow.Size = UDim2.new(0, 18, 0, 18)
+    Arrow.Position = UDim2.new(1, -34, 0.5, -9)
     Arrow.BackgroundTransparency = 1
     Arrow.Image = "rbxassetid://6031094678"
     Arrow.ImageColor3 = UILib.Theme.Muted
@@ -356,17 +355,27 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     Arrow.Parent = Frame
 
     local ValueLabel = Instance.new("TextLabel")
-    ValueLabel.Size = UDim2.new(0.25, 0, 1, 0)
-    ValueLabel.Position = UDim2.new(0.75, -12, 0, 0)
+    ValueLabel.Size = UDim2.new(0.3, 0, 1, 0)
+    ValueLabel.Position = UDim2.new(0.7, -12, 0, 0)
     ValueLabel.BackgroundTransparency = 1
-    ValueLabel.Text = multiSelect and "Multiple" or tostring(selected)
+    ValueLabel.Text = multiSelect and "None" or tostring(selected)
     ValueLabel.TextColor3 = UILib.Theme.Muted
     ValueLabel.Font = Enum.Font.GothamMedium
     ValueLabel.TextSize = 14
     ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+    ValueLabel.TextTruncate = Enum.TextTruncate.AtEnd
     ValueLabel.Parent = Frame
 
-    local OptionsFrame = Instance.new("Frame")
+    -- header кнопка чтобы не ловить клики по опциям
+    local HeaderBtn = Instance.new("TextButton")
+    HeaderBtn.Size = UDim2.new(1, 0, 1, 0)
+    HeaderBtn.BackgroundTransparency = 1
+    HeaderBtn.Text = ""
+    HeaderBtn.AutoButtonColor = false
+    HeaderBtn.Parent = Frame
+    HeaderBtn.ZIndex = 50
+
+    local OptionsFrame = Instance.new("ScrollingFrame")
     OptionsFrame.Size = UDim2.new(1, 0, 0, 0)
     OptionsFrame.Position = UDim2.new(0, 0, 0, 30)
     OptionsFrame.BackgroundColor3 = UILib.Theme.Panel
@@ -374,6 +383,9 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     OptionsFrame.BorderSizePixel = 0
     OptionsFrame.ClipsDescendants = true
     OptionsFrame.Parent = Frame
+    OptionsFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    OptionsFrame.ScrollBarThickness = 6
+    OptionsFrame.ScrollBarImageColor3 = UILib.Theme.Border
     UILib.RoundCorner(6).Parent = OptionsFrame
 
     local optionsStroke = Instance.new("UIStroke", OptionsFrame)
@@ -388,9 +400,21 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     local function update_value_display()
         if multiSelect then
             local count = #selected
-            ValueLabel.Text = count > 0 and ("Selected: " .. count) or "None"
+            if count == 0 then
+                ValueLabel.Text = "None"
+            elseif count <= 3 then
+                ValueLabel.Text = table.concat(selected, ", ")
+            else
+                ValueLabel.Text = selected[1] .. ", " .. selected[2] .. " +" .. (count - 2)
+            end
         else
             ValueLabel.Text = tostring(selected)
+        end
+    end
+
+    local function apply_config_store()
+        if configKey then
+            UILib.CurrentConfig[configKey] = multiSelect and selected or selected
         end
     end
 
@@ -404,7 +428,6 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             end
         else
             selected = option
-            -- закрываем список после выбора в одиночном режиме
             if isOpen then
                 isOpen = false
                 UILib.Tween(Arrow, {Rotation = 0}, 0.15)
@@ -419,10 +442,10 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             pcall(callback, multiSelect and selected or option)
         end
 
-        if configKey then
-            UILib.CurrentConfig[configKey] = multiSelect and selected or option
-        end
+        apply_config_store()
     end
+
+    local optionObjects = {}
 
     local function create_option(optionText, index)
         local OptionFrame = Instance.new("Frame")
@@ -449,8 +472,9 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         optionStroke.Transparency = 0.8
         optionStroke.Thickness = 1
 
+        local Check
         if multiSelect then
-            local Check = Instance.new("Frame")
+            Check = Instance.new("Frame")
             Check.Size = UDim2.new(0, 16, 0, 16)
             Check.Position = UDim2.new(1, -22, 0.5, -8)
             Check.BackgroundColor3 = UILib.Theme.Accent
@@ -475,7 +499,6 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             OptionButton.BackgroundColor3 = (selected == optionText) and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(40, 40, 40)
             OptionButton.MouseButton1Click:Connect(function()
                 toggle_option(optionText)
-                -- обновляем цвета других кнопок
                 for _, child in ipairs(OptionsFrame:GetChildren()) do
                     if child:IsA("Frame") then
                         local btn = child:FindFirstChildWhichIsA("TextButton")
@@ -495,13 +518,79 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             local targetColor = multiSelect and Color3.fromRGB(40, 40, 40) or ((selected == optionText) and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(40, 40, 40))
             UILib.Tween(OptionButton, {BackgroundColor3 = targetColor}, 0.1)
         end)
+
+        optionObjects[#optionObjects + 1] = {frame = OptionFrame, btn = OptionButton, check = Check}
+    end
+
+    local function rebuild_options()
+        for _, child in ipairs(OptionsFrame:GetChildren()) do
+            if child:IsA("Frame") then child:Destroy() end
+        end
+        optionObjects = {}
+        local order = 1
+        if multiSelect then
+            -- Select All / Clear buttons
+            local controlFrame = Instance.new("Frame")
+            controlFrame.Size = UDim2.new(1, 0, 0, 32)
+            controlFrame.BackgroundTransparency = 1
+            controlFrame.LayoutOrder = order
+            controlFrame.Parent = OptionsFrame
+
+            local selAllBtn = Instance.new("TextButton")
+            selAllBtn.Size = UDim2.new(0.5, -8, 1, -8)
+            selAllBtn.Position = UDim2.new(0, 6, 0, 4)
+            selAllBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+            selAllBtn.Text = "Select All"
+            selAllBtn.TextColor3 = UILib.Theme.Text
+            selAllBtn.Font = Enum.Font.Gotham
+            selAllBtn.TextSize = 14
+            selAllBtn.AutoButtonColor = false
+            selAllBtn.Parent = controlFrame
+            UILib.RoundCorner(4).Parent = selAllBtn
+
+            local clearBtn = Instance.new("TextButton")
+            clearBtn.Size = UDim2.new(0.5, -8, 1, -8)
+            clearBtn.Position = UDim2.new(0.5, 6, 0, 4)
+            clearBtn.BackgroundColor3 = Color3.fromRGB(40,40,40)
+            clearBtn.Text = "Clear"
+            clearBtn.TextColor3 = UILib.Theme.Text
+            clearBtn.Font = Enum.Font.Gotham
+            clearBtn.TextSize = 14
+            clearBtn.AutoButtonColor = false
+            clearBtn.Parent = controlFrame
+            UILib.RoundCorner(4).Parent = clearBtn
+
+            selAllBtn.MouseButton1Click:Connect(function()
+                selected = {}
+                for _, o in ipairs(options) do table.insert(selected, o) end
+                update_value_display()
+                apply_config_store()
+                for _, obj in ipairs(optionObjects) do
+                    if obj.check then obj.check.Visible = true end
+                end
+            end)
+            clearBtn.MouseButton1Click:Connect(function()
+                selected = {}
+                update_value_display()
+                apply_config_store()
+                for _, obj in ipairs(optionObjects) do
+                    if obj.check then obj.check.Visible = false end
+                end
+            end)
+            order = order + 1
+        end
+
+        for i, option in ipairs(options) do
+            create_option(option, order)
+            order = order + 1
+        end
     end
 
     function self:Toggle()
         isOpen = not isOpen
         if isOpen then
             UILib.Tween(Arrow, {Rotation = 180}, 0.2)
-            local height = math.min(#options * 32, 192)
+            local height = math.min(#options * 32 + (multiSelect and 32 or 0), 200)
             UILib.Tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, height)}, 0.2)
             UILib.Tween(Frame, {Size = UDim2.new(1, -10, 0, 30 + height)}, 0.2)
         else
@@ -513,45 +602,38 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
 
     function self:UpdateOptions(newOptions)
         options = newOptions or {}
-        -- удаляем только фреймы-опции
-        for _, child in ipairs(OptionsFrame:GetChildren()) do
-            if child:IsA("Frame") then
-                child:Destroy()
-            end
-        end
-        for i, option in ipairs(options) do
-            create_option(option, i)
-        end
-        -- если выбранный элемент больше не существует — сбрасываем
+        -- удаляем и пересоздать
+        rebuild_options()
+        -- если выбранный элемент больше не существует — сброс
         if not multiSelect then
             if selected ~= "None" and not table.find(options, selected) then
                 selected = options[1] or "None"
             end
         else
-            -- фильтруем selected
             local filtered = {}
             for _, s in ipairs(selected) do
-                if table.find(options, s) then
-                    table.insert(filtered, s)
-                end
+                if table.find(options, s) then table.insert(filtered, s) end
             end
             selected = filtered
+        end
+        -- обновить вид чеков
+        for _, obj in ipairs(optionObjects) do
+            if obj.check then
+                obj.check.Visible = table.find(selected, obj.btn.Text) ~= nil
+            else
+                UILib.Tween(obj.btn, {BackgroundColor3 = (selected == obj.btn.Text) and Color3.fromRGB(50,50,50) or Color3.fromRGB(40,40,40)}, 0.1)
+            end
         end
         update_value_display()
     end
 
     -- инициализация опций
-    for i, option in ipairs(options) do
-        create_option(option, i)
-    end
-
-    Frame.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            self:Toggle()
-        end
-    end)
-
+    rebuild_options()
     update_value_display()
+
+    HeaderBtn.MouseButton1Click:Connect(function()
+        self:Toggle()
+    end)
 
     self.Instance = Frame
     self.IsOpen = function() return isOpen end
@@ -562,21 +644,15 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             selected = value or options[1] or "None"
         end
         update_value_display()
-        for _, child in ipairs(OptionsFrame:GetChildren()) do
-            if child:IsA("Frame") then
-                local btn = child:FindFirstChildWhichIsA("TextButton")
-                if btn then
-                    if multiSelect then
-                        local check = btn:FindFirstChildWhichIsA("Frame")
-                        if check then
-                            check.Visible = table.find(selected, btn.Text) ~= nil
-                        end
-                    else
-                        UILib.Tween(btn, {BackgroundColor3 = (selected == btn.Text) and Color3.fromRGB(50, 50, 50) or Color3.fromRGB(40, 40, 40)}, 0.1)
-                    end
-                end
+        -- обновляем вид опций
+        for _, obj in ipairs(optionObjects) do
+            if obj.check then
+                obj.check.Visible = table.find(selected, obj.btn.Text) ~= nil
+            else
+                UILib.Tween(obj.btn, {BackgroundColor3 = (selected == obj.btn.Text) and Color3.fromRGB(50,50,50) or Color3.fromRGB(40,40,40)}, 0.1)
             end
         end
+        apply_config_store()
     end
     self.GetValue = function() return selected end
     self.UpdateOptions = function(n) self:UpdateOptions(n) end
@@ -595,7 +671,6 @@ function SectionComponent.new(parent, title)
     local wrapper = Instance.new("Frame")
     wrapper.Size = UDim2.new(1, 0, 0, 30)
     wrapper.BackgroundTransparency = 1
-    -- убрал Position
     wrapper.Parent = parent
 
     local label = Instance.new("TextLabel")
@@ -629,7 +704,6 @@ NotificationSystem.__index = NotificationSystem
 function NotificationSystem.new(screenGui)
     local self = setmetatable({}, NotificationSystem)
     self.Notifications = {}
-    -- контейнер теперь фиксированной высоты и сверху вправо
     self.Container = Instance.new("Frame")
     self.Container.Size = UDim2.new(0, 300, 0, 320)
     self.Container.Position = UDim2.new(1, -320, 0, 20)
@@ -656,7 +730,6 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     notification.BackgroundTransparency = 0.2
     notification.BorderSizePixel = 0
     notification.ClipsDescendants = true
-    -- чтобы новые уведомления были сверху, ставим отрицательный LayoutOrder
     notification.LayoutOrder = -(#self.Container:GetChildren() + 1)
     notification.Parent = self.Container
     UILib.RoundCorner(6).Parent = notification
@@ -843,9 +916,7 @@ local function createTab(selfObj, name)
     padding.PaddingRight = UDim.new(0, 4)
 
     tabBtn.MouseButton1Click:Connect(function()
-        for _, v in pairs(selfObj.Pages) do
-            v.Visible = false
-        end
+        for _, v in pairs(selfObj.Pages) do v.Visible = false end
         page.Visible = true
 
         for _, t in ipairs(selfObj.Tabs) do
@@ -934,21 +1005,16 @@ function Window.new(title)
     ScreenGui.Name = "SugarUILibEnhanced"
     ScreenGui.ResetOnSpawn = false
     ScreenGui.IgnoreGuiInset = true
-    -- ставим DisplayOrder чтобы быть выше большинства GUI
-    if pcall(function() ScreenGui.DisplayOrder = 1000 end) then end
-    local ok, err = pcall(function() ScreenGui.Parent = game:GetService("CoreGui") end)
+    pcall(function() ScreenGui.DisplayOrder = 1000 end)
+    local ok = pcall(function() ScreenGui.Parent = game:GetService("CoreGui") end)
     if not ok or not ScreenGui.Parent then
         local player = Players.LocalPlayer
-        if player and player:FindFirstChild("PlayerGui") then
-            ScreenGui.Parent = player.PlayerGui
-        else
-            ScreenGui.Parent = game:GetService("CoreGui")
-        end
+        if player and player:FindFirstChild("PlayerGui") then ScreenGui.Parent = player.PlayerGui else ScreenGui.Parent = game:GetService("CoreGui") end
     end
 
     local OuterFrame = Instance.new("Frame")
     OuterFrame.Size = UDim2.new(0, 500, 0, 400)
-    OuterFrame.Position = UDim2.new(0.5, -250, 0.5, -200)
+    OuterFrame.Position = UDim2.new(0.5, -250, 0.5, -200 + 24) -- старт чуть ниже для анимации
     OuterFrame.AnchorPoint = Vector2.new(0.5, 0.5)
     OuterFrame.BackgroundTransparency = 1
     OuterFrame.Parent = ScreenGui
@@ -967,7 +1033,7 @@ function Window.new(title)
     local Frame = Instance.new("Frame")
     Frame.Size = UDim2.new(1, 0, 1, 0)
     Frame.BackgroundColor3 = UILib.Theme.Background
-    Frame.BackgroundTransparency = 0.2
+    Frame.BackgroundTransparency = 1 -- скрыт для анимации
     Frame.BorderSizePixel = 0
     Frame.ClipsDescendants = true
     Frame.Parent = OuterFrame
@@ -1010,17 +1076,8 @@ function Window.new(title)
     CloseBtn.Parent = TopBar
     UILib.RoundCorner(8).Parent = CloseBtn
 
-    CloseBtn.MouseEnter:Connect(function()
-        UILib.Tween(CloseBtn, {BackgroundColor3 = Color3.fromRGB(200, 50, 50)}, 0.15)
-    end)
-
-    CloseBtn.MouseLeave:Connect(function()
-        UILib.Tween(CloseBtn, {BackgroundColor3 = Color3.fromRGB(255, 77, 77)}, 0.15)
-    end)
-
-    CloseBtn.MouseButton1Click:Connect(function()
-        ScreenGui:Destroy()
-    end)
+    CloseBtn.MouseEnter:Connect(function() UILib.Tween(CloseBtn, {BackgroundColor3 = Color3.fromRGB(200, 50, 50)}, 0.15) end)
+    CloseBtn.MouseLeave:Connect(function() UILib.Tween(CloseBtn, {BackgroundColor3 = Color3.fromRGB(255, 77, 77)}, 0.15) end)
 
     local Sidebar = Instance.new("Frame")
     Sidebar.Size = UDim2.new(0, 160, 1, -48)
@@ -1068,18 +1125,13 @@ function Window.new(title)
     end)
 
     TopBar.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then
-            dragInput = input
-        end
+        if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
     end)
 
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
             local delta = input.Position - mousePos
-            local newPos = UDim2.new(
-                framePos.X.Scale, framePos.X.Offset + delta.X,
-                framePos.Y.Scale, framePos.Y.Offset + delta.Y
-            )
+            local newPos = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
             UILib.Tween(OuterFrame, {Position = newPos}, 0.05, Enum.EasingStyle.Linear)
         end
     end)
@@ -1108,10 +1160,7 @@ function Window.new(title)
     UserInputService.InputChanged:Connect(function(input)
         if resizing and input.UserInputType == Enum.UserInputType.MouseMovement then
             local delta = input.Position - resizeMousePos
-            local newSize = UDim2.new(
-                0, math.max(300, resizeFrameSize.X.Offset + delta.X),
-                0, math.max(200, resizeFrameSize.Y.Offset + delta.Y)
-            )
+            local newSize = UDim2.new(0, math.max(300, resizeFrameSize.X.Offset + delta.X), 0, math.max(200, resizeFrameSize.Y.Offset + delta.Y))
             OuterFrame.Size = newSize
             ShadowFrame.Size = UDim2.new(1, 20, 1, 20)
         end
@@ -1119,19 +1168,39 @@ function Window.new(title)
 
     local toggleConnection
     local function setupToggleKey(key)
-        if toggleConnection then
-            toggleConnection:Disconnect()
-        end
+        if toggleConnection then toggleConnection:Disconnect() end
 
         toggleConnection = UserInputService.InputBegan:Connect(function(input, processed)
             if not processed and input.KeyCode == key then
-                selfObj.Visible = not selfObj.Visible
-                OuterFrame.Visible = selfObj.Visible
+                if selfObj.Visible then selfObj:Hide() else selfObj:Show() end
             end
         end)
     end
 
     setupToggleKey(Enum.KeyCode.RightShift)
+
+    -- show/hide анимации
+    function selfObj:Show()
+        selfObj.Visible = true
+        OuterFrame.Visible = true
+        UILib.Tween(OuterFrame, {Position = UDim2.new(0.5, -250, 0.5, -200)}, 0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+        UILib.Tween(Frame, {BackgroundTransparency = 0.2}, 0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    end
+
+    function selfObj:Hide()
+        selfObj.Visible = false
+        UILib.Tween(OuterFrame, {Position = UDim2.new(0.5, -250, 0.5, -200 + 24)}, 0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+        UILib.Tween(Frame, {BackgroundTransparency = 1}, 0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
+        task.delay(0.18, function() if not selfObj.Visible then OuterFrame.Visible = false end end)
+    end
+
+    -- инициално показываем с анимацией
+    task.defer(function()
+        wait(0.05)
+        selfObj:Show()
+    end)
+
+    CloseBtn.MouseButton1Click:Connect(function() selfObj:Hide() end)
 
     selfObj.ScreenGui = ScreenGui
     selfObj.Frame = Frame
@@ -1141,21 +1210,11 @@ function Window.new(title)
     selfObj.Notifications = Notifications
     selfObj.GlobalContainer = PagesHolder
 
-    function selfObj:AddTab(name)
-        local tab = createTab(selfObj, name)
-        return tab
-    end
-
-    function selfObj:AddPage(name)
-        return selfObj:AddTab(name)
-    end
+    function selfObj:AddTab(name) local tab = createTab(selfObj, name); return tab end
+    function selfObj:AddPage(name) return selfObj:AddTab(name) end
 
     function selfObj:GetActiveTab()
-        for _, t in ipairs(selfObj.Tabs) do
-            if t.name == selfObj.ActiveTab then
-                return t
-            end
-        end
+        for _, t in ipairs(selfObj.Tabs) do if t.name == selfObj.ActiveTab then return t end end
         return nil
     end
 
@@ -1180,6 +1239,11 @@ function Window.new(title)
                     comp.obj:SetValue(val)
                 end
             end
+        end
+        -- toggle key restore
+        if config["ToggleKey"] then
+            local ok, k = pcall(function() return Enum.KeyCode[config["ToggleKey"]] end)
+            if ok and k then selfObj:SetToggleKey(k) end
         end
     end
 
