@@ -367,15 +367,6 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     Label.TextXAlignment = Enum.TextXAlignment.Left
     Label.Parent = Frame
 
-    local Arrow = Instance.new("ImageLabel")
-    Arrow.Size = UDim2.new(0, 18, 0, 18)
-    Arrow.Position = UDim2.new(1, -34, 0.5, -9)
-    Arrow.BackgroundTransparency = 1
-    Arrow.Image = UILib.Icons.ChevronDown
-    Arrow.ImageColor3 = UILib.Theme.Text
-    Arrow.Rotation = 0
-    Arrow.Parent = Frame
-
     local ValueLabel = Instance.new("TextLabel")
     ValueLabel.Size = UDim2.new(0.3, 0, 1, 0)
     ValueLabel.Position = UDim2.new(0.7, -12, 0, 0)
