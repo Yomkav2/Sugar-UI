@@ -1,55 +1,50 @@
--- init.lua (robust for both ModuleScript and loadstring/http get usage)
+-- init.lua (robust для loadstring / ModuleScript / инжекторов)
 local UILib = {}
 UILib.__index = UILib
 
-local function safe_require(m)
-    if not m then return nil end
-    local ok, res = pcall(require, m)
+local function safe_require(obj)
+    if not obj then return nil end
+    local ok, res = pcall(require, obj)
     return ok and res or nil
 end
 
 local function try_require_from_script()
-    -- безопасно проверяем script и его детей
-    local ok, res = pcall(function()
-        if type(script) == "Instance" or (type(script) == "table" and script.FindFirstChild) then
-            local child = script:FindFirstChild and script:FindFirstChild("Window")
-            if child then
-                return require(child)
-            end
+    if typeof(script) == "Instance" then
+        local child = script:FindFirstChild("Window")
+        if child then
+            return safe_require(child)
         end
-    end)
-    return ok and res or nil
-end
-
-local function try_require_common_locations()
-    local searchPaths = {
-        function()
-            local rs = game:GetService("ReplicatedStorage")
-            if rs and rs:FindFirstChild("SugarUI") and rs.SugarUI:FindFirstChild("Window") then
-                return require(rs.SugarUI.Window)
-            end
-        end,
-        function()
-            local ss = game:GetService("ServerStorage")
-            if ss and ss:FindFirstChild("SugarUI") and ss.SugarUI:FindFirstChild("Window") then
-                return require(ss.SugarUI.Window)
-            end
-        end,
-        function()
-            if _G and _G.SugarUI and _G.SugarUI.Window then
-                return _G.SugarUI.Window
-            end
-        end,
-    }
-    for _, fn in ipairs(searchPaths) do
-        local ok, res = pcall(fn)
-        if ok and res then return res end
     end
     return nil
 end
 
+local function try_require_common_locations()
+    local try = function()
+        local rs = game:GetService("ReplicatedStorage")
+        if rs and rs:FindFirstChild("SugarUI") and rs.SugarUI:FindFirstChild("Window") then
+            return safe_require(rs.SugarUI.Window)
+        end
+    end
+    local ok, res = pcall(try)
+    if ok and res then return res end
+
+    local try2 = function()
+        local ss = game:GetService("ServerStorage")
+        if ss and ss:FindFirstChild("SugarUI") and ss.SugarUI:FindFirstChild("Window") then
+            return safe_require(ss.SugarUI.Window)
+        end
+    end
+    ok, res = pcall(try2)
+    if ok and res then return res end
+
+    if _G and _G.SugarUI and _G.SugarUI.Window then
+        return _G.SugarUI.Window
+    end
+
+    return nil
+end
+
 local function try_download_window()
-    -- Настройте URL под ваш репозиторий, если нужно
     local urls = {
         "https://raw.githubusercontent.com/Yomkav2/Sugar-UI/main/src/Window.lua",
         "https://raw.githubusercontent.com/Yomkav2/Sugar-UI/refs/heads/main/src/Window.lua",
@@ -66,36 +61,43 @@ local function try_download_window()
     return nil
 end
 
--- Попытки получить модуль Window
+-- Попытки найти/получить модуль Window
 local Window = try_require_from_script() or try_require_common_locations()
 
 if not Window then
-    -- Попробуем скачать (если HttpGet доступен)
-    local ok, res = pcall(try_download_window)
-    Window = ok and res or Window
-end
-
-if not Window then
-    error(
-        ("UILib init error: не удалось найти модуль Window.\n"
-        .. "Возможные причины:\n"
-        .. "- Вы загрузили init.lua через инжектор (loadstring). Тогда 'script' не содержит дочернего ModuleScript 'Window'.\n"
-        .. "- HttpGet отключён или URL неверный.\n\n"
-        .. "Решения:\n"
-        .. "1) Положите ModuleScript 'Window' рядом с init.lua (как child) и загрузите как ModuleScript.\n"
-        .. "2) Положите 'Window' в ReplicatedStorage/ServerStorage под папкой 'SugarUI'.\n"
-        .. "3) Включите HttpGet и убедитесь, что URL к Window.lua корректен.\n")
-    )
-end
-
--- API
-function UILib:CreateWindow(title, ...)
-    -- ожидаем, что Window предоставляет конструктор .new
-    if not Window.new and Window.Create then
-        -- немного гибкости — попробуем другие имена
-        return Window.Create(title, ...)
+    local ok, downloaded = pcall(try_download_window)
+    if ok and downloaded then
+        Window = downloaded
     end
-    return Window.new(title, ...)
+end
+
+-- Отладочная информация (можно закомментировать)
+if not Window then
+    error([[
+UILib init error: не удалось найти модуль Window.
+
+Возможные причины:
+ - Вы запускаете init.lua через loadstring/injector: тогда 'script' не содержит дочерний ModuleScript 'Window'.
+ - HttpGet отключён в вашем инжекторе или URL неверный.
+ - В репозитории Window.lua отсутствует/возвращает некорректный модуль.
+
+Решения:
+ 1) Положите Window.lua рядом с init.lua и загружайте как ModuleScript (если вы используете ModuleScript).
+ 2) Положите Window в ReplicatedStorage/ServerStorage в папку 'SugarUI' (ReplicatedStorage.SugarUI.Window).
+ 3) Убедитесь, что HttpGet доступен, и URL на Window.lua корректен.
+ 4) (Рекомендация) Сделайте single-file: вставьте код Window.lua прямо в init.lua (убирая require).
+]])
+end
+
+-- Создатель окна (гибкость на случай разных API)
+function UILib:CreateWindow(title, ...)
+    if Window.new then
+        return Window.new(title, ...)
+    elseif Window.Create then
+        return Window.Create(title, ...)
+    else
+        error("Window module не содержит .new или .Create (проверьте экспорт).")
+    end
 end
 
 return UILib
