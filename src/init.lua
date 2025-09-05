@@ -10,6 +10,19 @@ local Players = game:GetService("Players")
 local TextService = game:GetService("TextService")
 
 -- ======================
+-- Иконки (Lucide-style mapping)
+-- ======================
+UILib.Icons = {
+    ChevronDown = "rbxassetid://6031094678",  -- arrow
+    Check = "rbxassetid://6031094667",        -- check
+    Info = "rbxassetid://6031280882",
+    Success = "rbxassetid://6031094667",
+    Warning = "rbxassetid://6031094687",
+    Error = "rbxassetid://6031094688",
+    Shadow = "rbxassetid://5554236805"
+}
+
+-- ======================
 -- Расширенная тема
 -- ======================
 UILib.Theme = {
@@ -44,7 +57,7 @@ end
 function UILib.Tween(instance, props, duration, style, dir)
     style = style or Enum.EasingStyle.Sine
     dir = dir or Enum.EasingDirection.InOut
-    local tweenInfo = TweenInfo.new(duration or 0.2, style, dir)
+    local tweenInfo = TweenInfo.new(duration or 0.25, style, dir)
     local tween = TweenService:Create(instance, tweenInfo, props)
     tween:Play()
     return tween
@@ -56,7 +69,7 @@ function UILib.AddShadow(frame, transparency, size)
     shadow.Size = UDim2.new(1, size or 10, 1, size or 10)
     shadow.Position = UDim2.new(0, -(size or 10)/2, 0, -(size or 10)/2)
     shadow.BackgroundTransparency = 1
-    shadow.Image = "rbxassetid://5554236805"
+    shadow.Image = UILib.Icons.Shadow
     shadow.ImageColor3 = UILib.Theme.Shadow
     shadow.ImageTransparency = transparency or 0.8
     shadow.ScaleType = Enum.ScaleType.Slice
@@ -92,11 +105,11 @@ function ButtonComponent.new(parent, text, callback)
     stroke.Thickness = 1
 
     Btn.MouseEnter:Connect(function()
-        UILib.Tween(Btn, {BackgroundColor3 = UILib.Theme.ButtonHover}, 0.2)
+        UILib.Tween(Btn, {BackgroundColor3 = UILib.Theme.ButtonHover}, 0.15)
     end)
 
     Btn.MouseLeave:Connect(function()
-        UILib.Tween(Btn, {BackgroundColor3 = UILib.Theme.Button}, 0.2)
+        UILib.Tween(Btn, {BackgroundColor3 = UILib.Theme.Button}, 0.15)
     end)
 
     Btn.MouseButton1Click:Connect(function()
@@ -110,8 +123,8 @@ function ButtonComponent.new(parent, text, callback)
             ripple.Parent = Btn
             UILib.RoundCorner(100).Parent = ripple
 
-            UILib.Tween(ripple, {Size = UDim2.new(2, 0, 2, 0), BackgroundTransparency = 1}, 0.4, Enum.EasingStyle.Quad)
-            task.delay(0.4, function() if ripple.Parent then ripple:Destroy() end end)
+            UILib.Tween(ripple, {Size = UDim2.new(2, 0, 2, 0), BackgroundTransparency = 1}, 0.35, Enum.EasingStyle.Quad)
+            task.delay(0.35, function() if ripple.Parent then ripple:Destroy() end end)
 
             pcall(callback)
         end
@@ -167,7 +180,7 @@ function ToggleComponent.new(parent, text, default, callback, configKey)
             self.State = not self.State
             UILib.Tween(Box, {
                 BackgroundColor3 = self.State and UILib.Theme.Accent or UILib.Theme.ToggleBox
-            }, 0.2)
+            }, 0.15)
             if callback then
                 pcall(callback, self.State)
             end
@@ -182,7 +195,7 @@ function ToggleComponent.new(parent, text, default, callback, configKey)
         self.State = not not newState
         UILib.Tween(Box, {
             BackgroundColor3 = self.State and UILib.Theme.Accent or UILib.Theme.ToggleBox
-        }, 0.2)
+        }, 0.15)
         if fire and callback then
             pcall(callback, self.State)
         end
@@ -272,7 +285,7 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
         if max - min ~= 0 then
             fillSize = (value - min) / (max - min)
         end
-        UILib.Tween(Fill, {Size = UDim2.new(fillSize, 0, 1, 0)}, 0.1)
+        UILib.Tween(Fill, {Size = UDim2.new(fillSize, 0, 1, 0)}, 0.12)
         if fire and callback then
             pcall(callback, value)
         end
@@ -314,7 +327,7 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
 end
 
 -- ======================
--- Компонент выпадающего списка (переработанный с улучшенным дизайном и логикой)
+-- Компонент выпадающего списка (улучшено)
 -- ======================
 local DropdownComponent = {}
 DropdownComponent.__index = DropdownComponent
@@ -335,7 +348,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     Frame.Size = UDim2.new(1, -10, 0, 30)
     Frame.BackgroundColor3 = UILib.Theme.Button
     Frame.BackgroundTransparency = 0
-    Frame.ClipsDescendants = false -- позволяем опциям выходить за границы коробки
+    Frame.ClipsDescendants = false -- позволяем опциям выходить при необходимости
     Frame.Parent = parent
     UILib.RoundCorner(6).Parent = Frame
 
@@ -358,7 +371,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     Arrow.Size = UDim2.new(0, 18, 0, 18)
     Arrow.Position = UDim2.new(1, -34, 0.5, -9)
     Arrow.BackgroundTransparency = 1
-    Arrow.Image = "rbxassetid://6031094678"
+    Arrow.Image = UILib.Icons.ChevronDown
     Arrow.ImageColor3 = UILib.Theme.Text
     Arrow.Rotation = 0
     Arrow.Parent = Frame
@@ -394,6 +407,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     OptionsFrame.ScrollBarThickness = 4
     OptionsFrame.ScrollBarImageColor3 = UILib.Theme.Border
     OptionsFrame.ScrollBarImageTransparency = 0.5
+    OptionsFrame.ZIndex = 60 -- выше родительских текстов
 
     local optionsList = Instance.new("UIListLayout", OptionsFrame)
     optionsList.SortOrder = Enum.SortOrder.LayoutOrder
@@ -436,7 +450,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             end
         else
             selected = option
-            self.Toggle(self) -- закрываем для single select. вызываем через dot чтобы self правильно использовался
+            self.Toggle(self) -- закрываем для single select
         end
         update_value_display()
         if callback then
@@ -487,7 +501,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             local CheckIcon = Instance.new("ImageLabel")
             CheckIcon.Size = UDim2.new(1, 0, 1, 0)
             CheckIcon.BackgroundTransparency = 1
-            CheckIcon.Image = "rbxassetid://6031094667"
+            CheckIcon.Image = UILib.Icons.Check
             CheckIcon.ImageColor3 = UILib.Theme.Highlight
             CheckIcon.Visible = table.find(selected, optionText) ~= nil
             CheckIcon.Parent = Check
@@ -502,18 +516,18 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             OptionButton.MouseButton1Click:Connect(function()
                 toggle_option(optionText)
                 for _, obj in ipairs(optionObjects) do
-                    UILib.Tween(obj.btn, {BackgroundColor3 = (selected == obj.btn.Text) and UILib.Theme.AccentSoft or UILib.Theme.Panel}, 0.1)
+                    UILib.Tween(obj.btn, {BackgroundColor3 = (selected == obj.btn.Text) and UILib.Theme.AccentSoft or UILib.Theme.Panel}, 0.12)
                 end
             end)
         end
 
         OptionButton.MouseEnter:Connect(function()
-            UILib.Tween(OptionButton, {BackgroundColor3 = UILib.Theme.ButtonHover}, 0.1)
+            UILib.Tween(OptionButton, {BackgroundColor3 = UILib.Theme.ButtonHover}, 0.09)
         end)
 
         OptionButton.MouseLeave:Connect(function()
             local targetColor = multiSelect and UILib.Theme.Panel or ((selected == optionText) and UILib.Theme.AccentSoft or UILib.Theme.Panel)
-            UILib.Tween(OptionButton, {BackgroundColor3 = targetColor}, 0.1)
+            UILib.Tween(OptionButton, {BackgroundColor3 = targetColor}, 0.09)
         end)
 
         optionObjects[#optionObjects + 1] = {frame = OptionFrame, btn = OptionButton, check = Check}
@@ -521,7 +535,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
 
     local function rebuild_options()
         for _, child in ipairs(OptionsFrame:GetChildren()) do
-            if child:IsA("Frame") then child:Destroy() end
+            if child:IsA("Frame") or child:IsA("TextButton") then child:Destroy() end
         end
         optionObjects = {}
         local order = 1
@@ -597,14 +611,22 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     function self:Toggle()
         isOpen = not isOpen
         if isOpen then
-            UILib.Tween(Arrow, {Rotation = 180}, 0.2)
+            -- скрываем текстовый label и value, чтобы опции не перекрывались визуально
+            Label.Visible = false
+            ValueLabel.Visible = false
+            UILib.Tween(Arrow, {Rotation = 180}, 0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
             local height = math.min((#options * 28 + (multiSelect and 28 or 0) + 8), 180)
-            UILib.Tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, height)}, 0.2)
-            UILib.Tween(Frame, {Size = UDim2.new(1, -10, 0, 30 + height)}, 0.2)
+            UILib.Tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, height)}, 0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+            UILib.Tween(Frame, {Size = UDim2.new(1, -10, 0, 30 + height)}, 0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+            -- повышаем ZIndex, чтобы гарантировать, что опции поверх всего
+            OptionsFrame.ZIndex = 1000
         else
-            UILib.Tween(Arrow, {Rotation = 0}, 0.2)
-            UILib.Tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.2)
-            UILib.Tween(Frame, {Size = UDim2.new(1, -10, 0, 30)}, 0.2)
+            Label.Visible = true
+            ValueLabel.Visible = true
+            UILib.Tween(Arrow, {Rotation = 0}, 0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
+            UILib.Tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
+            UILib.Tween(Frame, {Size = UDim2.new(1, -10, 0, 30)}, 0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
+            task.delay(0.2, function() OptionsFrame.ZIndex = 60 end)
         end
     end
 
@@ -628,7 +650,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
                 local img = obj.check:FindFirstChildWhichIsA("ImageLabel")
                 if img then img.Visible = table.find(selected, obj.btn.Text) ~= nil end
             else
-                UILib.Tween(obj.btn, {BackgroundColor3 = (selected == obj.btn.Text) and UILib.Theme.AccentSoft or UILib.Theme.Panel}, 0.1)
+                UILib.Tween(obj.btn, {BackgroundColor3 = (selected == obj.btn.Text) and UILib.Theme.AccentSoft or UILib.Theme.Panel}, 0.12)
             end
         end
         update_value_display()
@@ -657,7 +679,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
                 local img = obj.check:FindFirstChildWhichIsA("ImageLabel")
                 if img then img.Visible = table.find(selected, obj.btn.Text) ~= nil end
             else
-                UILib.Tween(obj.btn, {BackgroundColor3 = (selected == obj.btn.Text) and UILib.Theme.AccentSoft or UILib.Theme.Panel}, 0.1)
+                UILib.Tween(obj.btn, {BackgroundColor3 = (selected == obj.btn.Text) and UILib.Theme.AccentSoft or UILib.Theme.Panel}, 0.12)
             end
         end
         apply_config_store()
@@ -716,7 +738,7 @@ function NotificationSystem.new(screenGui)
     self.Container.Position = UDim2.new(1, -320, 0, 20)
     self.Container.BackgroundTransparency = 1
     self.Container.Parent = screenGui
-    self.Container.ZIndex = 50
+    self.Container.ZIndex = 500
 
     local list = Instance.new("UIListLayout", self.Container)
     list.SortOrder = Enum.SortOrder.LayoutOrder
@@ -740,7 +762,7 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     notification.LayoutOrder = -(#self.Container:GetChildren() + 1)
     notification.Parent = self.Container
     UILib.RoundCorner(6).Parent = notification
-    notification.ZIndex = 51
+    notification.ZIndex = 501
 
     UILib.AddShadow(notification, 0.3, 8)
 
@@ -754,21 +776,21 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     } )[notifType] or UILib.Theme.Accent
     accent.BorderSizePixel = 0
     accent.Parent = notification
-    accent.ZIndex = 52
+    accent.ZIndex = 502
 
     local icon = Instance.new("ImageLabel")
     icon.Size = UDim2.new(0, 24, 0, 24)
     icon.Position = UDim2.new(0, 12, 0, 12)
     icon.BackgroundTransparency = 1
     icon.Image = ( {
-        Info = "rbxassetid://6031280882",
-        Success = "rbxassetid://6031094667",
-        Warning = "rbxassetid://6031094687",
-        Error = "rbxassetid://6031094688"
-    } )[notifType] or "rbxassetid://6031280882"
+        Info = UILib.Icons.Info,
+        Success = UILib.Icons.Success,
+        Warning = UILib.Icons.Warning,
+        Error = UILib.Icons.Error
+    } )[notifType] or UILib.Icons.Info
     icon.ImageColor3 = UILib.Theme.Text
     icon.Parent = notification
-    icon.ZIndex = 52
+    icon.ZIndex = 502
 
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Size = UDim2.new(1, -48, 0, 20)
@@ -780,7 +802,7 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     titleLabel.TextSize = 14
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.Parent = notification
-    titleLabel.ZIndex = 52
+    titleLabel.ZIndex = 502
 
     local messageLabel = Instance.new("TextLabel")
     messageLabel.Size = UDim2.new(1, -48, 0, 0)
@@ -794,7 +816,7 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     messageLabel.TextYAlignment = Enum.TextYAlignment.Top
     messageLabel.TextWrapped = true
     messageLabel.Parent = notification
-    messageLabel.ZIndex = 52
+    messageLabel.ZIndex = 502
 
     local closeButton = Instance.new("TextButton")
     closeButton.Size = UDim2.new(0, 24, 0, 24)
@@ -805,7 +827,7 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     closeButton.Font = Enum.Font.GothamBold
     closeButton.TextSize = 18
     closeButton.Parent = notification
-    closeButton.ZIndex = 52
+    closeButton.ZIndex = 502
 
     local textHeight = 0
     if message then
@@ -816,18 +838,18 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     local totalHeight = math.clamp(52 + textHeight, 60, 120)
     messageLabel.Size = UDim2.new(1, -48, 0, textHeight)
 
-    UILib.Tween(notification, {Size = UDim2.new(1, 0, 0, totalHeight)}, 0.3)
+    UILib.Tween(notification, {Size = UDim2.new(1, 0, 0, totalHeight)}, 0.25, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
 
     closeButton.MouseButton1Click:Connect(function()
         self:Remove(notification)
     end)
 
     closeButton.MouseEnter:Connect(function()
-        UILib.Tween(closeButton, {TextColor3 = UILib.Theme.Text}, 0.1)
+        UILib.Tween(closeButton, {TextColor3 = UILib.Theme.Text}, 0.09)
     end)
 
     closeButton.MouseLeave:Connect(function()
-        UILib.Tween(closeButton, {TextColor3 = UILib.Theme.Muted}, 0.1)
+        UILib.Tween(closeButton, {TextColor3 = UILib.Theme.Muted}, 0.09)
     end)
 
     if duration > 0 then
@@ -843,8 +865,8 @@ function NotificationSystem:Notify(title, message, duration, notifType)
 end
 
 function NotificationSystem:Remove(notification)
-    UILib.Tween(notification, {Size = UDim2.new(1, 0, 0, 0)}, 0.3)
-    task.delay(0.3, function()
+    UILib.Tween(notification, {Size = UDim2.new(1, 0, 0, 0)}, 0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
+    task.delay(0.18, function()
         if notification.Parent then
             notification:Destroy()
         end
@@ -928,7 +950,7 @@ local function createTab(selfObj, name)
 
         for _, t in ipairs(selfObj.Tabs) do
             t.indicator.Visible = (t.name == name)
-            UILib.Tween(t.button, {TextColor3 = (t.name == name) and UILib.Theme.Text or UILib.Theme.Muted}, 0.15)
+            UILib.Tween(t.button, {TextColor3 = (t.name == name) and UILib.Theme.Text or UILib.Theme.Muted}, 0.12)
         end
 
         selfObj.ActiveTab = name
@@ -1031,7 +1053,7 @@ function Window.new(title)
     ShadowFrame.Size = UDim2.new(1, 20, 1, 20)
     ShadowFrame.Position = UDim2.new(0, -10, 0, -10)
     ShadowFrame.BackgroundTransparency = 1
-    ShadowFrame.Image = "rbxassetid://5554236805"
+    ShadowFrame.Image = UILib.Icons.Shadow
     ShadowFrame.ImageColor3 = UILib.Theme.Shadow
     ShadowFrame.ImageTransparency = 0.7
     ShadowFrame.ScaleType = Enum.ScaleType.Slice
@@ -1084,8 +1106,8 @@ function Window.new(title)
     MinimizeBtn.Parent = TopBar
     UILib.RoundCorner(8).Parent = MinimizeBtn
 
-    MinimizeBtn.MouseEnter:Connect(function() UILib.Tween(MinimizeBtn, {BackgroundColor3 = Color3.fromRGB(200, 150, 0)}, 0.15) end)
-    MinimizeBtn.MouseLeave:Connect(function() UILib.Tween(MinimizeBtn, {BackgroundColor3 = UILib.Theme.Warning}, 0.15) end)
+    MinimizeBtn.MouseEnter:Connect(function() UILib.Tween(MinimizeBtn, {BackgroundColor3 = Color3.fromRGB(200, 150, 0)}, 0.12) end)
+    MinimizeBtn.MouseLeave:Connect(function() UILib.Tween(MinimizeBtn, {BackgroundColor3 = UILib.Theme.Warning}, 0.12) end)
     MinimizeBtn.MouseButton1Click:Connect(function() selfObj:Hide() end)
 
     local CloseBtn = Instance.new("TextButton")
@@ -1100,8 +1122,8 @@ function Window.new(title)
     CloseBtn.Parent = TopBar
     UILib.RoundCorner(8).Parent = CloseBtn
 
-    CloseBtn.MouseEnter:Connect(function() UILib.Tween(CloseBtn, {BackgroundColor3 = Color3.fromRGB(200, 50, 50)}, 0.15) end)
-    CloseBtn.MouseLeave:Connect(function() UILib.Tween(CloseBtn, {BackgroundColor3 = UILib.Theme.Error}, 0.15) end)
+    CloseBtn.MouseEnter:Connect(function() UILib.Tween(CloseBtn, {BackgroundColor3 = Color3.fromRGB(200, 50, 50)}, 0.12) end)
+    CloseBtn.MouseLeave:Connect(function() UILib.Tween(CloseBtn, {BackgroundColor3 = UILib.Theme.Error}, 0.12) end)
 
     local Sidebar = Instance.new("Frame")
     Sidebar.Size = UDim2.new(0, 160, 1, -48)
@@ -1156,7 +1178,7 @@ function Window.new(title)
         if input == dragInput and dragging then
             local delta = input.Position - mousePos
             local newPos = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
-            UILib.Tween(OuterFrame, {Position = newPos}, 0.05, Enum.EasingStyle.Linear)
+            UILib.Tween(OuterFrame, {Position = newPos}, 0.08, Enum.EasingStyle.Linear)
         end
     end)
 
@@ -1203,21 +1225,29 @@ function Window.new(title)
 
     setupToggleKey(Enum.KeyCode.V)
 
-    -- show/hide анимации
+    -- show/hide анимации (плавнее)
     function selfObj:Show()
         selfObj.Visible = true
         OuterFrame.Visible = true
-        UILib.Tween(OuterFrame, {Position = UDim2.new(0.5, -250, 0.5, -200)}, 0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
-        UILib.Tween(Frame, {BackgroundTransparency = 0.2}, 0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+        -- плавное перемещение и выцветание фона
+        UILib.Tween(OuterFrame, {Position = UDim2.new(0.5, -250, 0.5, -200)}, 0.22, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        UILib.Tween(Frame, {BackgroundTransparency = 0.06}, 0.22, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+        -- небольшая масштабная подпись: слегка увеличим прозрачность тени для мягкости
+        task.delay(0.22, function()
+            -- уведомление о загрузке (при первоначальном показе)
+            pcall(function()
+                Notifications:Notify("Sugar UI", "Loaded. Press " .. selfObj.ToggleKey.Name .. " to toggle.", 4, "Info")
+            end)
+        end)
     end
 
     function selfObj:Hide()
         selfObj.Visible = false
-        UILib.Tween(OuterFrame, {Position = UDim2.new(0.5, -250, 0.5, -200 + 24)}, 0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-        UILib.Tween(Frame, {BackgroundTransparency = 1}, 0.18, Enum.EasingStyle.Quart, Enum.EasingDirection.In)
-        task.delay(0.18, function() 
+        UILib.Tween(OuterFrame, {Position = UDim2.new(0.5, -250, 0.5, -200 + 24)}, 0.22, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+        UILib.Tween(Frame, {BackgroundTransparency = 1}, 0.22, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
+        task.delay(0.22, function() 
             if not selfObj.Visible then OuterFrame.Visible = false end 
-            Notifications:Notify("Info", "GUI hidden. Press " .. selfObj.ToggleKey.Name .. " to show.", 5, "Info")
+            Notifications:Notify("Info", "GUI hidden. Press " .. selfObj.ToggleKey.Name .. " to show.", 4, "Info")
         end)
     end
 
@@ -1325,12 +1355,10 @@ function Window.new(title)
             local val = config[comp.key]
             if val ~= nil then
                 if comp.type == "toggle" then
-                    -- Set ожидает (newState, fire)
                     if type(comp.obj.Set) == "function" then
                         comp.obj.Set(val, false)
                     end
                 elseif comp.type == "slider" then
-                    -- SetValue ожидает (newValue, fire)
                     if type(comp.obj.SetValue) == "function" then
                         local num = tonumber(val) or val
                         comp.obj.SetValue(num, false)
