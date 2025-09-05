@@ -9,12 +9,9 @@ local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local TextService = game:GetService("TextService")
 local RunService = game:GetService("RunService")
-local Workspace = game:GetService("Workspace")
-
-local Camera = Workspace.CurrentCamera
 
 -- ======================
--- Тема
+-- Расширенная тема
 -- ======================
 SugarUI.Theme = {
     Background = Color3.fromRGB(20, 20, 20),
@@ -37,7 +34,7 @@ SugarUI.Theme = {
 }
 
 -- ======================
--- Вспомогательные
+-- Вспомогательные функции
 -- ======================
 function SugarUI.RoundCorner(cornerRadius)
     local corner = Instance.new("UICorner")
@@ -70,13 +67,14 @@ function SugarUI.AddShadow(frame, transparency, size)
 end
 
 -- ======================
--- Button component
+-- Компонент кнопки
 -- ======================
 local ButtonComponent = {}
 ButtonComponent.__index = ButtonComponent
 
 function ButtonComponent.new(parent, text, callback)
     local self = setmetatable({}, ButtonComponent)
+
     local Btn = Instance.new("TextButton")
     Btn.Size = UDim2.new(1, -10, 0, 30)
     Btn.BackgroundColor3 = SugarUI.Theme.Button
@@ -97,6 +95,7 @@ function ButtonComponent.new(parent, text, callback)
     Btn.MouseEnter:Connect(function()
         SugarUI.Tween(Btn, {BackgroundColor3 = SugarUI.Theme.ButtonHover}, 0.15)
     end)
+
     Btn.MouseLeave:Connect(function()
         SugarUI.Tween(Btn, {BackgroundColor3 = SugarUI.Theme.Button}, 0.15)
     end)
@@ -111,8 +110,10 @@ function ButtonComponent.new(parent, text, callback)
             ripple.AnchorPoint = Vector2.new(0.5, 0.5)
             ripple.Parent = Btn
             SugarUI.RoundCorner(100).Parent = ripple
+
             SugarUI.Tween(ripple, {Size = UDim2.new(2, 0, 2, 0), BackgroundTransparency = 1}, 0.35, Enum.EasingStyle.Quad)
             task.delay(0.35, function() if ripple.Parent then ripple:Destroy() end end)
+
             pcall(callback)
         end
     end)
@@ -122,7 +123,7 @@ function ButtonComponent.new(parent, text, callback)
 end
 
 -- ======================
--- Toggle component
+-- Компонент переключателя
 -- ======================
 local ToggleComponent = {}
 ToggleComponent.__index = ToggleComponent
@@ -165,25 +166,38 @@ function ToggleComponent.new(parent, text, default, callback, configKey)
     Frame.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             self.State = not self.State
-            SugarUI.Tween(Box, {BackgroundColor3 = self.State and SugarUI.Theme.Accent or SugarUI.Theme.ToggleBox}, 0.15)
-            if callback then pcall(callback, self.State) end
-            if configKey then SugarUI.CurrentConfig[configKey] = self.State end
+            SugarUI.Tween(Box, {
+                BackgroundColor3 = self.State and SugarUI.Theme.Accent or SugarUI.Theme.ToggleBox
+            }, 0.15)
+            if callback then
+                pcall(callback, self.State)
+            end
+            if configKey then
+                SugarUI.CurrentConfig[configKey] = self.State
+            end
         end
     end)
 
     self.Instance = Frame
     self.Set = function(newState, fire)
         self.State = not not newState
-        SugarUI.Tween(Box, {BackgroundColor3 = self.State and SugarUI.Theme.Accent or SugarUI.Theme.ToggleBox}, 0.15)
-        if fire and callback then pcall(callback, self.State) end
-        if configKey then SugarUI.CurrentConfig[configKey] = self.State end
+        SugarUI.Tween(Box, {
+            BackgroundColor3 = self.State and SugarUI.Theme.Accent or SugarUI.Theme.ToggleBox
+        }, 0.15)
+        if fire and callback then
+            pcall(callback, self.State)
+        end
+        if configKey then
+            SugarUI.CurrentConfig[configKey] = self.State
+        end
     end
     self.Get = function() return self.State end
+
     return self
 end
 
 -- ======================
--- Slider component
+-- Компонент слайдера
 -- ======================
 local SliderComponent = {}
 SliderComponent.__index = SliderComponent
@@ -238,7 +252,9 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
 
     local Fill = Instance.new("Frame")
     local initialFill = 0
-    if max - min ~= 0 then initialFill = (value - min) / (max - min) end
+    if max - min ~= 0 then
+        initialFill = (value - min) / (max - min)
+    end
     Fill.Size = UDim2.new(initialFill, 0, 1, 0)
     Fill.BackgroundColor3 = SugarUI.Theme.Accent
     Fill.BorderSizePixel = 0
@@ -246,6 +262,7 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
     SugarUI.RoundCorner(3).Parent = Fill
 
     local dragging = false
+
     local function set_value(newValue, fire)
         newValue = tonumber(newValue) or newValue
         if type(newValue) ~= "number" then return end
@@ -253,10 +270,16 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
         value = newValue
         ValueLabel.Text = tostring(math.floor(value))
         local fillSize = 0
-        if max - min ~= 0 then fillSize = (value - min) / (max - min) end
+        if max - min ~= 0 then
+            fillSize = (value - min) / (max - min)
+        end
         SugarUI.Tween(Fill, {Size = UDim2.new(fillSize, 0, 1, 0)}, 0.12)
-        if fire and callback then pcall(callback, value) end
-        if configKey then SugarUI.CurrentConfig[configKey] = value end
+        if fire and callback then
+            pcall(callback, value)
+        end
+        if configKey then
+            SugarUI.CurrentConfig[configKey] = value
+        end
     end
 
     local function update_from_mouse(input)
@@ -273,21 +296,26 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
     end)
 
     UserInputService.InputEnded:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = false
+        end
     end)
 
     UserInputService.InputChanged:Connect(function(input)
-        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then update_from_mouse(input) end
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+            update_from_mouse(input)
+        end
     end)
 
     self.Instance = Frame
     self.SetValue = set_value
     self.GetValue = function() return value end
+
     return self
 end
 
 -- ======================
--- Dropdown component
+-- Компонент выпадающего списка (без стрелки)
 -- ======================
 local DropdownComponent = {}
 DropdownComponent.__index = DropdownComponent
@@ -298,7 +326,11 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     options = options or {}
     multiSelect = multiSelect or false
     local selected
-    if multiSelect then selected = default or {} else selected = default or options[1] or "None" end
+    if multiSelect then
+        selected = default or {}
+    else
+        selected = default or options[1] or "None"
+    end
 
     local Frame = Instance.new("Frame")
     Frame.Size = UDim2.new(1, -10, 0, 30)
@@ -322,6 +354,8 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     Label.TextSize = 14
     Label.TextXAlignment = Enum.TextXAlignment.Left
     Label.Parent = Frame
+
+    -- УБРАЛИ стрелку/крестик. Никаких ImageLabel для стрелки.
 
     local ValueLabel = Instance.new("TextLabel")
     ValueLabel.Size = UDim2.new(0.3, 0, 1, 0)
@@ -369,28 +403,40 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     local function update_value_display()
         if multiSelect then
             local count = #selected
-            if count == 0 then ValueLabel.Text = "None"
-            elseif count <= 2 then ValueLabel.Text = table.concat(selected, ", ")
-            else ValueLabel.Text = selected[1] .. ", " .. selected[2] .. " + " .. (count - 2) end
+            if count == 0 then
+                ValueLabel.Text = "None"
+            elseif count <= 2 then
+                ValueLabel.Text = table.concat(selected, ", ")
+            else
+                ValueLabel.Text = selected[1] .. ", " .. selected[2] .. " + " .. (count - 2)
+            end
         else
             ValueLabel.Text = tostring(selected)
         end
     end
 
     local function apply_config_store()
-        if configKey then SugarUI.CurrentConfig[configKey] = multiSelect and selected or selected end
+        if configKey then
+            SugarUI.CurrentConfig[configKey] = multiSelect and selected or selected
+        end
     end
 
     local function toggle_option(option)
         if multiSelect then
             local index = table.find(selected, option)
-            if index then table.remove(selected, index) else table.insert(selected, option) end
+            if index then
+                table.remove(selected, index)
+            else
+                table.insert(selected, option)
+            end
         else
             selected = option
-            self.Toggle(self)
+            self.Toggle(self) -- закрываем для single select
         end
         update_value_display()
-        if callback then pcall(callback, multiSelect and selected or option) end
+        if callback then
+            pcall(callback, multiSelect and selected or option)
+        end
         apply_config_store()
     end
 
@@ -459,6 +505,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         OptionButton.MouseEnter:Connect(function()
             SugarUI.Tween(OptionButton, {BackgroundColor3 = SugarUI.Theme.ButtonHover}, 0.09)
         end)
+
         OptionButton.MouseLeave:Connect(function()
             local targetColor = multiSelect and SugarUI.Theme.Panel or ((selected == optionText) and SugarUI.Theme.AccentSoft or SugarUI.Theme.Panel)
             SugarUI.Tween(OptionButton, {BackgroundColor3 = targetColor}, 0.09)
@@ -491,6 +538,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             selAllBtn.AutoButtonColor = false
             selAllBtn.Parent = controlFrame
             SugarUI.RoundCorner(4).Parent = selAllBtn
+
             local pad1 = Instance.new("UIPadding", selAllBtn)
             pad1.PaddingLeft = UDim.new(0, 8)
 
@@ -505,6 +553,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             clearBtn.AutoButtonColor = false
             clearBtn.Parent = controlFrame
             SugarUI.RoundCorner(4).Parent = clearBtn
+
             local pad2 = Instance.new("UIPadding", clearBtn)
             pad2.PaddingLeft = UDim.new(0, 8)
 
@@ -543,6 +592,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     function self:Toggle()
         isOpen = not isOpen
         if isOpen then
+            -- скрываем подписи чтобы визуально не налезало
             Label.Visible = false
             ValueLabel.Visible = false
             local height = math.min((#options * 28 + (multiSelect and 28 or 0) + 8), 180)
@@ -558,14 +608,18 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         end
     end
 
-    local function update_from_options(newOptions)
+    function self:UpdateOptions(newOptions)
         options = newOptions or {}
         rebuild_options()
         if not multiSelect then
-            if not table.find(options, selected) then selected = options[1] or "None" end
+            if not table.find(options, selected) then
+                selected = options[1] or "None"
+            end
         else
             local filtered = {}
-            for _, s in ipairs(selected) do if table.find(options, s) then table.insert(filtered, s) end end
+            for _, s in ipairs(selected) do
+                if table.find(options, s) then table.insert(filtered, s) end
+            end
             selected = filtered
         end
         for _, obj in ipairs(optionObjects) do
@@ -584,13 +638,18 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     rebuild_options()
     update_value_display()
 
-    HeaderBtn.MouseButton1Click:Connect(function() self:Toggle() end)
+    HeaderBtn.MouseButton1Click:Connect(function()
+        self:Toggle()
+    end)
 
     self.Instance = Frame
     self.IsOpen = function() return isOpen end
-    self.UpdateOptions = update_from_options
     self.SetValue = function(value)
-        if multiSelect then selected = value or {} else selected = value or options[1] or "None" end
+        if multiSelect then
+            selected = value or {}
+        else
+            selected = value or options[1] or "None"
+        end
         update_value_display()
         for _, obj in ipairs(optionObjects) do
             if obj.check then
@@ -604,11 +663,12 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         apply_config_store()
     end
     self.GetValue = function() return selected end
+
     return self
 end
 
 -- ======================
--- Section component
+-- Компонент секции
 -- ======================
 local SectionComponent = {}
 SectionComponent.__index = SectionComponent
@@ -643,7 +703,7 @@ function SectionComponent.new(parent, title)
 end
 
 -- ======================
--- Notifications
+-- Система уведомлений
 -- ======================
 local NotificationSystem = {}
 NotificationSystem.__index = NotificationSystem
@@ -686,7 +746,12 @@ function NotificationSystem:Notify(title, message, duration, notifType)
 
     local accent = Instance.new("Frame")
     accent.Size = UDim2.new(0, 4, 1, 0)
-    accent.BackgroundColor3 = ({ Info = SugarUI.Theme.Accent, Success = SugarUI.Theme.Success, Warning = SugarUI.Theme.Warning, Error = SugarUI.Theme.Error })[notifType] or SugarUI.Theme.Accent
+    accent.BackgroundColor3 = ( {
+        Info = SugarUI.Theme.Accent,
+        Success = SugarUI.Theme.Success,
+        Warning = SugarUI.Theme.Warning,
+        Error = SugarUI.Theme.Error
+    } )[notifType] or SugarUI.Theme.Accent
     accent.BorderSizePixel = 0
     accent.Parent = notification
     accent.ZIndex = 902
@@ -695,7 +760,12 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     icon.Size = UDim2.new(0, 24, 0, 24)
     icon.Position = UDim2.new(0, 12, 0, 12)
     icon.BackgroundTransparency = 1
-    icon.Image = ({ Info = "rbxassetid://6031280882", Success = "rbxassetid://6031094667", Warning = "rbxassetid://6031094687", Error = "rbxassetid://6031094688" })[notifType] or "rbxassetid://6031280882"
+    icon.Image = ( {
+        Info = "rbxassetid://6031280882",
+        Success = "rbxassetid://6031094667",
+        Warning = "rbxassetid://6031094687",
+        Error = "rbxassetid://6031094688"
+    } )[notifType] or "rbxassetid://6031280882"
     icon.ImageColor3 = SugarUI.Theme.Text
     icon.Parent = notification
     icon.ZIndex = 902
@@ -748,12 +818,24 @@ function NotificationSystem:Notify(title, message, duration, notifType)
 
     SugarUI.Tween(notification, {Size = UDim2.new(1, 0, 0, totalHeight)}, 0.25, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
 
-    closeButton.MouseButton1Click:Connect(function() self:Remove(notification) end)
-    closeButton.MouseEnter:Connect(function() SugarUI.Tween(closeButton, {TextColor3 = SugarUI.Theme.Text}, 0.09) end)
-    closeButton.MouseLeave:Connect(function() SugarUI.Tween(closeButton, {TextColor3 = SugarUI.Theme.Muted}, 0.09) end)
+    closeButton.MouseButton1Click:Connect(function()
+        self:Remove(notification)
+    end)
+
+    closeButton.MouseEnter:Connect(function()
+        SugarUI.Tween(closeButton, {TextColor3 = SugarUI.Theme.Text}, 0.09)
+    end)
+
+    closeButton.MouseLeave:Connect(function()
+        SugarUI.Tween(closeButton, {TextColor3 = SugarUI.Theme.Muted}, 0.09)
+    end)
 
     if duration > 0 then
-        task.delay(duration, function() if notification.Parent then self:Remove(notification) end end)
+        task.delay(duration, function()
+            if notification.Parent then
+                self:Remove(notification)
+            end
+        end)
     end
 
     table.insert(self.Notifications, notification)
@@ -762,12 +844,22 @@ end
 
 function NotificationSystem:Remove(notification)
     SugarUI.Tween(notification, {Size = UDim2.new(1, 0, 0, 0)}, 0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
-    task.delay(0.18, function() if notification.Parent then notification:Destroy() end end)
-    for i, notif in ipairs(self.Notifications) do if notif == notification then table.remove(self.Notifications, i); break end end
+    task.delay(0.18, function()
+        if notification.Parent then
+            notification:Destroy()
+        end
+    end)
+
+    for i, notif in ipairs(self.Notifications) do
+        if notif == notification then
+            table.remove(self.Notifications, i)
+            break
+        end
+    end
 end
 
 -- ======================
--- Window & Tabs
+-- Окно и вкладки
 -- ======================
 local Window = {}
 Window.__index = Window
@@ -833,10 +925,12 @@ local function createTab(selfObj, name)
     tabBtn.MouseButton1Click:Connect(function()
         for _, v in pairs(selfObj.Pages) do v.Visible = false end
         page.Visible = true
+
         for _, t in ipairs(selfObj.Tabs) do
             t.indicator.Visible = (t.name == name)
             SugarUI.Tween(t.button, {TextColor3 = (t.name == name) and SugarUI.Theme.Text or SugarUI.Theme.Muted}, 0.12)
         end
+
         selfObj.ActiveTab = name
     end)
 
@@ -923,16 +1017,16 @@ function Window.new(title)
     local ok = pcall(function() ScreenGui.Parent = game:GetService("CoreGui") end)
     if not ok or not ScreenGui.Parent then
         local player = Players.LocalPlayer
-        if player and player:FindFirstChild("PlayerGui") then
-            ScreenGui.Parent = player.PlayerGui
-        else
-            ScreenGui.Parent = game:GetService("CoreGui")
-        end
+        if player and player:FindFirstChild("PlayerGui") then ScreenGui.Parent = player.PlayerGui else ScreenGui.Parent = game:GetService("CoreGui") end
     end
 
+    local viewport = workspace.CurrentCamera.ViewportSize
+    local defaultWidth = math.min(500, viewport.X * 0.8)
+    local defaultHeight = math.min(400, viewport.Y * 0.8)
+
     local OuterFrame = Instance.new("Frame")
-    OuterFrame.Size = UDim2.new(0, 500, 0, 400)
-    OuterFrame.Position = UDim2.new(0.5, -250, 0.5, -200 + 24)
+    OuterFrame.Size = UDim2.new(0, defaultWidth, 0, defaultHeight)
+    OuterFrame.Position = UDim2.new(0.5, -defaultWidth / 2, 0.5, -defaultHeight / 2)
     OuterFrame.AnchorPoint = Vector2.new(0.5, 0.5)
     OuterFrame.BackgroundTransparency = 1
     OuterFrame.Parent = ScreenGui
@@ -951,7 +1045,7 @@ function Window.new(title)
     local Frame = Instance.new("Frame")
     Frame.Size = UDim2.new(1, 0, 1, 0)
     Frame.BackgroundColor3 = SugarUI.Theme.Background
-    Frame.BackgroundTransparency = 0.06 -- слегка полупрозрачный фон
+    Frame.BackgroundTransparency = 0.1  -- Сделали чуть прозрачным
     Frame.BorderSizePixel = 0
     Frame.ClipsDescendants = true
     Frame.Parent = OuterFrame
@@ -1044,41 +1138,11 @@ function Window.new(title)
 
     local Notifications = NotificationSystem.new(ScreenGui)
 
-    -- Адаптивность
-    local function getViewport()
-        Camera = Camera or Workspace.CurrentCamera
-        if Camera and Camera.ViewportSize then return Camera.ViewportSize end
-        return Vector2.new(1280, 720)
-    end
-
-    local function updateOuterSize()
-        local vp = getViewport()
-        local w = math.clamp(math.floor(vp.X * 0.6), 300, 1100)
-        local h = math.clamp(math.floor(vp.Y * 0.6), 200, 800)
-        -- если пользователь вручную менял размер, сохраняем текущий; иначе устанавливаем рассчитанный
-        if not selfObj._userResized then
-            OuterFrame.Size = UDim2.new(0, w, 0, h)
-        end
-        -- всегда центрируем при показе
-        OuterFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-    end
-
-    if Camera then
-        pcall(function() Camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateOuterSize) end)
-    else
-        Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
-            Camera = Workspace.CurrentCamera
-            if Camera then pcall(function() Camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateOuterSize) end) end
-        end)
-    end
-
-    updateOuterSize()
-
     local dragging = false
     local dragInput, mousePos, framePos
 
     TopBar.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = true
             mousePos = input.Position
             framePos = OuterFrame.Position
@@ -1089,14 +1153,14 @@ function Window.new(title)
     end)
 
     TopBar.InputChanged:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then dragInput = input end
     end)
 
     UserInputService.InputChanged:Connect(function(input)
         if input == dragInput and dragging then
             local delta = input.Position - mousePos
             local newPos = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
-            OuterFrame.Position = newPos
+            SugarUI.Tween(OuterFrame, {Position = newPos}, 0.08, Enum.EasingStyle.Linear)
         end
     end)
 
@@ -1111,11 +1175,10 @@ function Window.new(title)
     local resizeMousePos, resizeFrameSize
 
     resizeBtn.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             resizing = true
             resizeMousePos = input.Position
             resizeFrameSize = OuterFrame.Size
-            selfObj._userResized = true
             input.Changed:Connect(function()
                 if input.UserInputState == Enum.UserInputState.End then resizing = false end
             end)
@@ -1123,166 +1186,115 @@ function Window.new(title)
     end)
 
     UserInputService.InputChanged:Connect(function(input)
-        if resizing and input.UserInputType == Enum.UserInputType.MouseMovement then
+        if resizing and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
             local delta = input.Position - resizeMousePos
-            local newWidth = math.max(300, resizeFrameSize.X.Offset + delta.X)
-            local newHeight = math.max(200, resizeFrameSize.Y.Offset + delta.Y)
-            OuterFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
+            local newSize = UDim2.new(0, math.max(300, resizeFrameSize.X.Offset + delta.X), 0, math.max(200, resizeFrameSize.Y.Offset + delta.Y))
+            OuterFrame.Size = newSize
+            ShadowFrame.Size = UDim2.new(1, 20, 1, 20)
         end
     end)
 
     local toggleConnection
     local function setupToggleKey(key)
         if toggleConnection then toggleConnection:Disconnect() end
+
         toggleConnection = UserInputService.InputBegan:Connect(function(input, processed)
             if not processed and input.KeyCode == key then
                 if selfObj.Visible then selfObj:Hide() else selfObj:Show() end
             end
         end)
     end
+
     setupToggleKey(Enum.KeyCode.V)
 
-    -- Мобильные кнопки: две отдельные кнопки, двигать можно обе, lock контролирует разрешение перемещения
-    local mobileButtons = {}
-    local mobileLocked = true
+    -- Адаптация под мобильные устройства
+    local isMobile = UserInputService.TouchEnabled
+    local toggleMobileButton, lockMobileButton
+    if isMobile then
+        toggleMobileButton = Instance.new("TextButton")
+        toggleMobileButton.Size = UDim2.new(0, 100, 0, 40)
+        toggleMobileButton.Position = UDim2.new(0.5, -50, 1, -50)
+        toggleMobileButton.AnchorPoint = Vector2.new(0.5, 1)
+        toggleMobileButton.BackgroundColor3 = SugarUI.Theme.Accent
+        toggleMobileButton.Text = "Toggle GUI"
+        toggleMobileButton.TextColor3 = SugarUI.Theme.Text
+        toggleMobileButton.Font = Enum.Font.Gotham
+        toggleMobileButton.TextSize = 14
+        toggleMobileButton.Parent = ScreenGui
+        SugarUI.RoundCorner(6).Parent = toggleMobileButton
 
-    local function createMobileButton(name, sizeX, sizeY, pos)
-        local btn = Instance.new("TextButton")
-        btn.Size = UDim2.new(0, sizeX, 0, sizeY)
-        btn.Position = pos or UDim2.new(1, -140, 1, -100)
-        btn.AnchorPoint = Vector2.new(0, 0)
-        btn.BackgroundColor3 = SugarUI.Theme.Panel
-        btn.Text = name
-        btn.TextColor3 = SugarUI.Theme.Text
-        btn.Font = Enum.Font.GothamBold
-        btn.TextSize = 16
-        btn.ZIndex = 1001
-        btn.Parent = ScreenGui
-        SugarUI.RoundCorner(6).Parent = btn
-        return btn
-    end
+        toggleMobileButton.MouseButton1Click:Connect(function()
+            if selfObj.Visible then selfObj:Hide() else selfObj:Show() end
+        end)
 
-    if UserInputService.TouchEnabled then
-        local toggleBtn = createMobileButton("GUI", 84, 44, UDim2.new(1, -140, 1, -100))
-        local lockBtn = createMobileButton("L", 44, 44, UDim2.new(1, -52, 1, -100))
-        mobileButtons.toggle = toggleBtn
-        mobileButtons.lock = lockBtn
+        lockMobileButton = Instance.new("TextButton")
+        lockMobileButton.Size = UDim2.new(0, 40, 0, 40)
+        lockMobileButton.Position = UDim2.new(1, -50, 1, -50)
+        lockMobileButton.AnchorPoint = Vector2.new(1, 1)
+        lockMobileButton.BackgroundColor3 = SugarUI.Theme.Warning
+        lockMobileButton.Text = "Lock"
+        lockMobileButton.TextColor3 = SugarUI.Theme.Text
+        lockMobileButton.Font = Enum.Font.Gotham
+        lockMobileButton.TextSize = 14
+        lockMobileButton.Parent = ScreenGui
+        SugarUI.RoundCorner(6).Parent = lockMobileButton
 
-        -- Функции перетаскивания с разделением drag vs tap
-        local function makeDraggable(btn, onTap)
-            local draggingTouch = false
-            local touchInput = nil
-            local startPos = nil
-            local startBtnPos = nil
-            local moved = false
-            local threshold = 10
+        local locked = true
+        lockMobileButton.MouseButton1Click:Connect(function()
+            locked = not locked
+            lockMobileButton.Text = locked and "Lock" or "Unlock"
+            lockMobileButton.BackgroundColor3 = locked and SugarUI.Theme.Warning or SugarUI.Theme.Success
+        end)
 
-            local function onInputChanged(input)
-                if not touchInput or input ~= touchInput then return end
-                if input.Delta then
-                    local delta = input.Position - startPos
-                    if math.abs(delta.X) > threshold or math.abs(delta.Y) > threshold then
-                        moved = true
-                        draggingTouch = true
-                        local newX = startBtnPos.X.Offset + delta.X
-                        local newY = startBtnPos.Y.Offset + delta.Y
-                        local vp = getViewport()
-                        newX = math.clamp(newX, 8, vp.X - btn.AbsoluteSize.X - 8)
-                        newY = math.clamp(newY, 8, vp.Y - btn.AbsoluteSize.Y - 8)
-                        btn.Position = UDim2.new(0, newX, 0, newY)
-                    end
-                end
-            end
+        local mobileDragging = false
+        local mobileDragInput, mobileMousePos, mobileFramePos
 
-            btn.InputBegan:Connect(function(input)
-                if input.UserInputType == Enum.UserInputType.Touch then
-                    touchInput = input
-                    startPos = input.Position
-                    startBtnPos = btn.Position
-                    moved = false
-                    input.Changed:Connect(function()
-                        if input.UserInputState == Enum.UserInputState.End then
-                            if not moved then
-                                -- treat as tap (if not dragging and not locked for actions)
-                                if not (mobileLocked and btn ~= mobileButtons.lock) then
-                                    -- if button is locked and it's not lockBtn then ignore tap (but we still allow tap for toggle)
-                                end
-                                if onTap then pcall(onTap) end
-                            end
-                            touchInput = nil
-                            draggingTouch = false
-                        end
-                    end)
-                elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
-                    -- desktop fallback: drag with mouse always
-                    startPos = input.Position
-                    startBtnPos = btn.Position
-                    moved = false
-                    local connMove
-                    connMove = UserInputService.InputChanged:Connect(function(mouse)
-                        if mouse.UserInputType == Enum.UserInputType.MouseMovement then
-                            local delta = mouse.Position - startPos
-                            if math.abs(delta.X) > threshold or math.abs(delta.Y) > threshold then
-                                moved = true
-                                local newX = startBtnPos.X.Offset + delta.X
-                                local newY = startBtnPos.Y.Offset + delta.Y
-                                local vp = getViewport()
-                                newX = math.clamp(newX, 8, vp.X - btn.AbsoluteSize.X - 8)
-                                newY = math.clamp(newY, 8, vp.Y - btn.AbsoluteSize.Y - 8)
-                                btn.Position = UDim2.new(0, newX, 0, newY)
-                            end
-                        end
-                    end)
-                    local upConn
-                    upConn = UserInputService.InputEnded:Connect(function(inp)
-                        if inp.UserInputType == Enum.UserInputType.MouseButton1 then
-                            if not moved and onTap then pcall(onTap) end
-                            connMove:Disconnect()
-                            upConn:Disconnect()
-                        end
-                    end)
-                end
-            end)
-
-            UserInputService.InputChanged:Connect(function(input)
-                if touchInput and input == touchInput then
-                    onInputChanged(input)
-                end
-            end)
-        end
-
-        -- Toggle button tap behavior
-        makeDraggable(mobileButtons.toggle, function()
-            -- if it was a simple tap, toggle UI
-            if mobileLocked then
-                -- even if locked, tapping should toggle GUI
-                if selfObj.Visible then selfObj:Hide() else selfObj:Show() end
-            else
-                -- unlocked: tapping still toggles GUI
-                if selfObj.Visible then selfObj:Hide() else selfObj:Show() end
+        toggleMobileButton.InputBegan:Connect(function(input)
+            if not locked and (input.UserInputType == Enum.UserInputType.Touch) then
+                mobileDragging = true
+                mobileMousePos = input.Position
+                mobileFramePos = toggleMobileButton.Position
+                input.Changed:Connect(function()
+                    if input.UserInputState == Enum.UserInputState.End then mobileDragging = false end
+                end)
             end
         end)
 
-        -- Lock button behavior: tap toggles lock; but is draggable when unlocked
-        makeDraggable(mobileButtons.lock, function()
-            mobileLocked = not mobileLocked
-            mobileButtons.lock.Text = mobileLocked and "L" or "U"
+        toggleMobileButton.InputChanged:Connect(function(input)
+            if input.UserInputType == Enum.UserInputType.Touch then mobileDragInput = input end
+        end)
+
+        UserInputService.InputChanged:Connect(function(input)
+            if input == mobileDragInput and mobileDragging then
+                local delta = input.Position - mobileMousePos
+                local newPos = UDim2.new(mobileFramePos.X.Scale, mobileFramePos.X.Offset + delta.X, mobileFramePos.Y.Scale, mobileFramePos.Y.Offset + delta.Y)
+                toggleMobileButton.Position = newPos
+            end
         end)
     end
 
-    -- Simplified show/hide that always centers and preserves size
+    -- NEW: упрощённая анимация — все элементы показываются/прячутся одновременно
     function selfObj:Show()
         selfObj.Visible = true
+        local viewport = workspace.CurrentCamera.ViewportSize
+        local width = OuterFrame.Size.X.Offset
+        local height = OuterFrame.Size.Y.Offset
+        OuterFrame.Position = UDim2.new(0.5, -width / 2, 0.5, -height / 2)
         OuterFrame.Visible = true
-        updateOuterSize()
-        SugarUI.Tween(OuterFrame, {Position = UDim2.new(0.5, 0, 0.5, 0)}, 0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
-        SugarUI.Tween(Frame, {BackgroundTransparency = 0.06}, 0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
-        pcall(function() Notifications:Notify("Sugar UI", "Loaded. Press " .. selfObj.ToggleKey.Name .. " to toggle.", 4, "Info") end)
+        SugarUI.Tween(OuterFrame, {Position = UDim2.new(0.5, -width / 2, 0.5, -height / 2)}, 0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+        SugarUI.Tween(Frame, {BackgroundTransparency = 0.1}, 0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+        -- уведомление о загрузке UI (гарантированно показываем)
+        pcall(function()
+            Notifications:Notify("Sugar UI", "Loaded. Press " .. selfObj.ToggleKey.Name .. " to toggle.", 4, "Info")
+        end)
     end
 
     function selfObj:Hide()
         selfObj.Visible = false
-        SugarUI.Tween(OuterFrame, {Position = UDim2.new(0.5, 0, 0.5, 0)}, 0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
+        local viewport = workspace.CurrentCamera.ViewportSize
+        local width = OuterFrame.Size.X.Offset
+        local height = OuterFrame.Size.Y.Offset
+        SugarUI.Tween(OuterFrame, {Position = UDim2.new(0.5, -width / 2, 0.5, -height / 2 + 24)}, 0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
         SugarUI.Tween(Frame, {BackgroundTransparency = 1}, 0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
         task.delay(0.22, function()
             if not selfObj.Visible then OuterFrame.Visible = false end
@@ -1290,7 +1302,11 @@ function Window.new(title)
         end)
     end
 
-    task.defer(function() wait(0.05); selfObj:Show() end)
+    -- инициално показываем с анимацией
+    task.defer(function()
+        wait(0.05)
+        selfObj:Show()
+    end)
 
     CloseBtn.MouseButton1Click:Connect(function()
         selfObj:Confirm("Confirm Close", "Are you sure you want to close the UI?", function() ScreenGui:Destroy() end, function() end)
@@ -1383,21 +1399,25 @@ function Window.new(title)
         return Notifications:Notify(title, message, duration, type)
     end
 
-    -- ApplyConfig: применяем и гарантированно показываем уведомление (с небольшой задержкой)
+    -- Применение конфигурации с гарантией показа уведомления
     function selfObj:ApplyConfig(config)
         if not config or type(config) ~= "table" then return end
         for _, comp in ipairs(selfObj.Components) do
             local val = config[comp.key]
             if val ~= nil then
                 if comp.type == "toggle" then
-                    if type(comp.obj.Set) == "function" then comp.obj.Set(val, false) end
+                    if type(comp.obj.Set) == "function" then
+                        comp.obj.Set(val, false)
+                    end
                 elseif comp.type == "slider" then
                     if type(comp.obj.SetValue) == "function" then
                         local num = tonumber(val) or val
                         comp.obj.SetValue(num, false)
                     end
                 elseif comp.type == "dropdown" then
-                    if type(comp.obj.SetValue) == "function" then comp.obj.SetValue(val) end
+                    if type(comp.obj.SetValue) == "function" then
+                        comp.obj.SetValue(val)
+                    end
                 end
             end
         end
@@ -1405,9 +1425,9 @@ function Window.new(title)
             local key = Enum.KeyCode[config["ToggleKey"]]
             if key then selfObj:SetToggleKey(key) end
         end
-        -- уведомление после применения конфига — с defer чтобы гарантировать показ
-        task.defer(function()
-            pcall(function() selfObj:Notify("Config", "Configuration applied.", 3, "Info") end)
+        -- уведомление после применения конфига
+        pcall(function()
+            selfObj:Notify("Config", "Configuration applied.", 3, "Info")
         end)
     end
 
