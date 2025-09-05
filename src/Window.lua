@@ -1,47 +1,54 @@
--- Замените вашу функцию Window.new на эту (вставить вместо старой Window.new)
+local Tween = require(script.Parent.Utils.Tween)
+local Theme = require(script.Parent.Utils.Theme)
+
+local Window = {}
+Window.__index = Window
+
 function Window.new(title)
-    local selfObj = setmetatable({}, Window) -- временно, на случай если метатаблицы работают
+    local self = setmetatable({}, Window)
 
-    -- (вся логика создания ScreenGui/Frame/TopBar/Sidebar/Content как раньше)
-    -- ... (копируйте блок создания UI из текущей версии init.lua)
-    -- Для краткости я обозначу, что нужно скопировать весь блок создания GUI
-    -- из вашей текущей версии сюда, без изменений, до момента, где вы делаете `setmetatable(self, Window)`.
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "UILib"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.IgnoreGuiInset = true
+    ScreenGui.Parent = game:GetService("CoreGui")
 
-    -- Ниже — примерная структура (у вас в файле должен быть полный код создания UI).
-    -- После того, как вы создали все элементы и получили:
-    -- selfObj.ScreenGui, selfObj.Frame, selfObj.Sidebar, selfObj.PagesHolder, selfObj.GlobalContainer и др.
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(0, 300, 0, 200)
+    Frame.Position = UDim2.new(0.5, -150, 0.5, -100)
+    Frame.BackgroundColor3 = Theme.Background
+    Frame.BorderSizePixel = 0
+    Frame.Parent = ScreenGui
 
-    -- *** ВАЖНО: после создания UI, привяжем методы напрямую к объекту ***
-    -- Это защитит API от окружений, где метатаблица недоступна/игнорируется.
-    function selfObj:AddTab(name)
-        -- вызываем общую функцию createTab (она объявлена ниже в том же файле)
-        return createTab(selfObj, name)
-    end
+    local Title = Instance.new("TextLabel")
+    Title.Size = UDim2.new(1, 0, 0, 30)
+    Title.BackgroundColor3 = Theme.Accent
+    Title.Text = title
+    Title.TextColor3 = Color3.new(1, 1, 1)
+    Title.Font = Enum.Font.GothamBold
+    Title.TextSize = 16
+    Title.Parent = Frame
 
-    function selfObj:AddPage(name) -- alias
-        return selfObj:AddTab(name)
-    end
+    local Container = Instance.new("Frame")
+    Container.Size = UDim2.new(1, 0, 1, -30)
+    Container.Position = UDim2.new(0, 0, 0, 30)
+    Container.BackgroundTransparency = 1
+    Container.Parent = Frame
 
-    function selfObj:AddButton(text, callback)
-        return ButtonComponent.new(selfObj.GlobalContainer, text, callback)
-    end
+    self.Frame = Frame
+    self.Container = Container
 
-    function selfObj:AddToggle(text, default, callback)
-        return ToggleComponent.new(selfObj.GlobalContainer, text, default, callback)
-    end
-
-    function selfObj:GetActiveTab()
-        for _, t in ipairs(selfObj.Tabs or {}) do
-            if t.name == selfObj.ActiveTab then return t end
-        end
-        return nil
-    end
-
-    -- Если метатаблицы работают, пусть они остаются, но методы уже есть и напрямую.
-    setmetatable(selfObj, Window)
-
-    -- Небольшой отладочный вывод (можно удалить позже)
-    pcall(function() print("[SugarUI] Window created. Methods bound: AddTab, AddButton, AddToggle") end)
-
-    return selfObj
+    return self
 end
+
+function Window:AddButton(text, callback)
+    local Button = require(script.Parent.Components.Button)
+    return Button.new(self.Container, text, callback)
+end
+
+function Window:AddToggle(text, default, callback)
+    local Toggle = require(script.Parent.Components.Toggle)
+    return Toggle.new(self.Container, text, default, callback)
+end
+
+return Window
