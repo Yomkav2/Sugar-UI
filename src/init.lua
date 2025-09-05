@@ -66,63 +66,6 @@ function UILib.AddShadow(frame, transparency, size)
 end
 
 -- ======================
--- Конфигурация и сохранение настроек
--- ======================
-local Config = {
-    ToggleKey = Enum.KeyCode.RightShift,
-    ConfigFolder = "SugarUI",
-    ConfigExtension = ".json"
-}
-
-local function GetConfigPath(name)
-    return Config.ConfigFolder .. "/" .. name .. Config.ConfigExtension
-end
-
-local function SaveConfig(name, data)
-    local success, result = pcall(function()
-        if not isfolder(Config.ConfigFolder) then
-            makefolder(Config.ConfigFolder)
-        end
-        local json = HttpService:JSONEncode(data)
-        writefile(GetConfigPath(name), json)
-    end)
-    return success
-end
-
-local function LoadConfig(name)
-    local success, result = pcall(function()
-        if isfile(GetConfigPath(name)) then
-            local json = readfile(GetConfigPath(name))
-            return HttpService:JSONDecode(json)
-        end
-    end)
-    return success and result or {}
-end
-
-local function DeleteConfig(name)
-    local path = GetConfigPath(name)
-    if isfile(path) then
-        delfile(path)
-        return true
-    end
-    return false
-end
-
-local function GetConfigList()
-    if not isfolder(Config.ConfigFolder) then
-        makefolder(Config.ConfigFolder)
-    end
-    local files = listfiles(Config.ConfigFolder)
-    local configs = {}
-    for _, file in ipairs(files) do
-        if file:match("%.json$") then
-            table.insert(configs, file:match("([^/]+)%.json$"))
-        end
-    end
-    return configs
-end
-
--- ======================
 -- Компонент кнопки
 -- ======================
 local ButtonComponent = {}
@@ -1114,7 +1057,7 @@ function Window.new(title)
         end)
     end
     
-    setupToggleKey(Config.ToggleKey)
+    setupToggleKey(Enum.KeyCode.RightShift)
 
     selfObj.ScreenGui = ScreenGui
     selfObj.Frame = Frame
@@ -1143,7 +1086,6 @@ function Window.new(title)
     end
     
     function selfObj:SetToggleKey(key)
-        Config.ToggleKey = key
         setupToggleKey(key)
         UILib.CurrentConfig["ToggleKey"] = tostring(key)
     end
