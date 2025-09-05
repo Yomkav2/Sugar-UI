@@ -78,6 +78,7 @@ function ButtonComponent.new(parent, text, callback)
     Btn.Size = UDim2.new(1, -10, 0, 30)
     Btn.Position = UDim2.new(0, 5, 0, #parent:GetChildren() * 35)
     Btn.BackgroundColor3 = UILib.Theme.Button
+    Btn.BackgroundTransparency = 0.2
     Btn.Text = text or "Button"
     Btn.TextColor3 = UILib.Theme.Text
     Btn.Font = Enum.Font.Gotham
@@ -135,6 +136,7 @@ function ToggleComponent.new(parent, text, default, callback, configKey)
     Frame.Size = UDim2.new(1, -10, 0, 30)
     Frame.Position = UDim2.new(0, 5, 0, #parent:GetChildren() * 35)
     Frame.BackgroundColor3 = UILib.Theme.Toggle
+    Frame.BackgroundTransparency = 0.2
     Frame.Parent = parent
     UILib.RoundCorner(6).Parent = Frame
 
@@ -211,6 +213,7 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
     Frame.Size = UDim2.new(1, -10, 0, 50)
     Frame.Position = UDim2.new(0, 5, 0, #parent:GetChildren() * 35)
     Frame.BackgroundColor3 = UILib.Theme.Panel
+    Frame.BackgroundTransparency = 0.2
     Frame.Parent = parent
     UILib.RoundCorner(6).Parent = Frame
 
@@ -320,6 +323,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     Frame.Size = UDim2.new(1, -10, 0, 30)
     Frame.Position = UDim2.new(0, 5, 0, #parent:GetChildren() * 35)
     Frame.BackgroundColor3 = UILib.Theme.Panel
+    Frame.BackgroundTransparency = 0.2
     Frame.ClipsDescendants = true
     Frame.Parent = parent
     UILib.RoundCorner(6).Parent = Frame
@@ -341,7 +345,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
 
     local Arrow = Instance.new("ImageLabel")
     Arrow.Size = UDim2.new(0, 16, 0, 16)
-    Arrow.Position = UDim2.new(1, -20, 0.5, -8)
+    Arrow.Position = UDim2.new(1, -28, 0.5, -8)
     Arrow.BackgroundTransparency = 1
     Arrow.Image = "rbxassetid://6031094678"
     Arrow.ImageColor3 = UILib.Theme.Muted
@@ -350,7 +354,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
 
     local ValueLabel = Instance.new("TextLabel")
     ValueLabel.Size = UDim2.new(0.25, 0, 1, 0)
-    ValueLabel.Position = UDim2.new(0.75, -5, 0, 0)
+    ValueLabel.Position = UDim2.new(0.75, -12, 0, 0)
     ValueLabel.BackgroundTransparency = 1
     ValueLabel.Text = multiSelect and "Multiple" or tostring(selected)
     ValueLabel.TextColor3 = UILib.Theme.Muted
@@ -363,13 +367,20 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     OptionsFrame.Size = UDim2.new(1, 0, 0, 0)
     OptionsFrame.Position = UDim2.new(0, 0, 0, 30)
     OptionsFrame.BackgroundColor3 = UILib.Theme.Panel
+    OptionsFrame.BackgroundTransparency = 0.2
     OptionsFrame.BorderSizePixel = 0
     OptionsFrame.ClipsDescendants = true
     OptionsFrame.Parent = Frame
     UILib.RoundCorner(6).Parent = OptionsFrame
 
+    local optionsStroke = Instance.new("UIStroke", OptionsFrame)
+    optionsStroke.Color = UILib.Theme.Border
+    optionsStroke.Transparency = 0.8
+    optionsStroke.Thickness = 1
+
     local optionsList = Instance.new("UIListLayout", OptionsFrame)
     optionsList.SortOrder = Enum.SortOrder.LayoutOrder
+    optionsList.Padding = UDim.new(0, 5)
 
     local function update_value_display()
         if multiSelect then
@@ -406,15 +417,16 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
 
     local function create_option(option)
         local OptionFrame = Instance.new("Frame")
-        OptionFrame.Size = UDim2.new(1, 0, 0, 30)
+        OptionFrame.Size = UDim2.new(1, 0, 0, 32)
         OptionFrame.BackgroundTransparency = 1
         OptionFrame.LayoutOrder = #OptionsFrame:GetChildren()
         OptionFrame.Parent = OptionsFrame
 
         local OptionButton = Instance.new("TextButton")
-        OptionButton.Size = UDim2.new(1, -10, 1, -6)
-        OptionButton.Position = UDim2.new(0, 5, 0, 3)
+        OptionButton.Size = UDim2.new(1, -12, 1, -8)
+        OptionButton.Position = UDim2.new(0, 6, 0, 4)
         OptionButton.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+        OptionButton.BackgroundTransparency = 0.2
         OptionButton.Text = tostring(option)
         OptionButton.TextColor3 = UILib.Theme.Text
         OptionButton.Font = Enum.Font.Gotham
@@ -422,6 +434,11 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         OptionButton.AutoButtonColor = false
         OptionButton.Parent = OptionFrame
         UILib.RoundCorner(4).Parent = OptionButton
+
+        local optionStroke = Instance.new("UIStroke", OptionButton)
+        optionStroke.Color = UILib.Theme.Border
+        optionStroke.Transparency = 0.8
+        optionStroke.Thickness = 1
 
         if multiSelect then
             local Check = Instance.new("Frame")
@@ -474,13 +491,26 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         isOpen = not isOpen
         if isOpen then
             UILib.Tween(Arrow, {Rotation = 180}, 0.2)
-            UILib.Tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, math.min(#options * 30, 180))}, 0.2)
-            UILib.Tween(Frame, {Size = UDim2.new(1, -10, 0, 30 + math.min(#options * 30, 180))}, 0.2)
+            UILib.Tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, math.min(#options * 32, 192))}, 0.2)
+            UILib.Tween(Frame, {Size = UDim2.new(1, -10, 0, 30 + math.min(#options * 32, 192))}, 0.2)
         else
             UILib.Tween(Arrow, {Rotation = 0}, 0.2)
             UILib.Tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.2)
             UILib.Tween(Frame, {Size = UDim2.new(1, -10, 0, 30)}, 0.2)
         end
+    end
+
+    function self:UpdateOptions(newOptions)
+        options = newOptions or {}
+        for _, child in ipairs(OptionsFrame:GetChildren()) do
+            if child:IsA("Frame") then
+                child:Destroy()
+            end
+        end
+        for _, option in ipairs(options) do
+            create_option(option)
+        end
+        update_value_display()
     end
 
     for _, option in ipairs(options) do
@@ -501,7 +531,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         if multiSelect then
             selected = value or {}
         else
-            selected = value or options[1]
+            selected = value or options[1] or "None"
         end
         update_value_display()
         for _, child in ipairs(OptionsFrame:GetChildren()) do
@@ -572,7 +602,7 @@ function NotificationSystem.new(screenGui)
     self.Notifications = {}
     self.Container = Instance.new("Frame")
     self.Container.Size = UDim2.new(0, 300, 1, 0)
-    self.Container.Position = UDim2.new(1, -320, 0, 40)
+    self.Container.Position = UDim2.new(1, -320, 0, 20)
     self.Container.BackgroundTransparency = 1
     self.Container.Parent = screenGui
 
@@ -592,6 +622,7 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     local notification = Instance.new("Frame")
     notification.Size = UDim2.new(1, 0, 0, 0)
     notification.BackgroundColor3 = UILib.Theme.Panel
+    notification.BackgroundTransparency = 0.2
     notification.BorderSizePixel = 0
     notification.ClipsDescendants = true
     notification.LayoutOrder = #self.Container:GetChildren()
@@ -896,6 +927,7 @@ function Window.new(title)
     local Frame = Instance.new("Frame")
     Frame.Size = UDim2.new(1, 0, 1, 0)
     Frame.BackgroundColor3 = UILib.Theme.Background
+    Frame.BackgroundTransparency = 0.2
     Frame.BorderSizePixel = 0
     Frame.ClipsDescendants = true
     Frame.Parent = OuterFrame
@@ -906,6 +938,7 @@ function Window.new(title)
     local TopBar = Instance.new("Frame")
     TopBar.Size = UDim2.new(1, 0, 0, 48)
     TopBar.BackgroundColor3 = UILib.Theme.Panel
+    TopBar.BackgroundTransparency = 0.2
     TopBar.Parent = Frame
     UILib.RoundCorner(8).Parent = TopBar
 
@@ -953,6 +986,7 @@ function Window.new(title)
     Sidebar.Size = UDim2.new(0, 160, 1, -48)
     Sidebar.Position = UDim2.new(0, 0, 0, 48)
     Sidebar.BackgroundColor3 = UILib.Theme.Panel
+    Sidebar.BackgroundTransparency = 0.2
     Sidebar.Parent = Frame
 
     local sideStroke = Instance.new("UIStroke", Sidebar)
