@@ -616,6 +616,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             CheckIcon.ImageColor3 = SugarUI.Theme.Highlight
             CheckIcon.Visible = isSelected
             CheckIcon.Parent = Check
+            Check.CheckIcon = CheckIcon
         end
 
         OptionButton.MouseButton1Click:Connect(function()
@@ -1363,8 +1364,7 @@ function Window.new(title)
     TopBar.Size = UDim2.new(1, 0, 0, 64)
     TopBar.BackgroundColor3 = SugarUI.Theme.Panel
     TopBar.Parent = Frame
-    SugarUI.RoundCorner(16, 0, 16, 16).CornerRadius = UDim.new(0, 16)  -- Only top corners
-    TopBar.Corner = SugarUI.RoundCorner(16)
+    SugarUI.RoundCorner(16).Parent = TopBar
 
     local topGradient = Instance.new("UIGradient", TopBar)
     topGradient.Rotation = 90
@@ -1432,7 +1432,7 @@ function Window.new(title)
     Sidebar.Position = UDim2.new(0, 0, 0, 64)
     Sidebar.BackgroundColor3 = SugarUI.Theme.Panel
     Sidebar.Parent = Frame
-    SugarUI.RoundCorner(0, 16, 0, 0).CornerRadius = UDim.new(0, 0)  -- Left side only
+    SugarUI.RoundCorner(16).Parent = Sidebar
 
     local sideStroke = Instance.new("UIStroke", Sidebar)
     sideStroke.Color = SugarUI.Theme.Border
@@ -1605,7 +1605,7 @@ function Window.new(title)
         msgLbl.TextXAlignment = Enum.TextXAlignment.Center
         msgLbl.Parent = panel
 
-        -- Fixed buttons - no size change, positioned absolutely
+        -- Fixed buttons - no size change, positioned absolutely, only color hover
         local yesBtn = Instance.new("TextButton")
         yesBtn.Size = UDim2.new(0.4, -10, 0, 40)
         yesBtn.Position = UDim2.new(0.1, 0, 1, -50)
@@ -1614,11 +1614,18 @@ function Window.new(title)
         yesBtn.TextColor3 = SugarUI.Theme.Highlight
         yesBtn.Font = Enum.Font.GothamBold
         yesBtn.TextSize = 14
+        yesBtn.AutoButtonColor = false
         yesBtn.Parent = panel
         SugarUI.RoundCorner(8).Parent = yesBtn
         yesBtn.MouseButton1Click:Connect(function()
             overlay:Destroy()
             if yesCb then yesCb() end
+        end)
+        yesBtn.MouseEnter:Connect(function()
+            SugarUI.Tween(yesBtn, {BackgroundColor3 = Color3.fromRGB(0, 200, 0)}, 0.1)
+        end)
+        yesBtn.MouseLeave:Connect(function()
+            SugarUI.Tween(yesBtn, {BackgroundColor3 = SugarUI.Theme.Success}, 0.1)
         end)
 
         local noBtn = Instance.new("TextButton")
@@ -1629,23 +1636,19 @@ function Window.new(title)
         noBtn.TextColor3 = SugarUI.Theme.Highlight
         noBtn.Font = Enum.Font.GothamBold
         noBtn.TextSize = 14
+        noBtn.AutoButtonColor = false
         noBtn.Parent = panel
         SugarUI.RoundCorner(8).Parent = noBtn
         noBtn.MouseButton1Click:Connect(function()
             overlay:Destroy()
             if noCb then noCb() end
         end)
-
-        -- Hover for buttons without size change
-        for _, btn in pairs({yesBtn, noBtn}) do
-            btn.AutoButtonColor = false
-            btn.MouseEnter:Connect(function()
-                SugarUI.Tween(btn, {Size = UDim2.new(0.4, -8, 0, 40)}, 0.1)  -- Slight padding increase only
-            end)
-            btn.MouseLeave:Connect(function()
-                SugarUI.Tween(btn, {Size = UDim2.new(0.4, -10, 0, 40)}, 0.1)
-            end)
-        end
+        noBtn.MouseEnter:Connect(function()
+            SugarUI.Tween(noBtn, {BackgroundColor3 = Color3.fromRGB(200, 0, 0)}, 0.1)
+        end)
+        noBtn.MouseLeave:Connect(function()
+            SugarUI.Tween(noBtn, {BackgroundColor3 = SugarUI.Theme.Error}, 0.1)
+        end)
     end
 
     selfObj.ScreenGui = ScreenGui
