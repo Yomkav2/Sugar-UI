@@ -1693,7 +1693,6 @@ function Window.new(title)
         for _, tab in ipairs(selfObj.Tabs) do
             tab.button.TextColor3 = (tab.name == selfObj.ActiveTab) and SugarUI.Theme.Text or SugarUI.Theme.Muted
             tab.indicator.BackgroundColor3 = SugarUI.Theme.Accent
-            tab.indicator.UIStroke and (function() tab.indicator.UIStroke.Color = SugarUI.Theme.Accent end) or nil
             tab.pageInner.ScrollBarImageColor3 = SugarUI.Theme.Border
             for _, comp in ipairs(tab.components) do
                 if comp.obj and comp.obj.UpdateTheme then
