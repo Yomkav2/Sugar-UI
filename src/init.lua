@@ -1,4 +1,4 @@
--- init.lua (Sugar UI - Минималистичный, переработанный)
+-- init.lua (Sugar UI - Enhanced, полностью переработанный)
 local SugarUI = {}
 SugarUI.__index = SugarUI
 
@@ -14,53 +14,92 @@ local Workspace = game:GetService("Workspace")
 local Camera = Workspace.CurrentCamera
 
 -- ======================
--- Preset Themes (фиксированные, более миним)
+-- Preset Themes (фиксированные)
 -- ======================
 SugarUI.Presets = {
-    MinimalDark = {
-        Background = Color3.fromRGB(18,18,20),
-        Panel = Color3.fromRGB(28,28,30),
-        Accent = Color3.fromRGB(95, 180, 255),
-        AccentSoft = Color3.fromRGB(75,160,235),
-        AccentDark = Color3.fromRGB(50,120,190),
-        Text = Color3.fromRGB(235,235,240),
-        Muted = Color3.fromRGB(170,170,180),
-        Shadow = Color3.fromRGB(0,0,0),
-        Border = Color3.fromRGB(40,40,44),
-        Highlight = Color3.fromRGB(255,255,255),
-        Success = Color3.fromRGB(76,175,80),
-        Warning = Color3.fromRGB(255,193,7),
-        Error = Color3.fromRGB(244,67,54),
-        Toggle = Color3.fromRGB(28,28,30),
-        ToggleBox = Color3.fromRGB(60,60,64),
-        Button = Color3.fromRGB(28,28,30),
-        ButtonHover = Color3.fromRGB(36,36,40),
+    Pinky = {
+        Background = Color3.fromRGB(18, 8, 18),
+        Panel = Color3.fromRGB(28, 12, 28),
+        Accent = Color3.fromRGB(255, 105, 180),
+        AccentSoft = Color3.fromRGB(235, 120, 185),
+        AccentDark = Color3.fromRGB(170, 40, 100),
+        Text = Color3.fromRGB(245, 240, 250),
+        Muted = Color3.fromRGB(175, 160, 170),
+        Shadow = Color3.fromRGB(0, 0, 0),
+        Border = Color3.fromRGB(55, 30, 45),
+        Highlight = Color3.fromRGB(255, 255, 255),
+        Success = Color3.fromRGB(76, 175, 80),
+        Warning = Color3.fromRGB(255, 193, 7),
+        Error = Color3.fromRGB(244, 67, 54),
+        Toggle = Color3.fromRGB(30, 12, 22),
+        ToggleBox = Color3.fromRGB(230,230,230),
+        Button = Color3.fromRGB(30,12,22),
+        ButtonHover = Color3.fromRGB(44,18,36),
     },
-    MinimalLight = {
-        Background = Color3.fromRGB(245,245,246),
-        Panel = Color3.fromRGB(250,250,251),
-        Accent = Color3.fromRGB(20,110,200),
-        AccentSoft = Color3.fromRGB(40,125,215),
-        AccentDark = Color3.fromRGB(12,80,150),
-        Text = Color3.fromRGB(18,18,20),
-        Muted = Color3.fromRGB(110,110,120),
-        Shadow = Color3.fromRGB(0,0,0),
-        Border = Color3.fromRGB(220,220,224),
-        Highlight = Color3.fromRGB(255,255,255),
-        Success = Color3.fromRGB(76,175,80),
-        Warning = Color3.fromRGB(255,193,7),
-        Error = Color3.fromRGB(244,67,54),
-        Toggle = Color3.fromRGB(245,245,246),
-        ToggleBox = Color3.fromRGB(230,230,232),
-        Button = Color3.fromRGB(245,245,246),
-        ButtonHover = Color3.fromRGB(235,235,236),
+    Amethyst = {
+        Background = Color3.fromRGB(14, 10, 24),
+        Panel = Color3.fromRGB(26, 18, 40),
+        Accent = Color3.fromRGB(153, 102, 204),
+        AccentSoft = Color3.fromRGB(165, 130, 210),
+        AccentDark = Color3.fromRGB(88, 58, 120),
+        Text = Color3.fromRGB(240, 240, 250),
+        Muted = Color3.fromRGB(155, 145, 170),
+        Shadow = Color3.fromRGB(0, 0, 0),
+        Border = Color3.fromRGB(46, 40, 60),
+        Highlight = Color3.fromRGB(255, 255, 255),
+        Success = Color3.fromRGB(76, 175, 80),
+        Warning = Color3.fromRGB(255, 193, 7),
+        Error = Color3.fromRGB(244, 67, 54),
+        Toggle = Color3.fromRGB(24,18,36),
+        ToggleBox = Color3.fromRGB(200,200,200),
+        Button = Color3.fromRGB(24,18,36),
+        ButtonHover = Color3.fromRGB(42,35,60),
+    },
+    Dark = {
+        Background = Color3.fromRGB(14, 14, 16),
+        Panel = Color3.fromRGB(28, 28, 30),
+        Accent = Color3.fromRGB(86, 179, 255),
+        AccentSoft = Color3.fromRGB(100, 160, 235),
+        AccentDark = Color3.fromRGB(12, 90, 160),
+        Text = Color3.fromRGB(235, 235, 240),
+        Muted = Color3.fromRGB(140, 140, 150),
+        Shadow = Color3.fromRGB(0, 0, 0),
+        Border = Color3.fromRGB(50, 50, 56),
+        Highlight = Color3.fromRGB(255, 255, 255),
+        Success = Color3.fromRGB(76, 175, 80),
+        Warning = Color3.fromRGB(255, 193, 7),
+        Error = Color3.fromRGB(244, 67, 54),
+        Toggle = Color3.fromRGB(30, 30, 30),
+        ToggleBox = Color3.fromRGB(200, 200, 200),
+        Button = Color3.fromRGB(28, 28, 30),
+        ButtonHover = Color3.fromRGB(48, 48, 52),
+    },
+    White = {
+        Background = Color3.fromRGB(245, 245, 248),
+        Panel = Color3.fromRGB(234, 234, 238),
+        Accent = Color3.fromRGB(36, 120, 200),
+        AccentSoft = Color3.fromRGB(70, 140, 220),
+        AccentDark = Color3.fromRGB(8, 70, 140),
+        Text = Color3.fromRGB(18, 18, 18),
+        Muted = Color3.fromRGB(100, 100, 100),
+        Shadow = Color3.fromRGB(0, 0, 0),
+        Border = Color3.fromRGB(210, 210, 214),
+        Highlight = Color3.fromRGB(255, 255, 255),
+        Success = Color3.fromRGB(76, 175, 80),
+        Warning = Color3.fromRGB(255, 193, 7),
+        Error = Color3.fromRGB(244, 67, 54),
+        Toggle = Color3.fromRGB(245,245,245),
+        ToggleBox = Color3.fromRGB(40,40,40),
+        Button = Color3.fromRGB(245,245,245),
+        ButtonHover = Color3.fromRGB(230,230,230),
     }
 }
 
--- default
+-- default theme (start with Dark)
 SugarUI.Theme = {}
-for k,v in pairs(SugarUI.Presets.MinimalDark) do SugarUI.Theme[k] = v end
+for k,v in pairs(SugarUI.Presets.Dark) do SugarUI.Theme[k] = v end
 
+-- helper to apply a preset
 function SugarUI.ApplyPreset(name)
     local preset = SugarUI.Presets[name]
     if not preset then return false end
@@ -74,41 +113,49 @@ function SugarUI.ApplyPreset(name)
 end
 
 -- ======================
--- Helpers
+-- Вспомогательные
 -- ======================
 function SugarUI.RoundCorner(cornerRadius)
     local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(0, cornerRadius or 6)
+    corner.CornerRadius = UDim.new(0, cornerRadius or 8)
     return corner
 end
 
 function SugarUI.Tween(instance, props, duration, style, dir)
-    style = style or Enum.EasingStyle.Quad
-    dir = dir or Enum.EasingDirection.Out
-    local tweenInfo = TweenInfo.new(duration or 0.16, style, dir)
+    style = style or Enum.EasingStyle.Sine
+    dir = dir or Enum.EasingDirection.InOut
+    local tweenInfo = TweenInfo.new(duration or 0.22, style, dir)
     local tween = TweenService:Create(instance, tweenInfo, props)
     tween:Play()
     return tween
 end
 
 function SugarUI.AddShadow(frame, transparency, size)
-    -- легкая тень, минималистично
     local shadow = Instance.new("ImageLabel")
     shadow.Name = "Shadow"
-    shadow.Size = UDim2.new(1, size or 8, 1, size or 8)
-    shadow.Position = UDim2.new(0, -(size or 8)/2, 0, -(size or 8)/2)
+    shadow.Size = UDim2.new(1, (size or 10), 1, (size or 10))
+    shadow.Position = UDim2.new(0, -((size or 10)/2), 0, -((size or 10)/2))
     shadow.BackgroundTransparency = 1
     shadow.Image = "rbxassetid://5554236805"
     shadow.ImageColor3 = SugarUI.Theme.Shadow
-    shadow.ImageTransparency = transparency or 0.82
+    shadow.ImageTransparency = transparency or 0.8
     shadow.ScaleType = Enum.ScaleType.Slice
     shadow.SliceCenter = Rect.new(10, 10, 118, 118)
+    shadow.ZIndex = (frame.ZIndex or 1) - 1
     shadow.Parent = frame
     return shadow
 end
 
+-- small helper to create gradients for panels (subtle)
+local function addPanelGradient(parent)
+    local g = Instance.new("UIGradient", parent)
+    g.Rotation = 90
+    g.Transparency = NumberSequence.new(0, 0.03)
+    return g
+end
+
 -- ======================
--- Button component (минималистичный)
+-- Button component (улучшенный внешний вид)
 -- ======================
 local ButtonComponent = {}
 ButtonComponent.__index = ButtonComponent
@@ -121,28 +168,49 @@ function ButtonComponent.new(parent, text, callback)
     Btn.BackgroundTransparency = 0
     Btn.Text = text or "Button"
     Btn.TextColor3 = SugarUI.Theme.Text
-    Btn.Font = Enum.Font.Gotham semibold or Enum.Font.GothamBold -- fallback handled by roblox
     Btn.Font = Enum.Font.GothamBold
     Btn.TextSize = 14
     Btn.AutoButtonColor = false
+    Btn.BorderSizePixel = 0
     Btn.Parent = parent
-    SugarUI.RoundCorner(8).Parent = Btn
+    SugarUI.RoundCorner(10).Parent = Btn
 
     local stroke = Instance.new("UIStroke")
     stroke.Parent = Btn
     stroke.Color = SugarUI.Theme.Border
-    stroke.Transparency = 0.92
+    stroke.Transparency = 0.85
     stroke.Thickness = 1
 
+    local grad = Instance.new("UIGradient", Btn)
+    grad.Name = "BtnGrad"
+    grad.Rotation = 90
+    grad.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, SugarUI.Theme.Button), ColorSequenceKeypoint.new(1, SugarUI.Theme.ButtonHover)})
+    grad.Transparency = NumberSequence.new(0.12, 0)
+
+    -- hover & click feedback
     Btn.MouseEnter:Connect(function()
-        SugarUI.Tween(Btn, {BackgroundColor3 = SugarUI.Theme.ButtonHover}, 0.08)
+        SugarUI.Tween(Btn, {BackgroundColor3 = SugarUI.Theme.ButtonHover}, 0.12)
+        SugarUI.Tween(Btn, {Rotation = -1}, 0.12)
     end)
     Btn.MouseLeave:Connect(function()
-        SugarUI.Tween(Btn, {BackgroundColor3 = SugarUI.Theme.Button}, 0.08)
+        SugarUI.Tween(Btn, {BackgroundColor3 = SugarUI.Theme.Button}, 0.12)
+        SugarUI.Tween(Btn, {Rotation = 0}, 0.12)
     end)
 
     Btn.MouseButton1Click:Connect(function()
         if callback then
+            -- Ripple (subtle)
+            local ripple = Instance.new("ImageLabel")
+            ripple.Size = UDim2.new(0, 12, 0, 12)
+            ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
+            ripple.BackgroundTransparency = 1
+            ripple.Image = "rbxassetid://7663593618"
+            ripple.ImageColor3 = SugarUI.Theme.Highlight
+            ripple.AnchorPoint = Vector2.new(0.5,0.5)
+            ripple.ZIndex = Btn.ZIndex + 2
+            ripple.Parent = Btn
+            SugarUI.Tween(ripple, {Size = UDim2.new(2.8, 0, 2.8, 0), ImageTransparency = 1}, 0.34, Enum.EasingStyle.Quad)
+            task.delay(0.36, function() if ripple and ripple.Parent then ripple:Destroy() end end)
             pcall(callback)
         end
     end)
@@ -153,13 +221,17 @@ function ButtonComponent.new(parent, text, callback)
         Btn.BackgroundColor3 = SugarUI.Theme.Button
         Btn.TextColor3 = SugarUI.Theme.Text
         stroke.Color = SugarUI.Theme.Border
+        local g = Btn:FindFirstChild("BtnGrad")
+        if g and g:IsA("UIGradient") then
+            g.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, SugarUI.Theme.Button), ColorSequenceKeypoint.new(1, SugarUI.Theme.ButtonHover)})
+        end
     end
 
     return self
 end
 
 -- ======================
--- Toggle component (минимал)
+-- Toggle component
 -- ======================
 local ToggleComponent = {}
 ToggleComponent.__index = ToggleComponent
@@ -169,11 +241,11 @@ function ToggleComponent.new(parent, text, default, callback, configKey)
     self.State = default or false
 
     local Frame = Instance.new("Frame")
-    Frame.Size = UDim2.new(1, -10, 0, 34)
+    Frame.Size = UDim2.new(1, -10, 0, 36)
     Frame.BackgroundColor3 = SugarUI.Theme.Panel
     Frame.BackgroundTransparency = 0
     Frame.Parent = parent
-    SugarUI.RoundCorner(8).Parent = Frame
+    SugarUI.RoundCorner(10).Parent = Frame
 
     local stroke = Instance.new("UIStroke")
     stroke.Parent = Frame
@@ -182,7 +254,7 @@ function ToggleComponent.new(parent, text, default, callback, configKey)
     stroke.Thickness = 1
 
     local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(0.76, 0, 1, 0)
+    Label.Size = UDim2.new(0.75, 0, 1, 0)
     Label.BackgroundTransparency = 1
     Label.Text = text or "Toggle"
     Label.TextColor3 = SugarUI.Theme.Text
@@ -192,25 +264,29 @@ function ToggleComponent.new(parent, text, default, callback, configKey)
     Label.Parent = Frame
 
     local Box = Instance.new("Frame")
-    Box.Size = UDim2.new(0, 20, 0, 12)
-    Box.Position = UDim2.new(1, -32, 0.5, -6)
+    Box.Size = UDim2.new(0, 24, 0, 24)
+    Box.Position = UDim2.new(1, -36, 0.5, -12)
     Box.BackgroundColor3 = self.State and SugarUI.Theme.Accent or SugarUI.Theme.ToggleBox
     Box.Parent = Frame
-    SugarUI.RoundCorner(6).Parent = Box
+    SugarUI.RoundCorner(7).Parent = Box
 
-    local knob = Instance.new("Frame")
-    knob.Size = UDim2.new(0, 10, 0, 10)
-    knob.Position = UDim2.new(self.State and 1 or 0, -10, 0.5, -5)
-    knob.AnchorPoint = Vector2.new(self.State and 1 or 0, 0.5)
-    knob.BackgroundColor3 = SugarUI.Theme.Highlight
-    knob.Parent = Box
-    SugarUI.RoundCorner(6).Parent = knob
+    local check = Instance.new("ImageLabel")
+    check.Size = UDim2.new(1, 0, 1, 0)
+    check.BackgroundTransparency = 1
+    check.Image = "rbxassetid://6031094667"
+    check.ImageColor3 = SugarUI.Theme.Highlight
+    check.Visible = self.State
+    check.Parent = Box
+
+    SugarUI.AddShadow(Box, 0.6, 6)
 
     Frame.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             self.State = not self.State
             SugarUI.Tween(Box, {BackgroundColor3 = self.State and SugarUI.Theme.Accent or SugarUI.Theme.ToggleBox}, 0.12)
-            SugarUI.Tween(knob, {Position = UDim2.new(self.State and 1 or 0, self.State and -10 or 0, 0.5, -5)}, 0.12)
+            SugarUI.Tween(check, {ImageTransparency = self.State and 0 or 1}, 0.12)
+            check.Visible = true
+            task.delay(0.12, function() if not self.State then check.Visible = false end end)
             if callback then pcall(callback, self.State) end
             if configKey then SugarUI.CurrentConfig[configKey] = self.State end
         end
@@ -220,7 +296,6 @@ function ToggleComponent.new(parent, text, default, callback, configKey)
     self.Set = function(newState, fire)
         self.State = not not newState
         SugarUI.Tween(Box, {BackgroundColor3 = self.State and SugarUI.Theme.Accent or SugarUI.Theme.ToggleBox}, 0.12)
-        SugarUI.Tween(knob, {Position = UDim2.new(self.State and 1 or 0, self.State and -10 or 0, 0.5, -5)}, 0.12)
         if fire and callback then pcall(callback, self.State) end
         if configKey then SugarUI.CurrentConfig[configKey] = self.State end
     end
@@ -231,14 +306,14 @@ function ToggleComponent.new(parent, text, default, callback, configKey)
         stroke.Color = SugarUI.Theme.Border
         Label.TextColor3 = SugarUI.Theme.Text
         Box.BackgroundColor3 = self.State and SugarUI.Theme.Accent or SugarUI.Theme.ToggleBox
-        knob.BackgroundColor3 = SugarUI.Theme.Highlight
+        check.ImageColor3 = SugarUI.Theme.Highlight
     end
 
     return self
 end
 
 -- ======================
--- Slider component (современный, сохранена API)
+-- Slider component
 -- ======================
 local SliderComponent = {}
 SliderComponent.__index = SliderComponent
@@ -254,7 +329,7 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
     Frame.BackgroundColor3 = SugarUI.Theme.Panel
     Frame.BackgroundTransparency = 0
     Frame.Parent = parent
-    SugarUI.RoundCorner(8).Parent = Frame
+    SugarUI.RoundCorner(10).Parent = Frame
 
     local stroke = Instance.new("UIStroke", Frame)
     stroke.Color = SugarUI.Theme.Border
@@ -262,7 +337,7 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
     stroke.Thickness = 1
 
     local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(0.72, 0, 0, 20)
+    Label.Size = UDim2.new(0.7, 0, 0, 18)
     Label.Position = UDim2.new(0, 10, 0, 6)
     Label.BackgroundTransparency = 1
     Label.Text = text or "Slider"
@@ -273,8 +348,8 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
     Label.Parent = Frame
 
     local ValueLabel = Instance.new("TextLabel")
-    ValueLabel.Size = UDim2.new(0.28, -10, 0, 20)
-    ValueLabel.Position = UDim2.new(0.72, 0, 0, 6)
+    ValueLabel.Size = UDim2.new(0.3, -10, 0, 18)
+    ValueLabel.Position = UDim2.new(0.7, 0, 0, 6)
     ValueLabel.BackgroundTransparency = 1
     ValueLabel.Text = tostring(math.floor(value))
     ValueLabel.TextColor3 = SugarUI.Theme.Muted
@@ -286,7 +361,7 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
     local Track = Instance.new("Frame")
     Track.Size = UDim2.new(1, -20, 0, 8)
     Track.Position = UDim2.new(0, 10, 0, 28)
-    Track.BackgroundColor3 = SugarUI.Theme.Border
+    Track.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
     Track.BorderSizePixel = 0
     Track.Parent = Frame
     SugarUI.RoundCorner(6).Parent = Track
@@ -344,7 +419,7 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
         stroke.Color = SugarUI.Theme.Border
         Label.TextColor3 = SugarUI.Theme.Text
         ValueLabel.TextColor3 = SugarUI.Theme.Muted
-        Track.BackgroundColor3 = SugarUI.Theme.Border
+        Track.BackgroundColor3 = Color3.fromRGB(60, 60, 60)
         Fill.BackgroundColor3 = SugarUI.Theme.Accent
     end
 
@@ -352,7 +427,7 @@ function SliderComponent.new(parent, text, min, max, default, callback, configKe
 end
 
 -- ======================
--- Dropdown component (минималистичный)
+-- Dropdown component
 -- ======================
 local DropdownComponent = {}
 DropdownComponent.__index = DropdownComponent
@@ -369,17 +444,17 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     Frame.Size = UDim2.new(1, -10, 0, 36)
     Frame.BackgroundColor3 = SugarUI.Theme.Button
     Frame.BackgroundTransparency = 0
-    Frame.ClipsDescendants = true
+    Frame.ClipsDescendants = false
     Frame.Parent = parent
-    SugarUI.RoundCorner(8).Parent = Frame
+    SugarUI.RoundCorner(10).Parent = Frame
 
     local stroke = Instance.new("UIStroke", Frame)
     stroke.Color = SugarUI.Theme.Border
-    stroke.Transparency = 0.92
+    stroke.Transparency = 0.85
     stroke.Thickness = 1
 
     local Label = Instance.new("TextLabel")
-    Label.Size = UDim2.new(0.68, 0, 1, 0)
+    Label.Size = UDim2.new(0.65, 0, 1, 0)
     Label.BackgroundTransparency = 1
     Label.Text = text or "Dropdown"
     Label.TextColor3 = SugarUI.Theme.Text
@@ -389,8 +464,8 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
     Label.Parent = Frame
 
     local ValueLabel = Instance.new("TextLabel")
-    ValueLabel.Size = UDim2.new(0.32, -12, 1, 0)
-    ValueLabel.Position = UDim2.new(0.68, -6, 0, 0)
+    ValueLabel.Size = UDim2.new(0.3, -12, 1, 0)
+    ValueLabel.Position = UDim2.new(0.7, -6, 0, 0)
     ValueLabel.BackgroundTransparency = 1
     ValueLabel.Text = multiSelect and "None" or tostring(selected)
     ValueLabel.TextColor3 = SugarUI.Theme.Muted
@@ -463,7 +538,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
 
     local function create_option(optionText, index)
         local OptionFrame = Instance.new("Frame")
-        OptionFrame.Size = UDim2.new(1, 0, 0, 30)
+        OptionFrame.Size = UDim2.new(1, 0, 0, 32)
         OptionFrame.BackgroundTransparency = 1
         OptionFrame.LayoutOrder = index
         OptionFrame.Parent = OptionsFrame
@@ -479,22 +554,22 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         OptionButton.TextXAlignment = Enum.TextXAlignment.Left
         OptionButton.AutoButtonColor = false
         OptionButton.Parent = OptionFrame
-        SugarUI.RoundCorner(6).Parent = OptionButton
+        SugarUI.RoundCorner(8).Parent = OptionButton
 
         local pad = Instance.new("UIPadding", OptionButton)
-        pad.PaddingLeft = UDim.new(0, 8)
+        pad.PaddingLeft = UDim.new(0, 10)
 
         local optionStroke = Instance.new("UIStroke", OptionButton)
         optionStroke.Color = SugarUI.Theme.Border
-        optionStroke.Transparency = 0.92
+        optionStroke.Transparency = 0.9
         optionStroke.Thickness = 1
 
         local Check
         local CheckIcon
         if multiSelect then
             Check = Instance.new("Frame")
-            Check.Size = UDim2.new(0, 16, 0, 16)
-            Check.Position = UDim2.new(1, -24, 0.5, -8)
+            Check.Size = UDim2.new(0, 18, 0, 18)
+            Check.Position = UDim2.new(1, -26, 0.5, -9)
             Check.BackgroundColor3 = table.find(selected, optionText) and SugarUI.Theme.Accent or SugarUI.Theme.Panel
             Check.Parent = OptionButton
             SugarUI.RoundCorner(4).Parent = Check
@@ -523,11 +598,11 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         end
 
         OptionButton.MouseEnter:Connect(function()
-            SugarUI.Tween(OptionButton, {BackgroundColor3 = SugarUI.Theme.ButtonHover}, 0.07)
+            SugarUI.Tween(OptionButton, {BackgroundColor3 = SugarUI.Theme.ButtonHover}, 0.09)
         end)
         OptionButton.MouseLeave:Connect(function()
             local targetColor = multiSelect and SugarUI.Theme.Panel or ((selected == optionText) and SugarUI.Theme.AccentSoft or SugarUI.Theme.Panel)
-            SugarUI.Tween(OptionButton, {BackgroundColor3 = targetColor}, 0.07)
+            SugarUI.Tween(OptionButton, {BackgroundColor3 = targetColor}, 0.09)
         end)
 
         optionObjects[#optionObjects + 1] = {frame = OptionFrame, btn = OptionButton, check = Check, checkIcon = CheckIcon, optionStroke = optionStroke}
@@ -550,7 +625,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             order = order + 1
 
             local selAllBtn = Instance.new("TextButton")
-            selAllBtn.Size = UDim2.new(0.48, -4, 1, 0)
+            selAllBtn.Size = UDim2.new(0.48, -6, 1, 0)
             selAllBtn.BackgroundColor3 = SugarUI.Theme.Button
             selAllBtn.Text = "Select All"
             selAllBtn.TextColor3 = SugarUI.Theme.Text
@@ -563,7 +638,7 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
             pad1.PaddingLeft = UDim.new(0, 8)
 
             local clearBtn = Instance.new("TextButton")
-            clearBtn.Size = UDim2.new(0.48, -4, 1, 0)
+            clearBtn.Size = UDim2.new(0.48, -6, 1, 0)
             clearBtn.Position = UDim2.new(0.52, 0, 0, 0)
             clearBtn.BackgroundColor3 = SugarUI.Theme.Button
             clearBtn.Text = "Clear"
@@ -613,16 +688,16 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
         if isOpen then
             Label.Visible = false
             ValueLabel.Visible = false
-            local height = math.min((#options * 30 + (multiSelect and 34 or 0) + 8), 220)
-            SugarUI.Tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, height)}, 0.18)
-            SugarUI.Tween(Frame, {Size = UDim2.new(1, -10, 0, 36 + height)}, 0.18)
+            local height = math.min((#options * 32 + (multiSelect and 34 or 0) + 8), 240)
+            SugarUI.Tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, height)}, 0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+            SugarUI.Tween(Frame, {Size = UDim2.new(1, -10, 0, 36 + height)}, 0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
             OptionsFrame.ZIndex = 1000
         else
             Label.Visible = true
             ValueLabel.Visible = true
-            SugarUI.Tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.16)
-            SugarUI.Tween(Frame, {Size = UDim2.new(1, -10, 0, 36)}, 0.16)
-            task.delay(0.18, function() OptionsFrame.ZIndex = 60 end)
+            SugarUI.Tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
+            SugarUI.Tween(Frame, {Size = UDim2.new(1, -10, 0, 36)}, 0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
+            task.delay(0.2, function() OptionsFrame.ZIndex = 60 end)
         end
     end
 
@@ -717,17 +792,25 @@ function SectionComponent.new(parent, title)
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Parent = wrapper
 
+    local line = Instance.new("Frame")
+    line.Size = UDim2.new(1, -20, 0, 1)
+    line.Position = UDim2.new(0, 10, 1, -6)
+    line.BackgroundColor3 = SugarUI.Theme.Border
+    line.BorderSizePixel = 0
+    line.Parent = wrapper
+
     self._wrapper = wrapper
 
     function self:UpdateTheme()
         label.TextColor3 = SugarUI.Theme.Muted
+        line.BackgroundColor3 = SugarUI.Theme.Border
     end
 
     return self
 end
 
 -- ======================
--- Notifications (минимал)
+-- Notifications
 -- ======================
 local NotificationSystem = {}
 NotificationSystem.__index = NotificationSystem
@@ -736,11 +819,11 @@ function NotificationSystem.new(screenGui)
     local self = setmetatable({}, NotificationSystem)
     self.Notifications = {}
     self.Container = Instance.new("Frame")
-    self.Container.Size = UDim2.new(0, 320, 0, 360)
-    self.Container.Position = UDim2.new(1, -340, 0, 20)
+    self.Container.Size = UDim2.new(0, 340, 0, 420)
+    self.Container.Position = UDim2.new(1, -360, 0, 20)
     self.Container.BackgroundTransparency = 1
     self.Container.Parent = screenGui
-    self.Container.ZIndex = 900
+    self.Container.ZIndex = 9999
 
     local list = Instance.new("UIListLayout", self.Container)
     list.SortOrder = Enum.SortOrder.LayoutOrder
@@ -763,21 +846,30 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     notification.ClipsDescendants = true
     notification.LayoutOrder = -(#self.Container:GetChildren() + 1)
     notification.Parent = self.Container
-    SugarUI.RoundCorner(8).Parent = notification
-    notification.ZIndex = 901
+    SugarUI.RoundCorner(10).Parent = notification
+    notification.ZIndex = 9001
 
-    SugarUI.AddShadow(notification, 0.32, 8)
+    SugarUI.AddShadow(notification, 0.28, 8)
 
     local accent = Instance.new("Frame")
     accent.Size = UDim2.new(0, 6, 1, 0)
     accent.BackgroundColor3 = ({ Info = SugarUI.Theme.Accent, Success = SugarUI.Theme.Success, Warning = SugarUI.Theme.Warning, Error = SugarUI.Theme.Error })[notifType] or SugarUI.Theme.Accent
     accent.BorderSizePixel = 0
     accent.Parent = notification
-    accent.ZIndex = 902
+    accent.ZIndex = 9002
+
+    local icon = Instance.new("ImageLabel")
+    icon.Size = UDim2.new(0, 22, 0, 22)
+    icon.Position = UDim2.new(0, 14, 0, 14)
+    icon.BackgroundTransparency = 1
+    icon.Image = ({ Info = "rbxassetid://6031280882", Success = "rbxassetid://6031094667", Warning = "rbxassetid://6031094687", Error = "rbxassetid://6031094688" })[notifType] or "rbxassetid://6031280882"
+    icon.ImageColor3 = SugarUI.Theme.Text
+    icon.Parent = notification
+    icon.ZIndex = 9002
 
     local titleLabel = Instance.new("TextLabel")
     titleLabel.Size = UDim2.new(1, -60, 0, 20)
-    titleLabel.Position = UDim2.new(0, 44, 0, 10)
+    titleLabel.Position = UDim2.new(0, 44, 0, 12)
     titleLabel.BackgroundTransparency = 1
     titleLabel.Text = title or "Notification"
     titleLabel.TextColor3 = SugarUI.Theme.Text
@@ -785,7 +877,7 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     titleLabel.TextSize = 14
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.Parent = notification
-    titleLabel.ZIndex = 902
+    titleLabel.ZIndex = 9002
 
     local messageLabel = Instance.new("TextLabel")
     messageLabel.Size = UDim2.new(1, -60, 0, 0)
@@ -799,18 +891,18 @@ function NotificationSystem:Notify(title, message, duration, notifType)
     messageLabel.TextYAlignment = Enum.TextYAlignment.Top
     messageLabel.TextWrapped = true
     messageLabel.Parent = notification
-    messageLabel.ZIndex = 902
+    messageLabel.ZIndex = 9002
 
     local closeButton = Instance.new("TextButton")
     closeButton.Size = UDim2.new(0, 22, 0, 22)
-    closeButton.Position = UDim2.new(1, -34, 0, 8)
+    closeButton.Position = UDim2.new(1, -36, 0, 8)
     closeButton.BackgroundTransparency = 1
     closeButton.Text = "×"
     closeButton.TextColor3 = SugarUI.Theme.Muted
     closeButton.Font = Enum.Font.GothamBold
     closeButton.TextSize = 16
     closeButton.Parent = notification
-    closeButton.ZIndex = 902
+    closeButton.ZIndex = 9002
 
     local textHeight = 0
     if message then
@@ -818,10 +910,10 @@ function NotificationSystem:Notify(title, message, duration, notifType)
         textHeight = size.Y
     end
 
-    local totalHeight = math.clamp(56 + textHeight, 60, 140)
+    local totalHeight = math.clamp(56 + textHeight, 60, 160)
     messageLabel.Size = UDim2.new(1, -60, 0, textHeight)
 
-    SugarUI.Tween(notification, {Size = UDim2.new(1, 0, 0, totalHeight)}, 0.22)
+    SugarUI.Tween(notification, {Size = UDim2.new(1, 0, 0, totalHeight)}, 0.22, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
 
     closeButton.MouseButton1Click:Connect(function() self:Remove(notification) end)
     closeButton.MouseEnter:Connect(function() SugarUI.Tween(closeButton, {TextColor3 = SugarUI.Theme.Text}, 0.09) end)
@@ -836,7 +928,7 @@ function NotificationSystem:Notify(title, message, duration, notifType)
 end
 
 function NotificationSystem:Remove(notification)
-    SugarUI.Tween(notification, {Size = UDim2.new(1, 0, 0, 0)}, 0.18)
+    SugarUI.Tween(notification, {Size = UDim2.new(1, 0, 0, 0)}, 0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
     task.delay(0.18, function() if notification.Parent then notification:Destroy() end end)
     for i, notif in ipairs(self.Notifications) do if notif == notification then table.remove(self.Notifications, i); break end end
 end
@@ -870,13 +962,13 @@ local function createTab(selfObj, name)
     tabBtn.Parent = btnWrap
 
     local indicator = Instance.new("Frame")
-    indicator.Size = UDim2.new(0, 4, 1, -8)
-    indicator.Position = UDim2.new(0, -6, 0, 4)
+    indicator.Size = UDim2.new(0, 4, 1, -10)
+    indicator.Position = UDim2.new(0, -6, 0, 5)
     indicator.BackgroundColor3 = SugarUI.Theme.Accent
     indicator.Visible = false
     indicator.BorderSizePixel = 0
     indicator.Parent = tabBtn
-    SugarUI.RoundCorner(2).Parent = indicator
+    SugarUI.RoundCorner(3).Parent = indicator
 
     local page = Instance.new("Frame")
     page.Size = UDim2.new(1, 0, 1, 0)
@@ -888,6 +980,7 @@ local function createTab(selfObj, name)
     scrollingFrame.Size = UDim2.new(1, -28, 1, -28)
     scrollingFrame.Position = UDim2.new(0, 14, 0, 14)
     scrollingFrame.BackgroundTransparency = 1
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
     scrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
     scrollingFrame.ScrollBarThickness = 6
     scrollingFrame.ScrollBarImageColor3 = SugarUI.Theme.Border
@@ -895,14 +988,14 @@ local function createTab(selfObj, name)
     scrollingFrame.Parent = page
 
     local list = Instance.new("UIListLayout", scrollingFrame)
-    list.Padding = UDim.new(0, 10)
+    list.Padding = UDim.new(0, 12)
     list.SortOrder = Enum.SortOrder.LayoutOrder
 
     local padding = Instance.new("UIPadding", scrollingFrame)
-    padding.PaddingTop = UDim.new(0, 12)
-    padding.PaddingBottom = UDim.new(0, 12)
-    padding.PaddingLeft = UDim.new(0, 8)
-    padding.PaddingRight = UDim.new(0, 8)
+    padding.PaddingTop = UDim.new(0, 16)
+    padding.PaddingBottom = UDim.new(0, 16)
+    padding.PaddingLeft = UDim.new(0, 12)
+    padding.PaddingRight = UDim.new(0, 12)
 
     tabBtn.MouseButton1Click:Connect(function()
         for _, v in pairs(selfObj.Pages) do v.Visible = false end
@@ -1000,10 +1093,10 @@ function Window.new(title)
     selfObj.ToggleKey = Enum.KeyCode.V
 
     local ScreenGui = Instance.new("ScreenGui")
-    ScreenGui.Name = "SugarUI"
+    ScreenGui.Name = "SugarUI_Enhanced"
     ScreenGui.ResetOnSpawn = false
     ScreenGui.IgnoreGuiInset = true
-    pcall(function() ScreenGui.DisplayOrder = 1000 end)
+    pcall(function() ScreenGui.DisplayOrder = 9999 end)
     local ok = pcall(function() ScreenGui.Parent = game:GetService("CoreGui") end)
     if not ok or not ScreenGui.Parent then
         local player = Players.LocalPlayer
@@ -1015,19 +1108,21 @@ function Window.new(title)
     end
 
     local OuterFrame = Instance.new("Frame")
-    OuterFrame.Size = UDim2.new(0, 520, 0, 420)
-    OuterFrame.Position = UDim2.new(0.5, -260, 0.5, -210)
+    OuterFrame.Size = UDim2.new(0, 560, 0, 460)
+    OuterFrame.Position = UDim2.new(0.5, -280, 0.5, -230)
     OuterFrame.AnchorPoint = Vector2.new(0.5, 0.5)
     OuterFrame.BackgroundTransparency = 1
     OuterFrame.Parent = ScreenGui
+    OuterFrame.ZIndex = 9000
+    SugarUI.RoundCorner(14).Parent = OuterFrame
 
     local ShadowFrame = Instance.new("ImageLabel")
-    ShadowFrame.Size = UDim2.new(1, 26, 1, 26)
-    ShadowFrame.Position = UDim2.new(0, -13, 0, -13)
+    ShadowFrame.Size = UDim2.new(1, 34, 1, 34)
+    ShadowFrame.Position = UDim2.new(0, -17, 0, -17)
     ShadowFrame.BackgroundTransparency = 1
     ShadowFrame.Image = "rbxassetid://5554236805"
     ShadowFrame.ImageColor3 = SugarUI.Theme.Shadow
-    ShadowFrame.ImageTransparency = 0.72
+    ShadowFrame.ImageTransparency = 0.74
     ShadowFrame.ScaleType = Enum.ScaleType.Slice
     ShadowFrame.SliceCenter = Rect.new(10, 10, 118, 118)
     ShadowFrame.Parent = OuterFrame
@@ -1041,14 +1136,31 @@ function Window.new(title)
     Frame.Parent = OuterFrame
     SugarUI.RoundCorner(12).Parent = Frame
 
-    SugarUI.AddShadow(Frame, 0.28, 8)
+    SugarUI.AddShadow(Frame, 0.28, 10)
+
+    -- inner glass container (slight transparency + gradient)
+    local Inner = Instance.new("Frame")
+    Inner.Size = UDim2.new(1, -8, 1, -8)
+    Inner.Position = UDim2.new(0, 4, 0, 4)
+    Inner.BackgroundColor3 = SugarUI.Theme.Panel
+    Inner.BackgroundTransparency = 0.08
+    Inner.BorderSizePixel = 0
+    Inner.Parent = Frame
+    SugarUI.RoundCorner(12).Parent = Inner
+    addPanelGradient(Inner)
+    SugarUI.AddShadow(Inner, 0.32, 6)
 
     local TopBar = Instance.new("Frame")
-    TopBar.Size = UDim2.new(1, 0, 0, 56)
+    TopBar.Size = UDim2.new(1, 0, 0, 60)
     TopBar.BackgroundColor3 = SugarUI.Theme.Panel
     TopBar.BackgroundTransparency = 0
-    TopBar.Parent = Frame
+    TopBar.Parent = Inner
     SugarUI.RoundCorner(12).Parent = TopBar
+
+    local topGradient = Instance.new("UIGradient", TopBar)
+    topGradient.Rotation = 0
+    topGradient.Color = ColorSequence.new({ColorSequenceKeypoint.new(0, SugarUI.Theme.Panel), ColorSequenceKeypoint.new(1, SugarUI.Theme.ButtonHover)})
+    topGradient.Transparency = NumberSequence.new(0.02, 0)
 
     local topStroke = Instance.new("UIStroke", TopBar)
     topStroke.Color = SugarUI.Theme.Border
@@ -1056,7 +1168,7 @@ function Window.new(title)
     topStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 
     local TitleLbl = Instance.new("TextLabel")
-    TitleLbl.Size = UDim2.new(0.8, -24, 1, 0)
+    TitleLbl.Size = UDim2.new(0.78, -24, 1, 0)
     TitleLbl.Position = UDim2.new(0, 16, 0, 0)
     TitleLbl.BackgroundTransparency = 1
     TitleLbl.Text = title or "Sugar UI"
@@ -1067,8 +1179,8 @@ function Window.new(title)
     TitleLbl.Parent = TopBar
 
     local Subtitle = Instance.new("TextLabel")
-    Subtitle.Size = UDim2.new(0.2, -24, 1, 0)
-    Subtitle.Position = UDim2.new(0.8, 12, 0, 0)
+    Subtitle.Size = UDim2.new(0.22, -24, 1, 0)
+    Subtitle.Position = UDim2.new(0.78, 12, 0, 0)
     Subtitle.BackgroundTransparency = 1
     Subtitle.Text = "v1.0"
     Subtitle.TextColor3 = SugarUI.Theme.Muted
@@ -1077,70 +1189,80 @@ function Window.new(title)
     Subtitle.TextXAlignment = Enum.TextXAlignment.Right
     Subtitle.Parent = TopBar
 
+    local Icon = Instance.new("ImageLabel")
+    Icon.Size = UDim2.new(0, 34, 0, 34)
+    Icon.Position = UDim2.new(0, 12, 0.5, -17)
+    Icon.BackgroundTransparency = 1
+    Icon.Image = "rbxthumb://type=AvatarHeadShot&id=1&w=420&h=420"
+    Icon.Parent = TopBar
+    Icon.ZIndex = TopBar.ZIndex + 2
+    SugarUI.RoundCorner(8).Parent = Icon
+    Icon.ImageColor3 = SugarUI.Theme.Accent
+
     local MinimizeBtn = Instance.new("TextButton")
     MinimizeBtn.Size = UDim2.new(0, 36, 0, 36)
     MinimizeBtn.Position = UDim2.new(1, -104, 0.5, -18)
-    MinimizeBtn.BackgroundColor3 = SugarUI.Theme.Panel
+    MinimizeBtn.BackgroundColor3 = SugarUI.Theme.Warning
     MinimizeBtn.Text = "—"
     MinimizeBtn.Font = Enum.Font.GothamBold
     MinimizeBtn.TextSize = 18
-    MinimizeBtn.TextColor3 = SugarUI.Theme.Text
+    MinimizeBtn.TextColor3 = SugarUI.Theme.Highlight
     MinimizeBtn.BorderSizePixel = 0
     MinimizeBtn.Parent = TopBar
     SugarUI.RoundCorner(10).Parent = MinimizeBtn
 
     MinimizeBtn.MouseEnter:Connect(function() SugarUI.Tween(MinimizeBtn, {BackgroundColor3 = SugarUI.Theme.ButtonHover}, 0.12) end)
-    MinimizeBtn.MouseLeave:Connect(function() SugarUI.Tween(MinimizeBtn, {BackgroundColor3 = SugarUI.Theme.Panel}, 0.12) end)
+    MinimizeBtn.MouseLeave:Connect(function() SugarUI.Tween(MinimizeBtn, {BackgroundColor3 = SugarUI.Theme.Warning}, 0.12) end)
     MinimizeBtn.MouseButton1Click:Connect(function() selfObj:Hide() end)
 
     local CloseBtn = Instance.new("TextButton")
     CloseBtn.Size = UDim2.new(0, 36, 0, 36)
     CloseBtn.Position = UDim2.new(1, -56, 0.5, -18)
-    CloseBtn.BackgroundColor3 = SugarUI.Theme.Panel
+    CloseBtn.BackgroundColor3 = SugarUI.Theme.Error
     CloseBtn.Text = "×"
     CloseBtn.Font = Enum.Font.GothamBold
     CloseBtn.TextSize = 18
-    CloseBtn.TextColor3 = SugarUI.Theme.Text
+    CloseBtn.TextColor3 = SugarUI.Theme.Highlight
     CloseBtn.BorderSizePixel = 0
     CloseBtn.Parent = TopBar
     SugarUI.RoundCorner(10).Parent = CloseBtn
 
     CloseBtn.MouseEnter:Connect(function() SugarUI.Tween(CloseBtn, {BackgroundColor3 = SugarUI.Theme.ButtonHover}, 0.12) end)
-    CloseBtn.MouseLeave:Connect(function() SugarUI.Tween(CloseBtn, {BackgroundColor3 = SugarUI.Theme.Panel}, 0.12) end)
+    CloseBtn.MouseLeave:Connect(function() SugarUI.Tween(CloseBtn, {BackgroundColor3 = SugarUI.Theme.Error}, 0.12) end)
 
     local Sidebar = Instance.new("Frame")
-    Sidebar.Size = UDim2.new(0, 180, 1, -56)
-    Sidebar.Position = UDim2.new(0, 0, 0, 56)
+    Sidebar.Size = UDim2.new(0, 190, 1, -60)
+    Sidebar.Position = UDim2.new(0, 0, 0, 60)
     Sidebar.BackgroundColor3 = SugarUI.Theme.Panel
-    Sidebar.BackgroundTransparency = 0
-    Sidebar.Parent = Frame
+    Sidebar.BackgroundTransparency = 0.03
+    Sidebar.Parent = Inner
     SugarUI.RoundCorner(0).Parent = Sidebar
 
     local sideStroke = Instance.new("UIStroke", Sidebar)
     sideStroke.Color = SugarUI.Theme.Border
-    sideStroke.Transparency = 0.9
+    sideStroke.Transparency = 0.92
 
     local tabsLayout = Instance.new("UIListLayout", Sidebar)
-    tabsLayout.Padding = UDim.new(0, 8)
+    tabsLayout.Padding = UDim.new(0, 10)
     tabsLayout.SortOrder = Enum.SortOrder.LayoutOrder
     tabsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
     tabsLayout.VerticalAlignment = Enum.VerticalAlignment.Top
 
     local tabsPadding = Instance.new("UIPadding", Sidebar)
-    tabsPadding.PaddingTop = UDim.new(0, 18)
+    tabsPadding.PaddingTop = UDim.new(0, 22)
     tabsPadding.PaddingLeft = UDim.new(0, 12)
     tabsPadding.PaddingRight = UDim.new(0, 12)
-    tabsPadding.PaddingBottom = UDim.new(0, 16)
+    tabsPadding.PaddingBottom = UDim.new(0, 12)
 
     local PagesHolder = Instance.new("Frame")
-    PagesHolder.Size = UDim2.new(1, -180, 1, -56)
-    PagesHolder.Position = UDim2.new(0, 180, 0, 56)
+    PagesHolder.Size = UDim2.new(1, -190, 1, -60)
+    PagesHolder.Position = UDim2.new(0, 190, 0, 60)
     PagesHolder.BackgroundTransparency = 1
-    PagesHolder.Parent = Frame
+    PagesHolder.Parent = Inner
 
     local Notifications = NotificationSystem.new(ScreenGui)
 
-    -- Adaptive sizing
+    -- Адаптивность
     local function getViewport()
         Camera = Camera or Workspace.CurrentCamera
         if Camera and Camera.ViewportSize then return Camera.ViewportSize end
@@ -1149,8 +1271,8 @@ function Window.new(title)
 
     local function updateOuterSize()
         local vp = getViewport()
-        local w = math.clamp(math.floor(vp.X * 0.52), 360, 1280)
-        local h = math.clamp(math.floor(vp.Y * 0.56), 240, 900)
+        local w = math.clamp(math.floor(vp.X * 0.52), 380, 1280)
+        local h = math.clamp(math.floor(vp.Y * 0.58), 260, 900)
         if not selfObj._userResized then
             OuterFrame.Size = UDim2.new(0, w, 0, h)
         end
@@ -1168,7 +1290,7 @@ function Window.new(title)
 
     updateOuterSize()
 
-    -- Dragging
+    -- Плавное перетаскивание (твин)
     local dragging = false
     local dragInput, mousePos, framePos
     local activeTween = nil
@@ -1202,10 +1324,10 @@ function Window.new(title)
 
     local resizeBtn = Instance.new("Frame")
     resizeBtn.Size = UDim2.new(0, 20, 0, 20)
-    resizeBtn.Position = UDim2.new(1, 0, 1, 0)
+    resizeBtn.Position = UDim2.new(1, -6, 1, -6)
     resizeBtn.AnchorPoint = Vector2.new(1, 1)
     resizeBtn.BackgroundTransparency = 1
-    resizeBtn.Parent = Frame
+    resizeBtn.Parent = Inner
 
     local resizing = false
     local resizeMousePos, resizeFrameSize
@@ -1242,9 +1364,8 @@ function Window.new(title)
     end
     setupToggleKey(Enum.KeyCode.V)
 
-    -- mobile toggle button (draggable)
+    -- Mobile toggle button for touch devices
     local mobileButtons = {}
-
     local function createMobileButton(name, sizeX, sizeY, pos)
         local btn = Instance.new("TextButton")
         btn.Size = UDim2.new(0, sizeX, 0, sizeY)
@@ -1255,9 +1376,9 @@ function Window.new(title)
         btn.TextColor3 = SugarUI.Theme.Text
         btn.Font = Enum.Font.GothamBold
         btn.TextSize = 16
-        btn.ZIndex = 1001
+        btn.ZIndex = 10001
         btn.Parent = ScreenGui
-        SugarUI.RoundCorner(8).Parent = btn
+        SugarUI.RoundCorner(10).Parent = btn
         return btn
     end
 
@@ -1345,40 +1466,37 @@ function Window.new(title)
         end)
     end
 
-    -- Show / Hide with updated minimal pop animation
+    -- Show / Hide (новая анимация — pop + overshoot)
     function selfObj:Show()
         selfObj.Visible = true
         OuterFrame.Visible = true
 
-        -- compute viewport-target size for pop animation
-        local vp = getViewport()
-        local targetW = math.clamp(math.floor(vp.X * 0.52), 360, 1280)
-        local targetH = math.clamp(math.floor(vp.Y * 0.56), 240, 900)
-
-        -- start slightly smaller and lower, fade in background
-        OuterFrame.Size = UDim2.new(0, math.floor(targetW * 0.94), 0, math.floor(targetH * 0.94))
-        OuterFrame.Position = UDim2.new(0.5, 0, 0.5, 28)
+        -- prepare initial pop-in state
+        local startPos = UDim2.new(0.5, 0, 0.5, 60)
+        OuterFrame.Position = startPos
         Frame.BackgroundTransparency = 1
-
-        -- tweens: position & size (pop + lift) and background fade
-        SugarUI.Tween(OuterFrame, {Size = UDim2.new(0, targetW, 0, targetH), Position = UDim2.new(0.5, 0, 0.5, 0)}, 0.22)
-        SugarUI.Tween(Frame, {BackgroundTransparency = 0.04}, 0.24)
-        task.delay(0.02, function()
-            pcall(function() selfObj:UpdateTheme() end)
+        -- first sweep: overshoot upwards
+        SugarUI.Tween(OuterFrame, {Position = UDim2.new(0.5, 0, 0.5, -18)}, 0.26, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        SugarUI.Tween(Frame, {BackgroundTransparency = 0.06}, 0.26, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+        -- settle to center
+        task.delay(0.22, function()
+            SugarUI.Tween(OuterFrame, {Position = UDim2.new(0.5, 0, 0.5, 0)}, 0.12, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
         end)
+        -- update theme once visible
+        task.delay(0.02, function() pcall(function() selfObj:UpdateTheme() end) end)
     end
 
     function selfObj:Hide()
         selfObj.Visible = false
-        -- hide with downward slide + fade
-        SugarUI.Tween(OuterFrame, {Position = UDim2.new(0.5, 0, 1.2, 0)}, 0.2)
-        SugarUI.Tween(Frame, {BackgroundTransparency = 1}, 0.18)
+        -- shrink & drop away
+        SugarUI.Tween(OuterFrame, {Position = UDim2.new(0.5, 0, 1.6, 0)}, 0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+        SugarUI.Tween(Frame, {BackgroundTransparency = 1}, 0.22, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
         for _, child in ipairs(Notifications.Container:GetChildren()) do
             if child:IsA("Frame") then
                 pcall(function() SugarUI.Tween(child, {Size = UDim2.new(1,0,0,0)}, 0.18) end)
             end
         end
-        task.delay(0.22, function()
+        task.delay(0.26, function()
             if not selfObj.Visible then OuterFrame.Visible = false end
             Notifications:Notify("Info", "GUI hidden. Press " .. selfObj.ToggleKey.Name .. " to show.", 3, "Info")
         end)
@@ -1396,15 +1514,15 @@ function Window.new(title)
         overlay.BackgroundColor3 = Color3.fromRGB(0,0,0)
         overlay.BackgroundTransparency = 0.52
         overlay.Parent = ScreenGui
-        overlay.ZIndex = 999
+        overlay.ZIndex = 10050
 
         local panel = Instance.new("Frame")
-        panel.Size = UDim2.new(0, 360, 0, 180)
-        panel.Position = UDim2.new(0.5, -180, 0.5, -90)
+        panel.Size = UDim2.new(0, 380, 0, 170)
+        panel.Position = UDim2.new(0.5, -190, 0.5, -85)
         panel.BackgroundColor3 = SugarUI.Theme.Panel
-        SugarUI.RoundCorner(10).Parent = panel
+        SugarUI.RoundCorner(12).Parent = panel
         panel.Parent = overlay
-        panel.ZIndex = 1000
+        panel.ZIndex = 10051
 
         SugarUI.AddShadow(panel, 0.42, 12)
         local stroke = Instance.new("UIStroke", panel)
@@ -1420,10 +1538,10 @@ function Window.new(title)
         titleLbl.TextSize = 16
         titleLbl.BackgroundTransparency = 1
         titleLbl.Parent = panel
-        titleLbl.ZIndex = 1001
+        titleLbl.ZIndex = 10052
 
         local msgLbl = Instance.new("TextLabel")
-        msgLbl.Size = UDim2.new(1, -20, 0, 80)
+        msgLbl.Size = UDim2.new(1, -20, 0, 70)
         msgLbl.Position = UDim2.new(0,10,0,46)
         msgLbl.Text = msg
         msgLbl.TextColor3 = SugarUI.Theme.Muted
@@ -1432,23 +1550,23 @@ function Window.new(title)
         msgLbl.BackgroundTransparency = 1
         msgLbl.TextWrapped = true
         msgLbl.Parent = panel
-        msgLbl.ZIndex = 1001
+        msgLbl.ZIndex = 10052
 
         local yesBtn = ButtonComponent.new(panel, "Yes", function()
             overlay:Destroy()
             if yesCb then yesCb() end
         end)
-        yesBtn.Instance.Size = UDim2.new(0.4, 0, 0, 36)
-        yesBtn.Instance.Position = UDim2.new(0.09, 0, 1, -52)
-        yesBtn.Instance.ZIndex = 1001
+        yesBtn.Instance.Size = UDim2.new(0.42, 0, 0, 36)
+        yesBtn.Instance.Position = UDim2.new(0.07, 0, 1, -52)
+        yesBtn.Instance.ZIndex = 10052
 
         local noBtn = ButtonComponent.new(panel, "No", function()
             overlay:Destroy()
             if noCb then noCb() end
         end)
-        noBtn.Instance.Size = UDim2.new(0.4, 0, 0, 36)
+        noBtn.Instance.Size = UDim2.new(0.42, 0, 0, 36)
         noBtn.Instance.Position = UDim2.new(0.51, 0, 1, -52)
-        noBtn.Instance.ZIndex = 1001
+        noBtn.Instance.ZIndex = 10052
     end
 
     -- Expose on object
@@ -1510,14 +1628,16 @@ function Window.new(title)
 
     function selfObj:UpdateTheme()
         Frame.BackgroundColor3 = SugarUI.Theme.Background
+        Inner.BackgroundColor3 = SugarUI.Theme.Panel
         TopBar.BackgroundColor3 = SugarUI.Theme.Panel
         topStroke.Color = SugarUI.Theme.Border
         TitleLbl.TextColor3 = SugarUI.Theme.Text
         Subtitle.TextColor3 = SugarUI.Theme.Muted
-        MinimizeBtn.BackgroundColor3 = SugarUI.Theme.Panel
-        MinimizeBtn.TextColor3 = SugarUI.Theme.Text
-        CloseBtn.BackgroundColor3 = SugarUI.Theme.Panel
-        CloseBtn.TextColor3 = SugarUI.Theme.Text
+        Icon.ImageColor3 = SugarUI.Theme.Accent
+        MinimizeBtn.BackgroundColor3 = SugarUI.Theme.Warning
+        MinimizeBtn.TextColor3 = SugarUI.Theme.Highlight
+        CloseBtn.BackgroundColor3 = SugarUI.Theme.Error
+        CloseBtn.TextColor3 = SugarUI.Theme.Highlight
         Sidebar.BackgroundColor3 = SugarUI.Theme.Panel
         sideStroke.Color = SugarUI.Theme.Border
         for _, tab in ipairs(selfObj.Tabs) do
@@ -1554,6 +1674,7 @@ function SugarUI:CreateWindow(title)
     return window
 end
 
+-- expose ApplyPreset and Presets for external use
 SugarUI.ApplyTheme = SugarUI.ApplyPreset
 SugarUI.GetAvailableThemes = function()
     local keys = {}
