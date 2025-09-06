@@ -1895,3 +1895,4 @@ SugarUI.GetAvailableThemes = function()
 end
 
 return SugarUI
+end
