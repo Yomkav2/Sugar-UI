@@ -1,609 +1,1689 @@
--- init.lua
--- Sugar UI (refreshed) - lightweight rework inspired by provided GUI
--- API: SugarUI:CreateWindow(title, opts) -> window
--- window:AddTab(title) -> tab
--- tab:AddSection(title) -> section
--- section:AddButton(title, callback)
--- section:AddToggle(title, default, callback, id)
--- section:AddSlider(title, min, max, default, callback, id)
--- section:AddDropdown(title, list, default, callback, editable, id)
--- section:AddKeybind(title, defaultKey, callback)
--- window:Notify(title, text, duration, kind)
--- window:SetToggleKey(keycode)
-
-local UserInputService = game:GetService("UserInputService")
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local HttpService = game:GetService("HttpService")
-
-local LocalPlayer = Players.LocalPlayer
-local CoreGui = (gethui and gethui()) or game:FindFirstChild("CoreGui") or LocalPlayer:WaitForChild("PlayerGui")
-
+-- init.lua (Sugar UI - Полностью переработанный с расширенными функциями)
 local SugarUI = {}
 SugarUI.__index = SugarUI
 
--- Public state
-SugarUI.CurrentConfig = {}
-SugarUI.Theme = {
-    Background = Color3.fromRGB(28, 30, 34),
-    Panel = Color3.fromRGB(36, 39, 46),
-    Accent = Color3.fromRGB(148, 87, 255),
-    Text = Color3.fromRGB(235, 235, 235),
-    Warning = Color3.fromRGB(255, 170, 0),
-}
-SugarUI._availableThemes = {
-    Default = SugarUI.Theme,
-    Pastel = {
-        Background = Color3.fromRGB(245, 247, 250),
-        Panel = Color3.fromRGB(255, 255, 255),
-        Accent = Color3.fromRGB(120, 200, 250),
-        Text = Color3.fromRGB(28,28,28),
-        Warning = Color3.fromRGB(230, 120, 120),
+-- Сервисы
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+local HttpService = game:GetService("HttpService")
+local Players = game:GetService("Players")
+local TextService = game:GetService("TextService")
+local RunService = game:GetService("RunService")
+local Workspace = game:GetService("Workspace")
+
+local Camera = Workspace.CurrentCamera
+
+-- ======================
+-- Preset Themes (фиксированные, улучшенные с градиентами)
+-- ======================
+SugarUI.Presets = {
+    Pinky = {
+        Background = Color3.fromRGB(25, 10, 20),
+        Panel = Color3.fromRGB(35, 12, 30),
+        Accent = Color3.fromRGB(255, 105, 180),
+        AccentSoft = Color3.fromRGB(255, 140, 200),
+        AccentDark = Color3.fromRGB(180, 50, 100),
+        Text = Color3.fromRGB(245, 240, 250),
+        Muted = Color3.fromRGB(180, 160, 170),
+        Shadow = Color3.fromRGB(0, 0, 0),
+        Border = Color3.fromRGB(50, 30, 40),
+        Highlight = Color3.fromRGB(255, 255, 255),
+        Success = Color3.fromRGB(76, 175, 80),
+        Warning = Color3.fromRGB(255, 193, 7),
+        Error = Color3.fromRGB(244, 67, 54),
+        Toggle = Color3.fromRGB(28, 12, 22),
+        ToggleBox = Color3.fromRGB(230,230,230),
+        Button = Color3.fromRGB(28,12,22),
+        ButtonHover = Color3.fromRGB(45,20,35),
+        GradientStart = Color3.fromRGB(255, 105, 180),
+        GradientEnd = Color3.fromRGB(180, 50, 100),
+    },
+    Amethyst = {
+        Background = Color3.fromRGB(18, 12, 30),
+        Panel = Color3.fromRGB(28, 20, 44),
+        Accent = Color3.fromRGB(153, 102, 204),
+        AccentSoft = Color3.fromRGB(170, 140, 210),
+        AccentDark = Color3.fromRGB(90, 60, 120),
+        Text = Color3.fromRGB(240, 240, 250),
+        Muted = Color3.fromRGB(160, 150, 170),
+        Shadow = Color3.fromRGB(0, 0, 0),
+        Border = Color3.fromRGB(48, 40, 60),
+        Highlight = Color3.fromRGB(255, 255, 255),
+        Success = Color3.fromRGB(76, 175, 80),
+        Warning = Color3.fromRGB(255, 193, 7),
+        Error = Color3.fromRGB(244, 67, 54),
+        Toggle = Color3.fromRGB(24,18,36),
+        ToggleBox = Color3.fromRGB(200,200,200),
+        Button = Color3.fromRGB(24,18,36),
+        ButtonHover = Color3.fromRGB(42,35,60),
+        GradientStart = Color3.fromRGB(153, 102, 204),
+        GradientEnd = Color3.fromRGB(90, 60, 120),
+    },
+    Dark = {
+        Background = Color3.fromRGB(20, 20, 20),
+        Panel = Color3.fromRGB(30, 30, 30),
+        Accent = Color3.fromRGB(100, 181, 246),
+        AccentSoft = Color3.fromRGB(66, 153, 233),
+        AccentDark = Color3.fromRGB(2, 119, 189),
+        Text = Color3.fromRGB(240, 240, 240),
+        Muted = Color3.fromRGB(150, 150, 150),
+        Shadow = Color3.fromRGB(0, 0, 0),
+        Border = Color3.fromRGB(50, 50, 50),
+        Highlight = Color3.fromRGB(255, 255, 255),
+        Success = Color3.fromRGB(76, 175, 80),
+        Warning = Color3.fromRGB(255, 193, 7),
+        Error = Color3.fromRGB(244, 67, 54),
+        Toggle = Color3.fromRGB(30, 30, 30),
+        ToggleBox = Color3.fromRGB(200, 200, 200),
+        Button = Color3.fromRGB(30, 30, 30),
+        ButtonHover = Color3.fromRGB(50, 50, 50),
+        GradientStart = Color3.fromRGB(100, 181, 246),
+        GradientEnd = Color3.fromRGB(2, 119, 189),
+    },
+    White = {
+        Background = Color3.fromRGB(245, 245, 245),
+        Panel = Color3.fromRGB(230, 230, 230),
+        Accent = Color3.fromRGB(40, 120, 200),
+        AccentSoft = Color3.fromRGB(80, 140, 220),
+        AccentDark = Color3.fromRGB(10, 70, 140),
+        Text = Color3.fromRGB(18, 18, 18),
+        Muted = Color3.fromRGB(100, 100, 100),
+        Shadow = Color3.fromRGB(0, 0, 0),
+        Border = Color3.fromRGB(200, 200, 200),
+        Highlight = Color3.fromRGB(255, 255, 255),
+        Success = Color3.fromRGB(76, 175, 80),
+        Warning = Color3.fromRGB(255, 193, 7),
+        Error = Color3.fromRGB(244, 67, 54),
+        Toggle = Color3.fromRGB(245,245,245),
+        ToggleBox = Color3.fromRGB(40,40,40),
+        Button = Color3.fromRGB(245,245,245),
+        ButtonHover = Color3.fromRGB(230,230,230),
+        GradientStart = Color3.fromRGB(40, 120, 200),
+        GradientEnd = Color3.fromRGB(10, 70, 140),
     }
 }
 
--- small util
-local function new(name, class)
-    local inst = Instance.new(class)
-    inst.Name = name or class
-    return inst
-end
+-- default theme (start with Dark)
+SugarUI.Theme = {}
+for k,v in pairs(SugarUI.Presets.Dark) do SugarUI.Theme[k] = v end
 
-function SugarUI.GetAvailableThemes()
-    local keys = {}
-    for k in pairs(SugarUI._availableThemes) do table.insert(keys, k) end
-    return keys
-end
-
-function SugarUI.ApplyTheme(name)
-    local t = SugarUI._availableThemes[name]
-    if not t then return false end
-    SugarUI.Theme = t
+-- helper to apply a preset
+function SugarUI.ApplyPreset(name)
+    local preset = SugarUI.Presets[name]
+    if not preset then return false end
+    for k,v in pairs(preset) do SugarUI.Theme[k] = v end
+    SugarUI.CurrentConfig = SugarUI.CurrentConfig or {}
+    SugarUI.CurrentConfig["Theme"] = name
+    if SugarUI.CurrentWindow and SugarUI.CurrentWindow.UpdateTheme then
+        pcall(function() SugarUI.CurrentWindow:UpdateTheme() end)
+    end
     return true
 end
 
-function SugarUI.RoundCorner(radius)
-    local uc = Instance.new("UICorner")
-    uc.CornerRadius = UDim.new(0, radius or 6)
-    return uc
+-- ======================
+-- Вспомогательные (улучшенные с градиентами и анимациями)
+-- ======================
+function SugarUI.RoundCorner(cornerRadius)
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(0, cornerRadius or 6)
+    return corner
 end
 
--- Create notification container (shared)
-local notifContainer
-local function ensureNotif()
-    if notifContainer and notifContainer.Parent then return notifContainer end
-    notifContainer = new("Sugar_Notifications","ScreenGui")
-    notifContainer.ResetOnSpawn = false
-    notifContainer.IgnoreGuiInset = true
-    notifContainer.ZIndexBehavior = Enum.ZIndexBehavior.Global
-    notifContainer.Parent = CoreGui
-
-    local frame = new("Container","Frame")
-    frame.AnchorPoint = Vector2.new(1, 0)
-    frame.Position = UDim2.new(0.98, 0, 0.02, 0)
-    frame.Size = UDim2.new(0.26, 0, 0, 0)
-    frame.BackgroundTransparency = 1
-    frame.BorderSizePixel = 0
-    frame.Name = "NotifStack"
-    frame.Parent = notifContainer
-
-    return notifContainer
+function SugarUI.Tween(instance, props, duration, style, dir)
+    style = style or Enum.EasingStyle.Quad
+    dir = dir or Enum.EasingDirection.Out
+    local tweenInfo = TweenInfo.new(duration or 0.22, style, dir)
+    local tween = TweenService:Create(instance, tweenInfo, props)
+    tween:Play()
+    return tween
 end
 
--- Internal helper: create base window
-function SugarUI:CreateWindow(title, opts)
-    opts = opts or {}
-    local win = {}
-    win.Title = title or "Sugar UI"
-    win.Toggled = true
-    win.Keybind = opts.ToggleKey or Enum.KeyCode.RightControl
-    win.CurrentConfig = self.CurrentConfig
+function SugarUI.AddShadow(frame, transparency, size)
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "Shadow"
+    shadow.Size = UDim2.new(1, size or 20, 1, size or 20)
+    shadow.Position = UDim2.new(0, -(size or 20)/2, 0, -(size or 20)/2)
+    shadow.BackgroundTransparency = 1
+    shadow.Image = "rbxassetid://5554236805"
+    shadow.ImageColor3 = SugarUI.Theme.Shadow
+    shadow.ImageTransparency = transparency or 0.6
+    shadow.ScaleType = Enum.ScaleType.Slice
+    shadow.SliceCenter = Rect.new(23, 23, 95, 95)
+    shadow.Parent = frame
+    return shadow
+end
 
-    -- ScreenGui
-    local sg = new("SugarScreenGui","ScreenGui")
-    sg.ResetOnSpawn = false
-    sg.IgnoreGuiInset = true
-    sg.ZIndexBehavior = Enum.ZIndexBehavior.Global
-    sg.Parent = CoreGui
+function SugarUI.AddGradient(frame, startColor, endColor)
+    local gradient = Instance.new("UIGradient")
+    gradient.Color = ColorSequence.new(startColor or SugarUI.Theme.GradientStart, endColor or SugarUI.Theme.GradientEnd)
+    gradient.Parent = frame
+    return gradient
+end
 
-    -- Main window
-    local main = new("Main","Frame")
-    main.Size = UDim2.new(0, 720, 0, 440)
-    main.Position = UDim2.new(0.5, -360, 0.5, -220)
-    main.AnchorPoint = Vector2.new(0,0)
-    main.BackgroundColor3 = SugarUI.Theme.Background
-    main.BorderSizePixel = 0
-    main.Parent = sg
-    main.Active = true
-    main.Draggable = false
+-- ======================
+-- Button component (улучшенный с градиентом, масштабом на ховер, улучшенный риппль)
+-- ======================
+local ButtonComponent = {}
+ButtonComponent.__index = ButtonComponent
 
-    SugarUI.RoundCorner(12).Parent = main
+function ButtonComponent.new(parent, text, callback)
+    local self = setmetatable({}, ButtonComponent)
+    local Btn = Instance.new("TextButton")
+    Btn.Size = UDim2.new(1, -10, 0, 40)
+    Btn.BackgroundColor3 = SugarUI.Theme.Button
+    Btn.BackgroundTransparency = 0
+    Btn.Text = text or "Button"
+    Btn.TextColor3 = SugarUI.Theme.Text
+    Btn.Font = Enum.Font.GothamBold
+    Btn.TextSize = 15
+    Btn.AutoButtonColor = false
+    Btn.Parent = parent
+    SugarUI.RoundCorner(10).Parent = Btn
+    SugarUI.AddGradient(Btn, SugarUI.Theme.GradientStart, SugarUI.Theme.GradientEnd)
 
-    -- header
-    local header = new("Header","Frame")
-    header.Size = UDim2.new(1,0,0,56)
-    header.BackgroundTransparency = 1
-    header.Parent = main
+    local stroke = Instance.new("UIStroke")
+    stroke.Parent = Btn
+    stroke.Color = SugarUI.Theme.Border
+    stroke.Transparency = 0.7
+    stroke.Thickness = 1.5
 
-    local titleLabel = new("Title","TextLabel")
-    titleLabel.Parent = header
-    titleLabel.Position = UDim2.new(0, 18, 0, 12)
-    titleLabel.Size = UDim2.new(0.6, 0, 0, 32)
-    titleLabel.Text = win.Title
-    titleLabel.Font = Enum.Font.GothamBold
-    titleLabel.TextColor3 = SugarUI.Theme.Text
-    titleLabel.TextSize = 20
-    titleLabel.BackgroundTransparency = 1
-    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-    -- left tab column
-    local tabsFrame = new("Tabs","Frame")
-    tabsFrame.Parent = main
-    tabsFrame.Position = UDim2.new(0, 16, 0, 72)
-    tabsFrame.Size = UDim2.new(0, 180, 0, 352)
-    tabsFrame.BackgroundColor3 = SugarUI.Theme.Panel
-    tabsFrame.BorderSizePixel = 0
-    SugarUI.RoundCorner(8).Parent = tabsFrame
-
-    local tabsList = new("TabList","ScrollingFrame")
-    tabsList.Parent = tabsFrame
-    tabsList.Size = UDim2.new(1, -12, 1, -12)
-    tabsList.Position = UDim2.new(0,6,0,6)
-    tabsList.BackgroundTransparency = 1
-    tabsList.ScrollBarThickness = 6
-    tabsList.CanvasSize = UDim2.new(0,0,0,0)
-    local UIList = Instance.new("UIListLayout", tabsList)
-    UIList.Padding = UDim.new(0, 8)
-    UIList.SortOrder = Enum.SortOrder.LayoutOrder
-    UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
-
-    tabsList:GetPropertyChangedSignal("CanvasSize"):Connect(function()
-        tabsList.CanvasSize = UDim2.new(0,0,0,UIList.AbsoluteContentSize.Y + 12)
+    Btn.MouseEnter:Connect(function()
+        SugarUI.Tween(Btn, {BackgroundColor3 = SugarUI.Theme.ButtonHover, Size = UDim2.new(1, -10, 0, 42)}, 0.15, Enum.EasingStyle.Quad)
+    end)
+    Btn.MouseLeave:Connect(function()
+        SugarUI.Tween(Btn, {BackgroundColor3 = SugarUI.Theme.Button, Size = UDim2.new(1, -10, 0, 40)}, 0.15, Enum.EasingStyle.Quad)
     end)
 
-    -- right content area
-    local content = new("Content","Frame")
-    content.Parent = main
-    content.Position = UDim2.new(0, 212, 0, 72)
-    content.Size = UDim2.new(0, 492, 0, 352)
-    content.BackgroundColor3 = SugarUI.Theme.Panel
-    content.BorderSizePixel = 0
-    SugarUI.RoundCorner(8).Parent = content
+    Btn.MouseButton1Click:Connect(function()
+        if callback then
+            -- Улучшенный Ripple с градиентом
+            local ripple = Instance.new("ImageLabel")
+            ripple.Size = UDim2.new(0, 0, 0, 0)
+            ripple.Position = UDim2.new(0.5, 0, 0.5, 0)
+            ripple.BackgroundTransparency = 1
+            ripple.Image = "rbxassetid://7663593618"
+            ripple.ImageColor3 = SugarUI.Theme.Highlight
+            ripple.AnchorPoint = Vector2.new(0.5,0.5)
+            ripple.Parent = Btn
+            SugarUI.Tween(ripple, {Size = UDim2.new(3, 0, 3, 0), ImageTransparency = 1}, 0.4, Enum.EasingStyle.Quad)
+            task.delay(0.4, function() if ripple and ripple.Parent then ripple:Destroy() end end)
+            pcall(callback)
+        end
+    end)
 
-    local contentInner = new("ContentInner","Frame")
-    contentInner.Parent = content
-    contentInner.Size = UDim2.new(1, -14, 1, -14)
-    contentInner.Position = UDim2.new(0, 7, 0, 7)
-    contentInner.BackgroundTransparency = 1
+    self.Instance = Btn
 
-    -- tab management
-    win._tabs = {}
-    win._selected = nil
+    function self:UpdateTheme()
+        Btn.BackgroundColor3 = SugarUI.Theme.Button
+        Btn.TextColor3 = SugarUI.Theme.Text
+        stroke.Color = SugarUI.Theme.Border
+        local grad = Btn:FindFirstChildOfClass("UIGradient")
+        if grad then
+            grad.Color = ColorSequence.new(SugarUI.Theme.GradientStart, SugarUI.Theme.GradientEnd)
+        end
+    end
 
-    function win:AddTab(tabTitle)
-        local tab = {}
-        tab.Title = tabTitle or "Tab"
+    return self
+end
 
-        -- button on left
-        local btn = new("TabBtn","TextButton")
-        btn.Parent = tabsList
-        btn.Size = UDim2.new(1, -12, 0, 44)
-        btn.BackgroundColor3 = Color3.fromRGB(0,0,0)
-        btn.BackgroundTransparency = 0.9
-        btn.Text = tabTitle
-        btn.Font = Enum.Font.Gotham
+-- ======================
+-- Toggle component (улучшенный с анимированным слайдером)
+-- ======================
+local ToggleComponent = {}
+ToggleComponent.__index = ToggleComponent
+
+function ToggleComponent.new(parent, text, default, callback, configKey)
+    local self = setmetatable({}, ToggleComponent)
+    self.State = default or false
+
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, -10, 0, 40)
+    Frame.BackgroundColor3 = SugarUI.Theme.Panel
+    Frame.BackgroundTransparency = 0
+    Frame.Parent = parent
+    SugarUI.RoundCorner(10).Parent = Frame
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Parent = Frame
+    stroke.Color = SugarUI.Theme.Border
+    stroke.Transparency = 0.8
+    stroke.Thickness = 1.5
+
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0.75, 0, 1, 0)
+    Label.BackgroundTransparency = 1
+    Label.Text = text or "Toggle"
+    Label.TextColor3 = SugarUI.Theme.Text
+    Label.Font = Enum.Font.Gotham
+    Label.TextSize = 15
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = Frame
+
+    local Switch = Instance.new("Frame")
+    Switch.Size = UDim2.new(0, 50, 0, 26)
+    Switch.Position = UDim2.new(1, -60, 0.5, -13)
+    Switch.BackgroundColor3 = SugarUI.Theme.Toggle
+    Switch.Parent = Frame
+    SugarUI.RoundCorner(13).Parent = Switch
+    SugarUI.AddGradient(Switch)
+
+    local Knob = Instance.new("Frame")
+    Knob.Size = UDim2.new(0, 26, 0, 26)
+    Knob.Position = UDim2.new(self.State and 0.5 or 0, 0, 0, 0)
+    Knob.BackgroundColor3 = self.State and SugarUI.Theme.Accent or SugarUI.Theme.ToggleBox
+    Knob.Parent = Switch
+    SugarUI.RoundCorner(13).Parent = Knob
+
+    SugarUI.AddShadow(Knob, 0.5, 8)
+
+    Frame.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            self.State = not self.State
+            SugarUI.Tween(Knob, {Position = UDim2.new(self.State and 0.5 or 0, 0, 0, 0), BackgroundColor3 = self.State and SugarUI.Theme.Accent or SugarUI.Theme.ToggleBox}, 0.2, Enum.EasingStyle.Bounce)
+            if callback then pcall(callback, self.State) end
+            if configKey then SugarUI.CurrentConfig[configKey] = self.State end
+        end
+    end)
+
+    self.Instance = Frame
+    self.Set = function(newState, fire)
+        self.State = not not newState
+        SugarUI.Tween(Knob, {Position = UDim2.new(self.State and 0.5 or 0, 0, 0, 0), BackgroundColor3 = self.State and SugarUI.Theme.Accent or SugarUI.Theme.ToggleBox}, 0.2)
+        if fire and callback then pcall(callback, self.State) end
+        if configKey then SugarUI.CurrentConfig[configKey] = self.State end
+    end
+    self.Get = function() return self.State end
+
+    function self:UpdateTheme()
+        Frame.BackgroundColor3 = SugarUI.Theme.Panel
+        stroke.Color = SugarUI.Theme.Border
+        Label.TextColor3 = SugarUI.Theme.Text
+        Switch.BackgroundColor3 = SugarUI.Theme.Toggle
+        Knob.BackgroundColor3 = self.State and SugarUI.Theme.Accent or SugarUI.Theme.ToggleBox
+        local grad = Switch:FindFirstChildOfClass("UIGradient")
+        if grad then grad.Color = ColorSequence.new(SugarUI.Theme.GradientStart, SugarUI.Theme.GradientEnd) end
+    end
+
+    return self
+end
+
+-- ======================
+-- Slider component (улучшенный с градиентным филлом и маркером)
+-- ======================
+local SliderComponent = {}
+SliderComponent.__index = SliderComponent
+
+function SliderComponent.new(parent, text, min, max, default, callback, configKey)
+    local self = setmetatable({}, SliderComponent)
+    local value = default or (min or 0)
+    min = min or 0
+    max = max or 100
+
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, -10, 0, 50)
+    Frame.BackgroundColor3 = SugarUI.Theme.Panel
+    Frame.BackgroundTransparency = 0
+    Frame.Parent = parent
+    SugarUI.RoundCorner(10).Parent = Frame
+
+    local stroke = Instance.new("UIStroke", Frame)
+    stroke.Color = SugarUI.Theme.Border
+    stroke.Transparency = 0.8
+    stroke.Thickness = 1.5
+
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0.7, 0, 0, 24)
+    Label.Position = UDim2.new(0, 10, 0, 6)
+    Label.BackgroundTransparency = 1
+    Label.Text = text or "Slider"
+    Label.TextColor3 = SugarUI.Theme.Text
+    Label.Font = Enum.Font.Gotham
+    Label.TextSize = 15
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = Frame
+
+    local ValueLabel = Instance.new("TextLabel")
+    ValueLabel.Size = UDim2.new(0.3, -10, 0, 24)
+    ValueLabel.Position = UDim2.new(0.7, 0, 0, 6)
+    ValueLabel.BackgroundTransparency = 1
+    ValueLabel.Text = tostring(math.floor(value))
+    ValueLabel.TextColor3 = SugarUI.Theme.Muted
+    ValueLabel.Font = Enum.Font.GothamMedium
+    ValueLabel.TextSize = 15
+    ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+    ValueLabel.Parent = Frame
+
+    local Track = Instance.new("Frame")
+    Track.Size = UDim2.new(1, -20, 0, 10)
+    Track.Position = UDim2.new(0, 10, 0, 32)
+    Track.BackgroundColor3 = SugarUI.Theme.Border
+    Track.BorderSizePixel = 0
+    Track.Parent = Frame
+    SugarUI.RoundCorner(5).Parent = Track
+
+    local Fill = Instance.new("Frame")
+    local initialFill = 0
+    if max - min ~= 0 then initialFill = (value - min) / (max - min) end
+    Fill.Size = UDim2.new(initialFill, 0, 1, 0)
+    Fill.BackgroundColor3 = SugarUI.Theme.Accent
+    Fill.BorderSizePixel = 0
+    Fill.Parent = Track
+    SugarUI.RoundCorner(5).Parent = Fill
+    SugarUI.AddGradient(Fill, SugarUI.Theme.GradientStart, SugarUI.Theme.GradientEnd)
+
+    local Knob = Instance.new("Frame")
+    Knob.Size = UDim2.new(0, 20, 0, 20)
+    Knob.Position = UDim2.new(initialFill, -10, -0.5, -5)
+    Knob.BackgroundColor3 = SugarUI.Theme.Highlight
+    Knob.Parent = Track
+    SugarUI.RoundCorner(10).Parent = Knob
+    SugarUI.AddShadow(Knob, 0.4, 6)
+
+    local dragging = false
+    local function set_value(newValue, fire)
+        newValue = math.clamp(newValue, min, max)
+        value = newValue
+        ValueLabel.Text = tostring(math.floor(value))
+        local fillSize = 0
+        if max - min ~= 0 then fillSize = (value - min) / (max - min) end
+        SugarUI.Tween(Fill, {Size = UDim2.new(fillSize, 0, 1, 0)}, 0.15)
+        SugarUI.Tween(Knob, {Position = UDim2.new(fillSize, -10, -0.5, -5)}, 0.15)
+        if fire and callback then pcall(callback, value) end
+        if configKey then SugarUI.CurrentConfig[configKey] = value end
+    end
+
+    local function update_from_mouse(input)
+        local positionX = math.clamp(input.Position.X - Track.AbsolutePosition.X, 0, Track.AbsoluteSize.X)
+        local newValue = min + (positionX / Track.AbsoluteSize.X) * (max - min)
+        set_value(newValue, true)
+    end
+
+    Track.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            update_from_mouse(input)
+        end
+    end)
+
+    UserInputService.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then update_from_mouse(input) end
+    end)
+
+    self.Instance = Frame
+    self.SetValue = set_value
+    self.GetValue = function() return value end
+
+    function self:UpdateTheme()
+        Frame.BackgroundColor3 = SugarUI.Theme.Panel
+        stroke.Color = SugarUI.Theme.Border
+        Label.TextColor3 = SugarUI.Theme.Text
+        ValueLabel.TextColor3 = SugarUI.Theme.Muted
+        Track.BackgroundColor3 = SugarUI.Theme.Border
+        Fill.BackgroundColor3 = SugarUI.Theme.Accent
+        Knob.BackgroundColor3 = SugarUI.Theme.Highlight
+        local grad = Fill:FindFirstChildOfClass("UIGradient")
+        if grad then grad.Color = ColorSequence.new(SugarUI.Theme.GradientStart, SugarUI.Theme.GradientEnd) end
+    end
+
+    return self
+end
+
+-- ======================
+-- Dropdown component (улучшенный с анимацией открытия, градиентами)
+-- ======================
+local DropdownComponent = {}
+DropdownComponent.__index = DropdownComponent
+
+function DropdownComponent.new(parent, text, options, default, callback, multiSelect, configKey)
+    local self = setmetatable({}, DropdownComponent)
+    local isOpen = false
+    options = options or {}
+    multiSelect = multiSelect or false
+    local selected
+    if multiSelect then selected = default or {} else selected = default or options[1] or "None" end
+
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, -10, 0, 40)
+    Frame.BackgroundColor3 = SugarUI.Theme.Button
+    Frame.BackgroundTransparency = 0
+    Frame.ClipsDescendants = false
+    Frame.Parent = parent
+    SugarUI.RoundCorner(10).Parent = Frame
+    SugarUI.AddGradient(Frame)
+
+    local stroke = Instance.new("UIStroke", Frame)
+    stroke.Color = SugarUI.Theme.Border
+    stroke.Transparency = 0.7
+    stroke.Thickness = 1.5
+
+    local Label = Instance.new("TextLabel")
+    Label.Size = UDim2.new(0.65, 0, 1, 0)
+    Label.BackgroundTransparency = 1
+    Label.Text = text or "Dropdown"
+    Label.TextColor3 = SugarUI.Theme.Text
+    Label.Font = Enum.Font.Gotham
+    Label.TextSize = 15
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+    Label.Parent = Frame
+
+    local ValueLabel = Instance.new("TextLabel")
+    ValueLabel.Size = UDim2.new(0.3, -12, 1, 0)
+    ValueLabel.Position = UDim2.new(0.7, -6, 0, 0)
+    ValueLabel.BackgroundTransparency = 1
+    ValueLabel.Text = multiSelect and "None" or tostring(selected)
+    ValueLabel.TextColor3 = SugarUI.Theme.Muted
+    ValueLabel.Font = Enum.Font.GothamMedium
+    ValueLabel.TextSize = 15
+    ValueLabel.TextXAlignment = Enum.TextXAlignment.Right
+    ValueLabel.TextTruncate = Enum.TextTruncate.AtEnd
+    ValueLabel.Parent = Frame
+
+    local HeaderBtn = Instance.new("TextButton")
+    HeaderBtn.Size = UDim2.new(1, 0, 0, 40)
+    HeaderBtn.BackgroundTransparency = 1
+    HeaderBtn.Text = ""
+    HeaderBtn.AutoButtonColor = false
+    HeaderBtn.Parent = Frame
+    HeaderBtn.ZIndex = 50
+
+    local OptionsFrame = Instance.new("ScrollingFrame")
+    OptionsFrame.Size = UDim2.new(1, 0, 0, 0)
+    OptionsFrame.Position = UDim2.new(0, 0, 0, 40)
+    OptionsFrame.BackgroundTransparency = 0
+    OptionsFrame.BackgroundColor3 = SugarUI.Theme.Panel
+    OptionsFrame.BorderSizePixel = 0
+    OptionsFrame.ClipsDescendants = true
+    OptionsFrame.Parent = Frame
+    OptionsFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    OptionsFrame.ScrollBarThickness = 4
+    OptionsFrame.ScrollBarImageColor3 = SugarUI.Theme.Border
+    OptionsFrame.ScrollBarImageTransparency = 0.4
+    OptionsFrame.ZIndex = 60
+    SugarUI.AddGradient(OptionsFrame)
+
+    local optionsList = Instance.new("UIListLayout", OptionsFrame)
+    optionsList.SortOrder = Enum.SortOrder.LayoutOrder
+    optionsList.Padding = UDim.new(0, 6)
+
+    local optionsPadding = Instance.new("UIPadding", OptionsFrame)
+    optionsPadding.PaddingTop = UDim.new(0, 6)
+    optionsPadding.PaddingBottom = UDim.new(0, 6)
+    optionsPadding.PaddingLeft = UDim.new(0, 6)
+    optionsPadding.PaddingRight = UDim.new(0, 6)
+
+    local function update_value_display()
+        if multiSelect then
+            local count = #selected
+            if count == 0 then ValueLabel.Text = "None"
+            elseif count <= 2 then ValueLabel.Text = table.concat(selected, ", ")
+            else ValueLabel.Text = selected[1] .. ", " .. selected[2] .. " + " .. (count - 2) end
+        else
+            ValueLabel.Text = tostring(selected)
+        end
+    end
+
+    local function apply_config_store()
+        if configKey then SugarUI.CurrentConfig[configKey] = multiSelect and selected or selected end
+    end
+
+    local function toggle_option(option)
+        if multiSelect then
+            local index = table.find(selected, option)
+            if index then table.remove(selected, index) else table.insert(selected, option) end
+        else
+            selected = option
+            self:Toggle()
+        end
+        update_value_display()
+        if callback then pcall(callback, multiSelect and selected or option) end
+        apply_config_store()
+    end
+
+    local optionObjects = {}
+
+    local function create_option(optionText, index)
+        local OptionFrame = Instance.new("Frame")
+        OptionFrame.Size = UDim2.new(1, 0, 0, 32)
+        OptionFrame.BackgroundTransparency = 1
+        OptionFrame.LayoutOrder = index
+        OptionFrame.Parent = OptionsFrame
+
+        local OptionButton = Instance.new("TextButton")
+        OptionButton.Size = UDim2.new(1, 0, 1, 0)
+        OptionButton.BackgroundColor3 = SugarUI.Theme.Panel
+        OptionButton.BackgroundTransparency = 0
+        OptionButton.Text = tostring(optionText)
+        OptionButton.TextColor3 = SugarUI.Theme.Text
+        OptionButton.Font = Enum.Font.Gotham
+        OptionButton.TextSize = 15
+        OptionButton.TextXAlignment = Enum.TextXAlignment.Left
+        OptionButton.AutoButtonColor = false
+        OptionButton.Parent = OptionFrame
+        SugarUI.RoundCorner(8).Parent = OptionButton
+        SugarUI.AddGradient(OptionButton)
+
+        local pad = Instance.new("UIPadding", OptionButton)
+        pad.PaddingLeft = UDim.new(0, 10)
+
+        local optionStroke = Instance.new("UIStroke", OptionButton)
+        optionStroke.Color = SugarUI.Theme.Border
+        optionStroke.Transparency = 0.8
+        optionStroke.Thickness = 1
+
+        local Check
+        local CheckIcon
+        if multiSelect then
+            Check = Instance.new("Frame")
+            Check.Size = UDim2.new(0, 20, 0, 20)
+            Check.Position = UDim2.new(1, -30, 0.5, -10)
+            Check.BackgroundColor3 = table.find(selected, optionText) and SugarUI.Theme.Accent or SugarUI.Theme.Panel
+            Check.Parent = OptionButton
+            SugarUI.RoundCorner(5).Parent = Check
+
+            CheckIcon = Instance.new("ImageLabel")
+            CheckIcon.Size = UDim2.new(1, 0, 1, 0)
+            CheckIcon.BackgroundTransparency = 1
+            CheckIcon.Image = "rbxassetid://6031094667"
+            CheckIcon.ImageColor3 = SugarUI.Theme.Highlight
+            CheckIcon.Visible = table.find(selected, optionText) ~= nil
+            CheckIcon.Parent = Check
+
+            OptionButton.MouseButton1Click:Connect(function()
+                toggle_option(optionText)
+                SugarUI.Tween(Check, {BackgroundColor3 = table.find(selected, optionText) and SugarUI.Theme.Accent or SugarUI.Theme.Panel}, 0.15)
+                CheckIcon.Visible = table.find(selected, optionText) ~= nil
+            end)
+        else
+            OptionButton.BackgroundColor3 = (selected == optionText) and SugarUI.Theme.AccentSoft or SugarUI.Theme.Panel
+            OptionButton.MouseButton1Click:Connect(function()
+                toggle_option(optionText)
+                for _, obj in ipairs(optionObjects) do
+                    SugarUI.Tween(obj.btn, {BackgroundColor3 = (selected == obj.btn.Text) and SugarUI.Theme.AccentSoft or SugarUI.Theme.Panel}, 0.15)
+                end
+            end)
+        end
+
+        OptionButton.MouseEnter:Connect(function()
+            SugarUI.Tween(OptionButton, {BackgroundColor3 = SugarUI.Theme.ButtonHover}, 0.12)
+        end)
+        OptionButton.MouseLeave:Connect(function()
+            local targetColor = multiSelect and SugarUI.Theme.Panel or ((selected == optionText) and SugarUI.Theme.AccentSoft or SugarUI.Theme.Panel)
+            SugarUI.Tween(OptionButton, {BackgroundColor3 = targetColor}, 0.12)
+        end)
+
+        optionObjects[#optionObjects + 1] = {frame = OptionFrame, btn = OptionButton, check = Check, checkIcon = CheckIcon, optionStroke = optionStroke}
+    end
+
+    local function rebuild_options()
+        for _, child in ipairs(OptionsFrame:GetChildren()) do
+            if child:IsA("Frame") or child:IsA("TextButton") or child:IsA("ImageLabel") then
+                child:Destroy()
+            end
+        end
+        optionObjects = {}
+        local order = 1
+        if multiSelect then
+            local controlFrame = Instance.new("Frame")
+            controlFrame.Size = UDim2.new(1, 0, 0, 40)
+            controlFrame.BackgroundTransparency = 1
+            controlFrame.LayoutOrder = order
+            controlFrame.Parent = OptionsFrame
+            order = order + 1
+
+            local selAllBtn = Instance.new("TextButton")
+            selAllBtn.Size = UDim2.new(0.48, -4, 1, 0)
+            selAllBtn.BackgroundColor3 = SugarUI.Theme.Button
+            selAllBtn.Text = "Select All"
+            selAllBtn.TextColor3 = SugarUI.Theme.Text
+            selAllBtn.Font = Enum.Font.Gotham
+            selAllBtn.TextSize = 15
+            selAllBtn.AutoButtonColor = false
+            selAllBtn.Parent = controlFrame
+            SugarUI.RoundCorner(8).Parent = selAllBtn
+            local pad1 = Instance.new("UIPadding", selAllBtn)
+            pad1.PaddingLeft = UDim.new(0, 10)
+
+            local clearBtn = Instance.new("TextButton")
+            clearBtn.Size = UDim2.new(0.48, -4, 1, 0)
+            clearBtn.Position = UDim2.new(0.52, 0, 0, 0)
+            clearBtn.BackgroundColor3 = SugarUI.Theme.Button
+            clearBtn.Text = "Clear"
+            clearBtn.TextColor3 = SugarUI.Theme.Text
+            clearBtn.Font = Enum.Font.Gotham
+            clearBtn.TextSize = 15
+            clearBtn.AutoButtonColor = false
+            clearBtn.Parent = controlFrame
+            SugarUI.RoundCorner(8).Parent = clearBtn
+            local pad2 = Instance.new("UIPadding", clearBtn)
+            pad2.PaddingLeft = UDim.new(0, 10)
+
+            selAllBtn.MouseButton1Click:Connect(function()
+                selected = table.clone(options)
+                update_value_display()
+                apply_config_store()
+                for _, obj in ipairs(optionObjects) do
+                    if obj.check then
+                        obj.check.BackgroundColor3 = SugarUI.Theme.Accent
+                        local img = obj.check:FindFirstChildWhichIsA("ImageLabel")
+                        if img then img.Visible = true end
+                    end
+                end
+            end)
+            clearBtn.MouseButton1Click:Connect(function()
+                selected = {}
+                update_value_display()
+                apply_config_store()
+                for _, obj in ipairs(optionObjects) do
+                    if obj.check then
+                        obj.check.BackgroundColor3 = SugarUI.Theme.Panel
+                        local img = obj.check:FindFirstChildWhichIsA("ImageLabel")
+                        if img then img.Visible = false end
+                    end
+                end
+            end)
+        end
+
+        for i, option in ipairs(options) do
+            create_option(option, order)
+            order = order + 1
+        end
+    end
+
+    function self:Toggle()
+        isOpen = not isOpen
+        if isOpen then
+            Label.Visible = false
+            ValueLabel.Visible = false
+            local height = math.min((#options * 32 + (multiSelect and 40 or 0) + 12), 240)
+            SugarUI.Tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, height)}, 0.25, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out)
+            SugarUI.Tween(Frame, {Size = UDim2.new(1, -10, 0, 40 + height)}, 0.25, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out)
+            OptionsFrame.ZIndex = 1000
+        else
+            Label.Visible = true
+            ValueLabel.Visible = true
+            SugarUI.Tween(OptionsFrame, {Size = UDim2.new(1, 0, 0, 0)}, 0.25, Enum.EasingStyle.Elastic, Enum.EasingDirection.In)
+            SugarUI.Tween(Frame, {Size = UDim2.new(1, -10, 0, 40)}, 0.25, Enum.EasingStyle.Elastic, Enum.EasingDirection.In)
+            task.delay(0.25, function() OptionsFrame.ZIndex = 60 end)
+        end
+    end
+
+    local function update_from_options(newOptions)
+        options = newOptions or {}
+        rebuild_options()
+        if not multiSelect then
+            if not table.find(options, selected) then selected = options[1] or "None" end
+        else
+            local filtered = {}
+            for _, s in ipairs(selected) do if table.find(options, s) then table.insert(filtered, s) end end
+            selected = filtered
+        end
+        for _, obj in ipairs(optionObjects) do
+            if obj.check then
+                obj.check.BackgroundColor3 = table.find(selected, obj.btn.Text) and SugarUI.Theme.Accent or SugarUI.Theme.Panel
+                local img = obj.check:FindFirstChildWhichIsA("ImageLabel")
+                if img then img.Visible = table.find(selected, obj.btn.Text) ~= nil end
+            else
+                SugarUI.Tween(obj.btn, {BackgroundColor3 = (selected == obj.btn.Text) and SugarUI.Theme.AccentSoft or SugarUI.Theme.Panel}, 0.15)
+            end
+        end
+        update_value_display()
+        apply_config_store()
+    end
+
+    rebuild_options()
+    update_value_display()
+
+    HeaderBtn.MouseButton1Click:Connect(function() self:Toggle() end)
+
+    self.Instance = Frame
+    self.IsOpen = function() return isOpen end
+    self.UpdateOptions = update_from_options
+    self.SetValue = function(value)
+        if multiSelect then selected = value or {} else selected = value or options[1] or "None" end
+        update_value_display()
+        for _, obj in ipairs(optionObjects) do
+            if obj.check then
+                obj.check.BackgroundColor3 = table.find(selected, obj.btn.Text) and SugarUI.Theme.Accent or SugarUI.Theme.Panel
+                local img = obj.check:FindFirstChildWhichIsA("ImageLabel")
+                if img then img.Visible = table.find(selected, obj.btn.Text) ~= nil end
+            else
+                SugarUI.Tween(obj.btn, {BackgroundColor3 = (selected == obj.btn.Text) and SugarUI.Theme.AccentSoft or SugarUI.Theme.Panel}, 0.15)
+            end
+        end
+        apply_config_store()
+    end
+    self.GetValue = function() return selected end
+
+    function self:UpdateTheme()
+        Frame.BackgroundColor3 = SugarUI.Theme.Button
+        stroke.Color = SugarUI.Theme.Border
+        Label.TextColor3 = SugarUI.Theme.Text
+        ValueLabel.TextColor3 = SugarUI.Theme.Muted
+        OptionsFrame.BackgroundColor3 = SugarUI.Theme.Panel
+        OptionsFrame.ScrollBarImageColor3 = SugarUI.Theme.Border
+        for _, obj in ipairs(optionObjects) do
+            obj.btn.BackgroundColor3 = SugarUI.Theme.Panel
+            obj.btn.TextColor3 = SugarUI.Theme.Text
+            if obj.optionStroke then obj.optionStroke.Color = SugarUI.Theme.Border end
+            if obj.check then
+                obj.check.BackgroundColor3 = table.find(selected, obj.btn.Text) and SugarUI.Theme.Accent or SugarUI.Theme.Panel
+                if obj.checkIcon then obj.checkIcon.ImageColor3 = SugarUI.Theme.Highlight end
+            end
+            local grad = obj.btn:FindFirstChildOfClass("UIGradient")
+            if grad then grad.Color = ColorSequence.new(SugarUI.Theme.GradientStart, SugarUI.Theme.GradientEnd) end
+        end
+        local grad = Frame:FindFirstChildOfClass("UIGradient")
+        if grad then grad.Color = ColorSequence.new(SugarUI.Theme.GradientStart, SugarUI.Theme.GradientEnd) end
+        local optsGrad = OptionsFrame:FindFirstChildOfClass("UIGradient")
+        if optsGrad then optsGrad.Color = ColorSequence.new(SugarUI.Theme.GradientStart, SugarUI.Theme.GradientEnd) end
+    end
+
+    return self
+end
+
+-- ======================
+-- Section component (улучшенный с градиентом)
+-- ======================
+local SectionComponent = {}
+SectionComponent.__index = SectionComponent
+
+function SectionComponent.new(parent, title)
+    local self = setmetatable({}, SectionComponent)
+    local wrapper = Instance.new("Frame")
+    wrapper.Size = UDim2.new(1, 0, 0, 40)
+    wrapper.BackgroundTransparency = 1
+    wrapper.Parent = parent
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -10, 1, 0)
+    label.Position = UDim2.new(0, 10, 0, 0)
+    label.BackgroundTransparency = 1
+    label.Text = title or "Section"
+    label.TextColor3 = SugarUI.Theme.Accent
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 16
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = wrapper
+
+    local line = Instance.new("Frame")
+    line.Size = UDim2.new(1, -20, 0, 2)
+    line.Position = UDim2.new(0, 10, 1, -8)
+    line.BackgroundColor3 = SugarUI.Theme.Accent
+    line.BorderSizePixel = 0
+    line.Parent = wrapper
+    SugarUI.AddGradient(line)
+
+    self._wrapper = wrapper
+
+    function self:UpdateTheme()
+        label.TextColor3 = SugarUI.Theme.Accent
+        line.BackgroundColor3 = SugarUI.Theme.Accent
+        local grad = line:FindFirstChildOfClass("UIGradient")
+        if grad then grad.Color = ColorSequence.new(SugarUI.Theme.GradientStart, SugarUI.Theme.GradientEnd) end
+    end
+
+    return self
+end
+
+-- ======================
+-- Notifications (улучшенные с прогресс баром)
+-- ======================
+local NotificationSystem = {}
+NotificationSystem.__index = NotificationSystem
+
+function NotificationSystem.new(screenGui)
+    local self = setmetatable({}, NotificationSystem)
+    self.Notifications = {}
+    self.Container = Instance.new("Frame")
+    self.Container.Size = UDim2.new(0, 340, 0, 400)
+    self.Container.Position = UDim2.new(1, -360, 0, 20)
+    self.Container.BackgroundTransparency = 1
+    self.Container.Parent = screenGui
+    self.Container.ZIndex = 900
+
+    local list = Instance.new("UIListLayout", self.Container)
+    list.SortOrder = Enum.SortOrder.LayoutOrder
+    list.HorizontalAlignment = Enum.HorizontalAlignment.Right
+    list.VerticalAlignment = Enum.VerticalAlignment.Top
+    list.Padding = UDim.new(0, 12)
+
+    return self
+end
+
+function NotificationSystem:Notify(title, message, duration, notifType)
+    duration = duration or 5
+    notifType = notifType or "Info"
+
+    local notification = Instance.new("Frame")
+    notification.Size = UDim2.new(1, 0, 0, 0)
+    notification.BackgroundColor3 = SugarUI.Theme.Panel
+    notification.BackgroundTransparency = 0
+    notification.BorderSizePixel = 0
+    notification.ClipsDescendants = true
+    notification.LayoutOrder = -(#self.Container:GetChildren() + 1)
+    notification.Parent = self.Container
+    SugarUI.RoundCorner(10).Parent = notification
+    notification.ZIndex = 901
+    SugarUI.AddGradient(notification)
+
+    SugarUI.AddShadow(notification, 0.25, 10)
+
+    local accent = Instance.new("Frame")
+    accent.Size = UDim2.new(0, 8, 1, 0)
+    accent.BackgroundColor3 = ({ Info = SugarUI.Theme.Accent, Success = SugarUI.Theme.Success, Warning = SugarUI.Theme.Warning, Error = SugarUI.Theme.Error })[notifType] or SugarUI.Theme.Accent
+    accent.BorderSizePixel = 0
+    accent.Parent = notification
+    accent.ZIndex = 902
+    SugarUI.AddGradient(accent)
+
+    local icon = Instance.new("ImageLabel")
+    icon.Size = UDim2.new(0, 24, 0, 24)
+    icon.Position = UDim2.new(0, 16, 0, 16)
+    icon.BackgroundTransparency = 1
+    icon.Image = ({ Info = "rbxassetid://6031280882", Success = "rbxassetid://6031094667", Warning = "rbxassetid://6031094687", Error = "rbxassetid://6031094688" })[notifType] or "rbxassetid://6031280882"
+    icon.ImageColor3 = SugarUI.Theme.Text
+    icon.Parent = notification
+    icon.ZIndex = 902
+
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, -64, 0, 24)
+    titleLabel.Position = UDim2.new(0, 48, 0, 14)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = title or "Notification"
+    titleLabel.TextColor3 = SugarUI.Theme.Text
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 16
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = notification
+    titleLabel.ZIndex = 902
+
+    local messageLabel = Instance.new("TextLabel")
+    messageLabel.Size = UDim2.new(1, -64, 0, 0)
+    messageLabel.Position = UDim2.new(0, 48, 0, 38)
+    messageLabel.BackgroundTransparency = 1
+    messageLabel.Text = message or ""
+    messageLabel.TextColor3 = SugarUI.Theme.Muted
+    messageLabel.Font = Enum.Font.Gotham
+    messageLabel.TextSize = 13
+    messageLabel.TextXAlignment = Enum.TextXAlignment.Left
+    messageLabel.TextYAlignment = Enum.TextYAlignment.Top
+    messageLabel.TextWrapped = true
+    messageLabel.Parent = notification
+    messageLabel.ZIndex = 902
+
+    local closeButton = Instance.new("TextButton")
+    closeButton.Size = UDim2.new(0, 24, 0, 24)
+    closeButton.Position = UDim2.new(1, -36, 0, 10)
+    closeButton.BackgroundTransparency = 1
+    closeButton.Text = "×"
+    closeButton.TextColor3 = SugarUI.Theme.Muted
+    closeButton.Font = Enum.Font.GothamBold
+    closeButton.TextSize = 18
+    closeButton.Parent = notification
+    closeButton.ZIndex = 902
+
+    local progressBar = Instance.new("Frame")
+    progressBar.Size = UDim2.new(1, 0, 0, 4)
+    progressBar.Position = UDim2.new(0, 0, 1, -4)
+    progressBar.BackgroundColor3 = SugarUI.Theme.Border
+    progressBar.Parent = notification
+
+    local progressFill = Instance.new("Frame")
+    progressFill.Size = UDim2.new(1, 0, 1, 0)
+    progressFill.BackgroundColor3 = SugarUI.Theme.Accent
+    progressFill.Parent = progressBar
+    SugarUI.AddGradient(progressFill)
+
+    local textHeight = 0
+    if message then
+        local size = TextService:GetTextSize(message, 13, Enum.Font.Gotham, Vector2.new(260, 1000))
+        textHeight = size.Y
+    end
+
+    local totalHeight = math.clamp(60 + textHeight, 70, 160)
+    messageLabel.Size = UDim2.new(1, -64, 0, textHeight)
+
+    SugarUI.Tween(notification, {Size = UDim2.new(1, 0, 0, totalHeight)}, 0.25, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out)
+
+    closeButton.MouseButton1Click:Connect(function() self:Remove(notification) end)
+    closeButton.MouseEnter:Connect(function() SugarUI.Tween(closeButton, {TextColor3 = SugarUI.Theme.Text}, 0.12) end)
+    closeButton.MouseLeave:Connect(function() SugarUI.Tween(closeButton, {TextColor3 = SugarUI.Theme.Muted}, 0.12) end)
+
+    if duration > 0 then
+        SugarUI.Tween(progressFill, {Size = UDim2.new(0, 0, 1, 0)}, duration, Enum.EasingStyle.Linear)
+        task.delay(duration, function() if notification.Parent then self:Remove(notification) end end)
+    end
+
+    table.insert(self.Notifications, notification)
+    return notification
+end
+
+function NotificationSystem:Remove(notification)
+    SugarUI.Tween(notification, {Size = UDim2.new(1, 0, 0, 0)}, 0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+    task.delay(0.2, function() if notification.Parent then notification:Destroy() end end)
+    for i, notif in ipairs(self.Notifications) do if notif == notification then table.remove(self.Notifications, i); break end end
+end
+
+-- ======================
+-- Window & Tabs (улучшенные с новой анимацией появления)
+-- ======================
+local Window = {}
+Window.__index = Window
+
+local function createTab(selfObj, name)
+    local layoutOrderCounter = 0
+    local tabComponents = {}
+
+    local btnWrap = Instance.new("Frame")
+    btnWrap.Size = UDim2.new(1, 0, 0, 48)
+    btnWrap.BackgroundTransparency = 1
+    btnWrap.LayoutOrder = #selfObj.Tabs + 1
+    btnWrap.Parent = selfObj.Sidebar
+
+    local tabBtn = Instance.new("TextButton")
+    tabBtn.Size = UDim2.new(1, -28, 1, 0)
+    tabBtn.Position = UDim2.new(0, 14, 0, 0)
+    tabBtn.BackgroundTransparency = 1
+    tabBtn.Text = name
+    tabBtn.Font = Enum.Font.GothamMedium
+    tabBtn.TextColor3 = SugarUI.Theme.Muted
+    tabBtn.TextSize = 15
+    tabBtn.AutoButtonColor = false
+    tabBtn.TextXAlignment = Enum.TextXAlignment.Left
+    tabBtn.Parent = btnWrap
+
+    local indicator = Instance.new("Frame")
+    indicator.Size = UDim2.new(0, 5, 1, -10)
+    indicator.Position = UDim2.new(0, -8, 0, 5)
+    indicator.BackgroundColor3 = SugarUI.Theme.Accent
+    indicator.Visible = false
+    indicator.BorderSizePixel = 0
+    indicator.Parent = tabBtn
+    SugarUI.RoundCorner(3).Parent = indicator
+    SugarUI.AddGradient(indicator)
+
+    local page = Instance.new("Frame")
+    page.Size = UDim2.new(1, 0, 1, 0)
+    page.BackgroundTransparency = 1
+    page.Visible = false
+    page.Parent = selfObj.PagesHolder
+
+    local scrollingFrame = Instance.new("ScrollingFrame")
+    scrollingFrame.Size = UDim2.new(1, -28, 1, -28)
+    scrollingFrame.Position = UDim2.new(0, 14, 0, 14)
+    scrollingFrame.BackgroundTransparency = 1
+    scrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+    scrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+    scrollingFrame.ScrollBarThickness = 5
+    scrollingFrame.ScrollBarImageColor3 = SugarUI.Theme.Border
+    scrollingFrame.ScrollBarImageTransparency = 0.4
+    scrollingFrame.Parent = page
+
+    local list = Instance.new("UIListLayout", scrollingFrame)
+    list.Padding = UDim.new(0, 12)
+    list.SortOrder = Enum.SortOrder.LayoutOrder
+
+    local padding = Instance.new("UIPadding", scrollingFrame)
+    padding.PaddingTop = UDim.new(0, 14)
+    padding.PaddingBottom = UDim.new(0, 14)
+    padding.PaddingLeft = UDim.new(0, 10)
+    padding.PaddingRight = UDim.new(0, 10)
+
+    tabBtn.MouseButton1Click:Connect(function()
+        for _, v in pairs(selfObj.Pages) do v.Visible = false end
+        page.Visible = true
+        for _, t in ipairs(selfObj.Tabs) do
+            t.indicator.Visible = (t.name == name)
+            SugarUI.Tween(t.button, {TextColor3 = (t.name == name) and SugarUI.Theme.Text or SugarUI.Theme.Muted}, 0.15)
+        end
+        selfObj.ActiveTab = name
+    end)
+
+    local tabObj = {
+        name = name,
+        button = tabBtn,
+        wrapper = btnWrap,
+        indicator = indicator,
+        page = page,
+        pageInner = scrollingFrame,
+        layoutOrderCounter = layoutOrderCounter,
+        components = tabComponents,
+        AddSection = function(_, ttl)
+            layoutOrderCounter = layoutOrderCounter + 1
+            local sec = SectionComponent.new(scrollingFrame, ttl)
+            sec._wrapper.LayoutOrder = layoutOrderCounter
+            table.insert(tabComponents, {type = "section", obj = sec})
+            table.insert(selfObj.Components, {type = "section", obj = sec})
+            return sec
+        end,
+        AddButton = function(_, txt, cb)
+            layoutOrderCounter = layoutOrderCounter + 1
+            local btn = ButtonComponent.new(scrollingFrame, txt, cb)
+            btn.Instance.LayoutOrder = layoutOrderCounter
+            table.insert(tabComponents, {type = "button", obj = btn})
+            table.insert(selfObj.Components, {type = "button", obj = btn})
+            return btn
+        end,
+        AddToggle = function(_, txt, def, cb, configKey)
+            layoutOrderCounter = layoutOrderCounter + 1
+            local tog = ToggleComponent.new(scrollingFrame, txt, def, cb, configKey)
+            tog.Instance.LayoutOrder = layoutOrderCounter
+            if configKey then
+                table.insert(tabComponents, {type = "toggle", key = configKey, obj = tog})
+                table.insert(selfObj.Components, {type = "toggle", key = configKey, obj = tog})
+            else
+                table.insert(tabComponents, {type = "toggle", obj = tog})
+            end
+            return tog
+        end,
+        AddSlider = function(_, txt, min, max, def, cb, configKey)
+            layoutOrderCounter = layoutOrderCounter + 1
+            local slider = SliderComponent.new(scrollingFrame, txt, min, max, def, cb, configKey)
+            slider.Instance.LayoutOrder = layoutOrderCounter
+            if configKey then
+                table.insert(tabComponents, {type = "slider", key = configKey, obj = slider})
+                table.insert(selfObj.Components, {type = "slider", key = configKey, obj = slider})
+            else
+                table.insert(tabComponents, {type = "slider", obj = slider})
+            end
+            return slider
+        end,
+        AddDropdown = function(_, txt, options, def, cb, multi, configKey)
+            layoutOrderCounter = layoutOrderCounter + 1
+            local drop = DropdownComponent.new(scrollingFrame, txt, options, def, cb, multi, configKey)
+            drop.Instance.LayoutOrder = layoutOrderCounter
+            if configKey then
+                table.insert(tabComponents, {type = "dropdown", key = configKey, obj = drop})
+                table.insert(selfObj.Components, {type = "dropdown", key = configKey, obj = drop})
+            else
+                table.insert(tabComponents, {type = "dropdown", obj = drop})
+            end
+            return drop
+        end,
+    }
+
+    table.insert(selfObj.Tabs, tabObj)
+    selfObj.Pages[name] = page
+
+    if not selfObj.ActiveTab then
+        tabBtn.TextColor3 = SugarUI.Theme.Text
+        indicator.Visible = true
+        page.Visible = true
+        selfObj.ActiveTab = name
+    end
+
+    return tabObj
+end
+
+function Window.new(title)
+    local selfObj = {}
+    selfObj.Tabs = {}
+    selfObj.Pages = {}
+    selfObj.ActiveTab = nil
+    selfObj.Visible = true
+    selfObj.Components = {}
+    selfObj.ToggleKey = Enum.KeyCode.V
+
+    local ScreenGui = Instance.new("ScreenGui")
+    ScreenGui.Name = "SugarUI"
+    ScreenGui.ResetOnSpawn = false
+    ScreenGui.IgnoreGuiInset = true
+    pcall(function() ScreenGui.DisplayOrder = 1000 end)
+    local ok = pcall(function() ScreenGui.Parent = game:GetService("CoreGui") end)
+    if not ok or not ScreenGui.Parent then
+        local player = Players.LocalPlayer
+        if player and player:FindFirstChild("PlayerGui") then
+            ScreenGui.Parent = player.PlayerGui
+        else
+            ScreenGui.Parent = game:GetService("CoreGui")
+        end
+    end
+
+    local OuterFrame = Instance.new("Frame")
+    OuterFrame.Size = UDim2.new(0, 540, 0, 440)
+    OuterFrame.Position = UDim2.new(0.5, -270, 0.5, -220)
+    OuterFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    OuterFrame.BackgroundTransparency = 1
+    OuterFrame.Parent = ScreenGui
+
+    local ShadowFrame = Instance.new("ImageLabel")
+    ShadowFrame.Size = UDim2.new(1, 30, 1, 30)
+    ShadowFrame.Position = UDim2.new(0, -15, 0, -15)
+    ShadowFrame.BackgroundTransparency = 1
+    ShadowFrame.Image = "rbxassetid://5554236805"
+    ShadowFrame.ImageColor3 = SugarUI.Theme.Shadow
+    ShadowFrame.ImageTransparency = 0.65
+    ShadowFrame.ScaleType = Enum.ScaleType.Slice
+    ShadowFrame.SliceCenter = Rect.new(23, 23, 95, 95)
+    ShadowFrame.Parent = OuterFrame
+
+    local Frame = Instance.new("Frame")
+    Frame.Size = UDim2.new(1, 0, 1, 0)
+    Frame.BackgroundColor3 = SugarUI.Theme.Background
+    Frame.BackgroundTransparency = 1
+    Frame.BorderSizePixel = 0
+    Frame.ClipsDescendants = true
+    Frame.Parent = OuterFrame
+    SugarUI.RoundCorner(14).Parent = Frame
+    SugarUI.AddGradient(Frame, SugarUI.Theme.GradientStart, SugarUI.Theme.GradientEnd)
+
+    SugarUI.AddShadow(Frame, 0.25, 10)
+
+    local TopBar = Instance.new("Frame")
+    TopBar.Size = UDim2.new(1, 0, 0, 60)
+    TopBar.BackgroundColor3 = SugarUI.Theme.Panel
+    TopBar.BackgroundTransparency = 0
+    TopBar.Parent = Frame
+    SugarUI.RoundCorner(14).Parent = TopBar
+    SugarUI.AddGradient(TopBar)
+
+    local topStroke = Instance.new("UIStroke", TopBar)
+    topStroke.Color = SugarUI.Theme.Border
+    topStroke.Transparency = 0.8
+    topStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+
+    local TitleLbl = Instance.new("TextLabel")
+    TitleLbl.Size = UDim2.new(0.8, -24, 1, 0)
+    TitleLbl.Position = UDim2.new(0, 18, 0, 0)
+    TitleLbl.BackgroundTransparency = 1
+    TitleLbl.Text = title or "Sugar UI"
+    TitleLbl.TextColor3 = SugarUI.Theme.Text
+    TitleLbl.Font = Enum.Font.GothamBold
+    TitleLbl.TextSize = 18
+    TitleLbl.TextXAlignment = Enum.TextXAlignment.Left
+    TitleLbl.Parent = TopBar
+
+    local Subtitle = Instance.new("TextLabel")
+    Subtitle.Size = UDim2.new(0.2, -24, 1, 0)
+    Subtitle.Position = UDim2.new(0.8, 12, 0, 0)
+    Subtitle.BackgroundTransparency = 1
+    Subtitle.Text = "v1.0 Enhanced"
+    Subtitle.TextColor3 = SugarUI.Theme.Muted
+    Subtitle.Font = Enum.Font.Gotham
+    Subtitle.TextSize = 13
+    Subtitle.TextXAlignment = Enum.TextXAlignment.Right
+    Subtitle.Parent = TopBar
+
+    local MinimizeBtn = Instance.new("TextButton")
+    MinimizeBtn.Size = UDim2.new(0, 40, 0, 40)
+    MinimizeBtn.Position = UDim2.new(1, -112, 0.5, -20)
+    MinimizeBtn.BackgroundColor3 = SugarUI.Theme.Warning
+    MinimizeBtn.Text = "—"
+    MinimizeBtn.Font = Enum.Font.GothamBold
+    MinimizeBtn.TextSize = 20
+    MinimizeBtn.TextColor3 = SugarUI.Theme.Highlight
+    MinimizeBtn.BorderSizePixel = 0
+    MinimizeBtn.Parent = TopBar
+    SugarUI.RoundCorner(12).Parent = MinimizeBtn
+
+    MinimizeBtn.MouseEnter:Connect(function() SugarUI.Tween(MinimizeBtn, {BackgroundColor3 = SugarUI.Theme.ButtonHover}, 0.15) end)
+    MinimizeBtn.MouseLeave:Connect(function() SugarUI.Tween(MinimizeBtn, {BackgroundColor3 = SugarUI.Theme.Warning}, 0.15) end)
+    MinimizeBtn.MouseButton1Click:Connect(function() selfObj:Hide() end)
+
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Size = UDim2.new(0, 40, 0, 40)
+    CloseBtn.Position = UDim2.new(1, -60, 0.5, -20)
+    CloseBtn.BackgroundColor3 = SugarUI.Theme.Error
+    CloseBtn.Text = "×"
+    CloseBtn.Font = Enum.Font.GothamBold
+    CloseBtn.TextSize = 20
+    CloseBtn.TextColor3 = SugarUI.Theme.Highlight
+    CloseBtn.BorderSizePixel = 0
+    CloseBtn.Parent = TopBar
+    SugarUI.RoundCorner(12).Parent = CloseBtn
+
+    CloseBtn.MouseEnter:Connect(function() SugarUI.Tween(CloseBtn, {BackgroundColor3 = SugarUI.Theme.ButtonHover}, 0.15) end)
+    CloseBtn.MouseLeave:Connect(function() SugarUI.Tween(CloseBtn, {BackgroundColor3 = SugarUI.Theme.Error}, 0.15) end)
+
+    local Sidebar = Instance.new("Frame")
+    Sidebar.Size = UDim2.new(0, 190, 1, -60)
+    Sidebar.Position = UDim2.new(0, 0, 0, 60)
+    Sidebar.BackgroundColor3 = SugarUI.Theme.Panel
+    Sidebar.BackgroundTransparency = 0
+    Sidebar.Parent = Frame
+    SugarUI.RoundCorner(0).Parent = Sidebar
+    SugarUI.AddGradient(Sidebar)
+
+    local sideStroke = Instance.new("UIStroke", Sidebar)
+    sideStroke.Color = SugarUI.Theme.Border
+    sideStroke.Transparency = 0.8
+
+    local tabsLayout = Instance.new("UIListLayout", Sidebar)
+    tabsLayout.Padding = UDim.new(0, 10)
+    tabsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    tabsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
+    tabsLayout.VerticalAlignment = Enum.VerticalAlignment.Top
+
+    local tabsPadding = Instance.new("UIPadding", Sidebar)
+    tabsPadding.PaddingTop = UDim.new(0, 20)
+    tabsPadding.PaddingLeft = UDim.new(0, 14)
+    tabsPadding.PaddingRight = UDim.new(0, 14)
+    tabsPadding.PaddingBottom = UDim.new(0, 18)
+
+    local PagesHolder = Instance.new("Frame")
+    PagesHolder.Size = UDim2.new(1, -190, 1, -60)
+    PagesHolder.Position = UDim2.new(0, 190, 0, 60)
+    PagesHolder.BackgroundTransparency = 1
+    PagesHolder.Parent = Frame
+
+    local Notifications = NotificationSystem.new(ScreenGui)
+
+    -- Адаптивность
+    local function getViewport()
+        Camera = Camera or Workspace.CurrentCamera
+        if Camera and Camera.ViewportSize then return Camera.ViewportSize end
+        return Vector2.new(1280, 720)
+    end
+
+    local function updateOuterSize()
+        local vp = getViewport()
+        local w = math.clamp(math.floor(vp.X * 0.54), 380, 1320)
+        local h = math.clamp(math.floor(vp.Y * 0.58), 260, 940)
+        if not selfObj._userResized then
+            OuterFrame.Size = UDim2.new(0, w, 0, h)
+        end
+        OuterFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+    end
+
+    if Camera then
+        pcall(function() Camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateOuterSize) end)
+    else
+        Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
+            Camera = Workspace.CurrentCamera
+            if Camera then pcall(function() Camera:GetPropertyChangedSignal("ViewportSize"):Connect(updateOuterSize) end) end
+        end)
+    end
+
+    updateOuterSize()
+
+    -- Плавное перетаскивание
+    local dragging = false
+    local dragInput, mousePos, framePos
+    local activeTween = nil
+
+    TopBar.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            dragging = true
+            mousePos = input.Position
+            framePos = OuterFrame.Position
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then dragging = false end
+            end)
+        end
+    end)
+
+    TopBar.InputChanged:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseMovement then dragInput = input end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if input == dragInput and dragging then
+            local delta = input.Position - mousePos
+            local newPos = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
+            if activeTween then
+                pcall(function() activeTween:Cancel() end)
+            end
+            activeTween = TweenService:Create(OuterFrame, TweenInfo.new(0.08, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = newPos})
+            activeTween:Play()
+        end
+    end)
+
+    local resizeBtn = Instance.new("Frame")
+    resizeBtn.Size = UDim2.new(0, 22, 0, 22)
+    resizeBtn.Position = UDim2.new(1, 0, 1, 0)
+    resizeBtn.AnchorPoint = Vector2.new(1, 1)
+    resizeBtn.BackgroundTransparency = 1
+    resizeBtn.Parent = Frame
+
+    local resizing = false
+    local resizeMousePos, resizeFrameSize
+
+    resizeBtn.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            resizing = true
+            resizeMousePos = input.Position
+            resizeFrameSize = OuterFrame.Size
+            selfObj._userResized = true
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then resizing = false end
+            end)
+        end
+    end)
+
+    UserInputService.InputChanged:Connect(function(input)
+        if resizing and input.UserInputType == Enum.UserInputType.MouseMovement then
+            local delta = input.Position - resizeMousePos
+            local newWidth = math.max(380, resizeFrameSize.X.Offset + delta.X)
+            local newHeight = math.max(260, resizeFrameSize.Y.Offset + delta.Y)
+            OuterFrame.Size = UDim2.new(0, newWidth, 0, newHeight)
+        end
+    end)
+
+    local toggleConnection
+    local function setupToggleKey(key)
+        if toggleConnection then toggleConnection:Disconnect() end
+        toggleConnection = UserInputService.InputBegan:Connect(function(input, processed)
+            if not processed and input.KeyCode == key then
+                if selfObj.Visible then selfObj:Hide() else selfObj:Show() end
+            end
+        end)
+    end
+    setupToggleKey(Enum.KeyCode.V)
+
+    -- Мобильные кнопки
+    local mobileButtons = {}
+
+    local function createMobileButton(name, sizeX, sizeY, pos)
+        local btn = Instance.new("TextButton")
+        btn.Size = UDim2.new(0, sizeX, 0, sizeY)
+        btn.Position = pos or UDim2.new(1, -190, 1, -130)
+        btn.AnchorPoint = Vector2.new(0, 0)
+        btn.BackgroundColor3 = SugarUI.Theme.Panel
+        btn.Text = name
         btn.TextColor3 = SugarUI.Theme.Text
-        btn.TextSize = 16
-        btn.AutoButtonColor = false
-        SugarUI.RoundCorner(6).Parent = btn
+        btn.Font = Enum.Font.GothamBold
+        btn.TextSize = 18
+        btn.ZIndex = 1001
+        btn.Parent = ScreenGui
+        SugarUI.RoundCorner(10).Parent = btn
+        return btn
+    end
 
-        -- page
-        local page = new("Page","Frame")
-        page.Parent = contentInner
-        page.Size = UDim2.new(1, 0, 1, 0)
-        page.BackgroundTransparency = 1
-        page.Visible = false
-        local pageLayout = Instance.new("UIListLayout", page)
-        pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
-        pageLayout.Padding = UDim.new(0, 8)
+    if UserInputService.TouchEnabled then
+        local toggleBtn = createMobileButton("GUI", 100, 50, UDim2.new(1, -190, 1, -130))
+        mobileButtons.toggle = toggleBtn
 
-        function tab:AddSection(secTitle)
-            local section = {}
-            -- section frame
-            local sf = new("Section","Frame")
-            sf.Parent = page
-            sf.Size = UDim2.new(1, -8, 0, 120)
-            sf.BackgroundColor3 = SugarUI.Theme.Background
-            sf.BorderSizePixel = 0
-            SugarUI.RoundCorner(6).Parent = sf
-            local header = new("SecTitle","TextLabel")
-            header.Parent = sf
-            header.Position = UDim2.new(0, 12, 0, 8)
-            header.Size = UDim2.new(1, -24, 0, 22)
-            header.Font = Enum.Font.GothamBold
-            header.TextColor3 = SugarUI.Theme.Text
-            header.Text = secTitle or "Section"
-            header.BackgroundTransparency = 1
-            header.TextSize = 14
-            -- content holder
-            local holder = new("Holder","Frame")
-            holder.Parent = sf
-            holder.Position = UDim2.new(0, 12, 0, 36)
-            holder.Size = UDim2.new(1, -24, 1, -44)
-            holder.BackgroundTransparency = 1
-            local holderLayout = Instance.new("UIListLayout", holder)
-            holderLayout.SortOrder = Enum.SortOrder.LayoutOrder
-            holderLayout.Padding = UDim.new(0, 6)
+        local function makeDraggable(btn, onTap)
+            local draggingTouch = false
+            local touchInput = nil
+            local startPos = nil
+            local startBtnPos = nil
+            local moved = false
+            local threshold = 10
 
-            -- API functions
-            function section:AddButton(text, callback)
-                local frame = new("BtnWrap","Frame")
-                frame.Parent = holder
-                frame.Size = UDim2.new(1, 0, 0, 36)
-                frame.BackgroundTransparency = 1
-
-                local b = new("Btn","TextButton")
-                b.Parent = frame
-                b.Size = UDim2.new(1,0,1,0)
-                b.BackgroundColor3 = SugarUI.Theme.Accent
-                b.TextColor3 = Color3.new(1,1,1)
-                b.Font = Enum.Font.GothamBold
-                b.Text = text or "Button"
-                b.TextSize = 14
-                b.AutoButtonColor = true
-                SugarUI.RoundCorner(6).Parent = b
-
-                b.MouseButton1Click:Connect(function()
-                    pcall(callback)
-                end)
-                return {Instance = b}
-            end
-
-            function section:AddToggle(text, default, callback, id)
-                local wrap = new("ToggleWrap","Frame")
-                wrap.Parent = holder
-                wrap.Size = UDim2.new(1, 0, 0, 32)
-                wrap.BackgroundTransparency = 1
-
-                local lbl = new("TLabel","TextLabel")
-                lbl.Parent = wrap
-                lbl.Position = UDim2.new(0, 8, 0, 0)
-                lbl.Size = UDim2.new(0.75, 0, 1, 0)
-                lbl.Text = text or "Toggle"
-                lbl.BackgroundTransparency = 1
-                lbl.TextColor3 = SugarUI.Theme.Text
-                lbl.Font = Enum.Font.Gotham
-                lbl.TextSize = 14
-                lbl.TextXAlignment = Enum.TextXAlignment.Left
-
-                local btn = new("ToggleBtn","TextButton")
-                btn.Parent = wrap
-                btn.Position = UDim2.new(1, -68, 0, 4)
-                btn.Size = UDim2.new(0, 60, 1, -8)
-                btn.Font = Enum.Font.GothamBold
-                btn.TextSize = 14
-                btn.AutoButtonColor = true
-                btn.Text = default and "ON" or "OFF"
-                btn.BackgroundColor3 = default and SugarUI.Theme.Accent or Color3.fromRGB(70,70,70)
-                btn.TextColor3 = Color3.new(1,1,1)
-                SugarUI.RoundCorner(6).Parent = btn
-
-                local state = default and true or false
-                btn.MouseButton1Click:Connect(function()
-                    state = not state
-                    btn.Text = state and "ON" or "OFF"
-                    btn.BackgroundColor3 = state and SugarUI.Theme.Accent or Color3.fromRGB(70,70,70)
-                    pcall(callback, state)
-                    if id then win.CurrentConfig[id] = state end
-                end)
-
-                if id then win.CurrentConfig[id] = default end
-
-                return {
-                    Set = function(v) state = v; btn.Text = state and "ON" or "OFF"; btn.BackgroundColor3 = state and SugarUI.Theme.Accent or Color3.fromRGB(70,70,70); pcall(callback, state); if id then win.CurrentConfig[id] = state end end
-                }
-            end
-
-            function section:AddSlider(text, min, max, default, callback, id)
-                min = min or 0; max = max or 100; default = default or min
-                local wrap = new("SliderWrap","Frame")
-                wrap.Parent = holder
-                wrap.Size = UDim2.new(1, 0, 0, 48)
-                wrap.BackgroundTransparency = 1
-
-                local lbl = new("SLabel","TextLabel")
-                lbl.Parent = wrap
-                lbl.Position = UDim2.new(0, 8, 0, 0)
-                lbl.Size = UDim2.new(0.6, 0, 0, 18)
-                lbl.Text = text or "Slider"
-                lbl.BackgroundTransparency = 1
-                lbl.TextColor3 = SugarUI.Theme.Text
-                lbl.Font = Enum.Font.Gotham
-                lbl.TextSize = 14
-                lbl.TextXAlignment = Enum.TextXAlignment.Left
-
-                local valLabel = new("Val","TextLabel")
-                valLabel.Parent = wrap
-                valLabel.Position = UDim2.new(1, -72, 0, 0)
-                valLabel.Size = UDim2.new(0, 64, 0, 18)
-                valLabel.Text = tostring(default)
-                valLabel.BackgroundTransparency = 1
-                valLabel.Font = Enum.Font.Gotham
-                valLabel.TextSize = 14
-                valLabel.TextColor3 = SugarUI.Theme.Text
-                valLabel.TextXAlignment = Enum.TextXAlignment.Right
-
-                local bar = new("Bar","Frame")
-                bar.Parent = wrap
-                bar.Position = UDim2.new(0, 8, 0, 22)
-                bar.Size = UDim2.new(1, -16, 0, 12)
-                bar.BackgroundColor3 = Color3.fromRGB(60,60,60)
-                bar.BorderSizePixel = 0
-                SugarUI.RoundCorner(6).Parent = bar
-
-                local fill = new("Fill","Frame")
-                fill.Parent = bar
-                fill.Size = UDim2.new((default - min) / math.max(1, (max - min)), 0, 1, 0)
-                fill.BackgroundColor3 = SugarUI.Theme.Accent
-                SugarUI.RoundCorner(6).Parent = fill
-
-                local dragging = false
-                local function updateFromInput(input)
-                    local x = math.clamp((input.Position.X - bar.AbsolutePosition.X) / bar.AbsoluteSize.X, 0, 1)
-                    fill.Size = UDim2.new(x,0,1,0)
-                    local value = math.floor(min + x * (max - min) + 0.5)
-                    valLabel.Text = tostring(value)
-                    pcall(callback, value)
-                    if id then win.CurrentConfig[id] = value end
+            local function onInputChanged(input)
+                if not touchInput or input ~= touchInput then return end
+                local delta = input.Position - startPos
+                if math.abs(delta.X) > threshold or math.abs(delta.Y) > threshold then
+                    moved = true
+                    draggingTouch = true
+                    local newX = startBtnPos.X.Offset + delta.X
+                    local newY = startBtnPos.Y.Offset + delta.Y
+                    local vp = getViewport()
+                    newX = math.clamp(newX, 10, vp.X - btn.AbsoluteSize.X - 10)
+                    newY = math.clamp(newY, 10, vp.Y - btn.AbsoluteSize.Y - 10)
+                    btn.Position = UDim2.new(0, newX, 0, newY)
                 end
-
-                bar.InputBegan:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        dragging = true
-                        updateFromInput(input)
-                    end
-                end)
-                bar.InputEnded:Connect(function(input)
-                    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-                        dragging = false
-                    end
-                end)
-                UserInputService.InputChanged:Connect(function(input)
-                    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-                        updateFromInput(input)
-                    end
-                end)
-                if id then win.CurrentConfig[id] = default end
-                return {
-                    Set = function(v) v = math.clamp(v, min, max); fill.Size = UDim2.new((v-min)/(max-min),0,1,0); valLabel.Text = tostring(math.floor(v+0.5)); pcall(callback, v); if id then win.CurrentConfig[id] = v end end
-                }
             end
 
-            function section:AddDropdown(text, list, default, callback, editable, id)
-                list = list or {}
-                default = default or (list[1] or "")
-                local wrap = new("DDWrap","Frame")
-                wrap.Parent = holder
-                wrap.Size = UDim2.new(1,0,0,36)
-                wrap.BackgroundTransparency = 1
-
-                local lbl = new("DDLabel","TextLabel")
-                lbl.Parent = wrap
-                lbl.Position = UDim2.new(0,8,0,0)
-                lbl.Size = UDim2.new(0.5,0,1,0)
-                lbl.Text = text or "Dropdown"
-                lbl.BackgroundTransparency = 1
-                lbl.Font = Enum.Font.Gotham
-                lbl.TextColor3 = SugarUI.Theme.Text
-                lbl.TextSize = 14
-                lbl.TextXAlignment = Enum.TextXAlignment.Left
-
-                local sel = new("Sel","TextButton")
-                sel.Parent = wrap
-                sel.Position = UDim2.new(1, -160, 0, 6)
-                sel.Size = UDim2.new(0, 150, 1, -12)
-                sel.BackgroundColor3 = Color3.fromRGB(60,60,60)
-                sel.Font = Enum.Font.Gotham
-                sel.TextColor3 = SugarUI.Theme.Text
-                sel.Text = tostring(default)
-                sel.AutoButtonColor = true
-                SugarUI.RoundCorner(6).Parent = sel
-
-                -- popup
-                local popup = new("Popup","Frame")
-                popup.Size = UDim2.new(0, 150, 0, 0)
-                popup.Position = UDim2.new(0, 0, 1, 6)
-                popup.BackgroundColor3 = SugarUI.Theme.Panel
-                popup.BorderSizePixel = 0
-                popup.Visible = false
-                SugarUI.RoundCorner(6).Parent = popup
-                popup.Parent = sel
-
-                local listFr = new("List","ScrollingFrame")
-                listFr.Parent = popup
-                listFr.Size = UDim2.new(1,0,1,0)
-                listFr.CanvasSize = UDim2.new(0,0,0,0)
-                listFr.BackgroundTransparency = 1
-                listFr.ScrollBarThickness = 6
-                local ll = Instance.new("UIListLayout", listFr)
-                ll.Padding = UDim.new(0,2)
-
-                local function rebuild()
-                    for i,v in pairs(listFr:GetChildren()) do
-                        if v:IsA("TextButton") then v:Destroy() end
-                    end
-                    for _,val in ipairs(list) do
-                        local it = new("Item","TextButton")
-                        it.Parent = listFr
-                        it.Size = UDim2.new(1,0,0,28)
-                        it.Text = tostring(val)
-                        it.Font = Enum.Font.Gotham
-                        it.TextColor3 = SugarUI.Theme.Text
-                        it.BackgroundTransparency = 1
-                        it.AutoButtonColor = true
-                        it.MouseButton1Click:Connect(function()
-                            sel.Text = tostring(val)
-                            popup.Visible = false
-                            pcall(callback, val)
-                            if id then win.CurrentConfig[id] = val end
-                        end)
-                    end
-                    RunService.Heartbeat:Wait()
-                    listFr.CanvasSize = UDim2.new(0,0,0,ll.AbsoluteContentSize.Y)
-                    popup.Size = UDim2.new(0, 150, 0, math.clamp(ll.AbsoluteContentSize.Y, 0, 200))
-                end
-
-                sel.MouseButton1Click:Connect(function()
-                    popup.Visible = not popup.Visible
-                    if popup.Visible then rebuild() end
-                end)
-
-                if id then win.CurrentConfig[id] = default end
-
-                return {
-                    UpdateOptions = function(tbl) list = tbl or {}; rebuild() end,
-                    GetValue = function() return sel.Text end,
-                    SetValue = function(v) sel.Text = v; pcall(callback, v); if id then win.CurrentConfig[id] = v end end,
-                }
-            end
-
-            function section:AddKeybind(title, defaultKey, callback)
-                local wrap = new("KBWrap","Frame")
-                wrap.Parent = holder
-                wrap.Size = UDim2.new(1,0,0,36)
-                wrap.BackgroundTransparency = 1
-
-                local lbl = new("KBLabel","TextLabel")
-                lbl.Parent = wrap
-                lbl.Position = UDim2.new(0,8,0,0)
-                lbl.Size = UDim2.new(0.5,0,1,0)
-                lbl.Text = title or "Keybind"
-                lbl.BackgroundTransparency = 1
-                lbl.Font = Enum.Font.Gotham
-                lbl.TextColor3 = SugarUI.Theme.Text
-                lbl.TextSize = 14
-                lbl.TextXAlignment = Enum.TextXAlignment.Left
-
-                local btn = new("KBBtn","TextButton")
-                btn.Parent = wrap
-                btn.Position = UDim2.new(1, -150, 0, 6)
-                btn.Size = UDim2.new(0, 140, 1, -12)
-                btn.Font = Enum.Font.GothamBold
-                btn.Text = (typeof(defaultKey) == "EnumItem" and defaultKey.Name) or tostring(defaultKey or "None")
-                btn.AutoButtonColor = true
-                btn.BackgroundColor3 = Color3.fromRGB(60,60,60)
-                btn.TextColor3 = SugarUI.Theme.Text
-                SugarUI.RoundCorner(6).Parent = btn
-
-                local listening = false
-                local con
-                btn.MouseButton1Click:Connect(function()
-                    if listening then return end
-                    listening = true
-                    btn.Text = "Press a key..."
-                    con = UserInputService.InputBegan:Connect(function(inp, processed)
-                        if processed then return end
-                        if inp.KeyCode then
-                            btn.Text = inp.KeyCode.Name
-                            pcall(callback, inp.KeyCode)
-                            listening = false
-                            if con then con:Disconnect(); con = nil end
+            btn.InputBegan:Connect(function(input)
+                if input.UserInputType == Enum.UserInputType.Touch then
+                    touchInput = input
+                    startPos = input.Position
+                    startBtnPos = btn.Position
+                    moved = false
+                    input.Changed:Connect(function()
+                        if input.UserInputState == Enum.UserInputState.End then
+                            if not moved then
+                                if onTap then pcall(onTap) end
+                            end
+                            touchInput = nil
+                            draggingTouch = false
                         end
                     end)
-                end)
+                elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
+                    startPos = input.Position
+                    startBtnPos = btn.Position
+                    moved = false
+                    local connMove
+                    connMove = UserInputService.InputChanged:Connect(function(mouse)
+                        if mouse.UserInputType == Enum.UserInputType.MouseMovement then
+                            local delta = mouse.Position - startPos
+                            if math.abs(delta.X) > threshold or math.abs(delta.Y) > threshold then
+                                moved = true
+                                local newX = startBtnPos.X.Offset + delta.X
+                                local newY = startBtnPos.Y.Offset + delta.Y
+                                local vp = getViewport()
+                                newX = math.clamp(newX, 10, vp.X - btn.AbsoluteSize.X - 10)
+                                newY = math.clamp(newY, 10, vp.Y - btn.AbsoluteSize.Y - 10)
+                                btn.Position = UDim2.new(0, newX, 0, newY)
+                            end
+                        end
+                    end)
+                    local upConn
+                    upConn = UserInputService.InputEnded:Connect(function(inp)
+                        if inp.UserInputType == Enum.UserInputType.MouseButton1 then
+                            if not moved and onTap then pcall(onTap) end
+                            connMove:Disconnect()
+                            upConn:Disconnect()
+                        end
+                    end)
+                end
+            end)
 
-                return {
-                    Set = function(k) btn.Text = (typeof(k) == "EnumItem" and k.Name) or tostring(k) end
-                }
-            end
-
-            return section
+            UserInputService.InputChanged:Connect(function(input)
+                if touchInput and input == touchInput then
+                    onInputChanged(input)
+                end
+            end)
         end
 
-        -- button click behaviour
-        btn.MouseButton1Click:Connect(function()
-            for _,t in ipairs(win._tabs) do
-                t.page.Visible = false
-                t.btn.BackgroundTransparency = 0.9
-            end
-            page.Visible = true
-            btn.BackgroundTransparency = 0.2
-            win._selected = tab
+        makeDraggable(mobileButtons.toggle, function()
+            if selfObj.Visible then selfObj:Hide() else selfObj:Show() end
         end)
-
-        table.insert(win._tabs, {btn = btn, page = page, title = tabTitle, tab = tab})
-        -- auto-select first
-        if #win._tabs == 1 then
-            btn.MouseButton1Click:Fire()
-        end
-
-        return tab
     end
 
-    -- toggle key
-    UserInputService.InputBegan:Connect(function(inp, processed)
-        if processed then return end
-        if inp.KeyCode == win.Keybind then
-            win.Toggled = not win.Toggled
-            main.Visible = win.Toggled
+    -- Новая анимация появления: scale от 0.8 с elastic, fade in, slight rotation
+    function selfObj:Show()
+        selfObj.Visible = true
+        OuterFrame.Visible = true
+        OuterFrame.Scale = 0.8
+        OuterFrame.Rotation = -5
+        SugarUI.Tween(OuterFrame, {Scale = 1, Rotation = 0}, 0.4, Enum.EasingStyle.Elastic, Enum.EasingDirection.Out)
+        SugarUI.Tween(Frame, {BackgroundTransparency = 0}, 0.4, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        task.delay(0.02, function()
+            pcall(function() selfObj:UpdateTheme() end)
+        end)
+    end
+
+    function selfObj:Hide()
+        selfObj.Visible = false
+        SugarUI.Tween(OuterFrame, {Scale = 0.8, Rotation = 5}, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+        SugarUI.Tween(Frame, {BackgroundTransparency = 1}, 0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In)
+        for _, child in ipairs(Notifications.Container:GetChildren()) do
+            if child:IsA("Frame") then
+                pcall(function() SugarUI.Tween(child, {Size = UDim2.new(1,0,0,0)}, 0.3) end)
+            end
         end
+        task.delay(0.32, function()
+            if not selfObj.Visible then OuterFrame.Visible = false end
+            Notifications:Notify("Info", "GUI hidden. Press " .. selfObj.ToggleKey.Name .. " to show.", 3, "Info")
+        end)
+    end
+
+    task.defer(function() wait(0.05); selfObj:Show() end)
+
+    CloseBtn.MouseButton1Click:Connect(function()
+        selfObj:Confirm("Confirm Close", "Are you sure you want to close the UI?", function() ScreenGui:Destroy() end, function() end)
     end)
 
-    function win:Notify(title, text, duration, kind)
-        duration = duration or 4
-        ensureNotif()
-        local stack = notifContainer:FindFirstChild("NotifStack")
-        if not stack then return end
+    function selfObj:Confirm(title, msg, yesCb, noCb)
+        local overlay = Instance.new("Frame")
+        overlay.Size = UDim2.new(1, 0, 1, 0)
+        overlay.BackgroundColor3 = Color3.fromRGB(0,0,0)
+        overlay.BackgroundTransparency = 0.48
+        overlay.Parent = ScreenGui
+        overlay.ZIndex = 999
 
-        local nframe = new("Note","Frame")
-        nframe.Parent = stack
-        nframe.Size = UDim2.new(0, 240, 0, 64)
-        nframe.BackgroundColor3 = SugarUI.Theme.Panel
-        nframe.BorderSizePixel = 0
-        nframe.LayoutOrder = 999
-        SugarUI.RoundCorner(8).Parent = nframe
+        local panel = Instance.new("Frame")
+        panel.Size = UDim2.new(0, 380, 0, 200)
+        panel.Position = UDim2.new(0.5, -190, 0.5, -100)
+        panel.BackgroundColor3 = SugarUI.Theme.Panel
+        SugarUI.RoundCorner(12).Parent = panel
+        panel.Parent = overlay
+        panel.ZIndex = 1000
+        SugarUI.AddGradient(panel)
 
-        local tit = new("NTitle","TextLabel")
-        tit.Parent = nframe
-        tit.Position = UDim2.new(0, 12, 0, 8)
-        tit.Size = UDim2.new(1, -24, 0, 20)
-        tit.BackgroundTransparency = 1
-        tit.Text = title or "Notice"
-        tit.Font = Enum.Font.GothamBold
-        tit.TextColor3 = SugarUI.Theme.Text
-        tit.TextSize = 14
-        tit.TextXAlignment = Enum.TextXAlignment.Left
+        SugarUI.AddShadow(panel, 0.35, 14)
+        local stroke = Instance.new("UIStroke", panel)
+        stroke.Color = SugarUI.Theme.Border
+        stroke.Transparency = 0.7
 
-        local desc = new("NDesc","TextLabel")
-        desc.Parent = nframe
-        desc.Position = UDim2.new(0, 12, 0, 30)
-        desc.Size = UDim2.new(1, -24, 0, 26)
-        desc.BackgroundTransparency = 1
-        desc.Text = text or ""
-        desc.Font = Enum.Font.Gotham
-        desc.TextColor3 = SugarUI.Theme.Text
-        desc.TextSize = 12
-        desc.TextWrapped = true
-        desc.TextXAlignment = Enum.TextXAlignment.Left
+        local titleLbl = Instance.new("TextLabel")
+        titleLbl.Size = UDim2.new(1,-20,0,40)
+        titleLbl.Position = UDim2.new(0,10,0,10)
+        titleLbl.Text = title
+        titleLbl.TextColor3 = SugarUI.Theme.Text
+        titleLbl.Font = Enum.Font.GothamBold
+        titleLbl.TextSize = 18
+        titleLbl.BackgroundTransparency = 1
+        titleLbl.Parent = panel
+        titleLbl.ZIndex = 1001
 
-        -- simple auto-remove
-        delay(duration, function()
-            if nframe and nframe.Parent then
-                nframe:Destroy()
+        local msgLbl = Instance.new("TextLabel")
+        msgLbl.Size = UDim2.new(1, -20, 0, 90)
+        msgLbl.Position = UDim2.new(0,10,0,50)
+        msgLbl.Text = msg
+        msgLbl.TextColor3 = SugarUI.Theme.Muted
+        msgLbl.Font = Enum.Font.Gotham
+        msgLbl.TextSize = 15
+        msgLbl.BackgroundTransparency = 1
+        msgLbl.TextWrapped = true
+        msgLbl.Parent = panel
+        msgLbl.ZIndex = 1001
+
+        local yesBtn = ButtonComponent.new(panel, "Yes", function()
+            overlay:Destroy()
+            if yesCb then yesCb() end
+        end)
+        yesBtn.Instance.Size = UDim2.new(0.45, 0, 0, 40)
+        yesBtn.Instance.Position = UDim2.new(0.08, 0, 1, -52)
+        yesBtn.Instance.ZIndex = 1001
+
+        local noBtn = ButtonComponent.new(panel, "No", function()
+            overlay:Destroy()
+            if noCb then noCb() end
+        end)
+        noBtn.Instance.Size = UDim2.new(0.45, 0, 0, 40)
+        noBtn.Instance.Position = UDim2.new(0.47, 0, 1, -52)
+        noBtn.Instance.ZIndex = 1001
+    end
+
+    selfObj.ScreenGui = ScreenGui
+    selfObj.Frame = Frame
+    selfObj.OuterFrame = OuterFrame
+    selfObj.Sidebar = Sidebar
+    selfObj.PagesHolder = PagesHolder
+    selfObj.Notifications = Notifications
+    selfObj.GlobalContainer = PagesHolder
+
+    function selfObj:AddTab(name) local tab = createTab(selfObj, name); return tab end
+    function selfObj:AddPage(name) return selfObj:AddTab(name) end
+
+    function selfObj:GetActiveTab()
+        for _, t in ipairs(selfObj.Tabs) do if t.name == selfObj.ActiveTab then return t end end
+        return nil
+    end
+
+    function selfObj:SetToggleKey(key)
+        setupToggleKey(key)
+        selfObj.ToggleKey = key
+        SugarUI.CurrentConfig = SugarUI.CurrentConfig or {}
+        SugarUI.CurrentConfig["ToggleKey"] = key.Name
+    end
+
+    function selfObj:Notify(title, message, duration, type)
+        return Notifications:Notify(title, message, duration, type)
+    end
+
+    function selfObj:ApplyConfig(config)
+        if not config or type(config) ~= "table" then return end
+        for _, comp in ipairs(selfObj.Components) do
+            local val = comp.key and config[comp.key] or nil
+            if val ~= nil then
+                if comp.type == "toggle" then
+                    if type(comp.obj.Set) == "function" then comp.obj.Set(val, false) end
+                elseif comp.type == "slider" then
+                    if type(comp.obj.SetValue) == "function" then
+                        local num = tonumber(val) or val
+                        comp.obj.SetValue(num, false)
+                    end
+                elseif comp.type == "dropdown" then
+                    if type(comp.obj.SetValue) == "function" then comp.obj.SetValue(val) end
+                end
             end
+        end
+        if config["ToggleKey"] then
+            local key = Enum.KeyCode[config["ToggleKey"]]
+            if key then selfObj:SetToggleKey(key) end
+        end
+        if config["Theme"] then
+            pcall(function() SugarUI.ApplyPreset(config["Theme"]) end)
+        end
+        task.defer(function()
+            pcall(function() selfObj:Notify("Info", "Configuration applied.", 3, "Info") end)
         end)
     end
 
-    function win:SetToggleKey(keycode)
-        win.Keybind = keycode
+    function selfObj:UpdateTheme()
+        Frame.BackgroundColor3 = SugarUI.Theme.Background
+        TopBar.BackgroundColor3 = SugarUI.Theme.Panel
+        topStroke.Color = SugarUI.Theme.Border
+        TitleLbl.TextColor3 = SugarUI.Theme.Text
+        Subtitle.TextColor3 = SugarUI.Theme.Muted
+        MinimizeBtn.BackgroundColor3 = SugarUI.Theme.Warning
+        MinimizeBtn.TextColor3 = SugarUI.Theme.Highlight
+        CloseBtn.BackgroundColor3 = SugarUI.Theme.Error
+        CloseBtn.TextColor3 = SugarUI.Theme.Highlight
+        Sidebar.BackgroundColor3 = SugarUI.Theme.Panel
+        sideStroke.Color = SugarUI.Theme.Border
+        for _, tab in ipairs(selfObj.Tabs) do
+            tab.button.TextColor3 = (tab.name == selfObj.ActiveTab) and SugarUI.Theme.Text or SugarUI.Theme.Muted
+            tab.indicator.BackgroundColor3 = SugarUI.Theme.Accent
+            tab.pageInner.ScrollBarImageColor3 = SugarUI.Theme.Border
+            for _, comp in ipairs(tab.components) do
+                if comp.obj and comp.obj.UpdateTheme then
+                    comp.obj:UpdateTheme()
+                end
+            end
+        end
+        -- Update shadows and gradients
+        for _, shadow in ipairs(ScreenGui:GetDescendants()) do
+            if shadow.Name == "Shadow" and shadow:IsA("ImageLabel") then
+                shadow.ImageColor3 = SugarUI.Theme.Shadow
+            end
+        end
+        for _, grad in ipairs(ScreenGui:GetDescendants()) do
+            if grad:IsA("UIGradient") then
+                grad.Color = ColorSequence.new(SugarUI.Theme.GradientStart, SugarUI.Theme.GradientEnd)
+            end
+        end
     end
 
-    function win:Close()
-        if sg and sg.Parent then sg:Destroy() end
-    end
+    SugarUI.CurrentWindow = selfObj
+    SugarUI.CurrentConfig = SugarUI.CurrentConfig or {}
 
-    -- return API
-    return setmetatable(win, {__index = SugarUI})
+    return selfObj
+end
+
+function SugarUI:CreateWindow(title)
+    SugarUI.CurrentConfig = SugarUI.CurrentConfig or {}
+    local window = Window.new(title)
+    if SugarUI.CurrentConfig["Theme"] then
+        pcall(function() SugarUI.ApplyPreset(SugarUI.CurrentConfig["Theme"]) end)
+    end
+    return window
+end
+
+SugarUI.ApplyTheme = SugarUI.ApplyPreset
+SugarUI.GetAvailableThemes = function()
+    local keys = {}
+    for k,_ in pairs(SugarUI.Presets) do table.insert(keys,k) end
+    return keys
 end
 
 return SugarUI
