@@ -36,6 +36,9 @@ SugarUI.Theme = {
     ButtonHover = Color3.fromRGB(50, 50, 50),
 }
 
+-- place to persist live changes for saving
+SugarUI.CurrentConfig = SugarUI.CurrentConfig or {}
+
 -- ======================
 -- Вспомогательные
 -- ======================
@@ -608,36 +611,69 @@ function DropdownComponent.new(parent, text, options, default, callback, multiSe
 end
 
 -- ======================
--- Section component
+-- Section component (FIXED: now exposes AddButton/AddToggle/AddSlider/AddDropdown)
 -- ======================
 local SectionComponent = {}
 SectionComponent.__index = SectionComponent
 
 function SectionComponent.new(parent, title)
     local self = setmetatable({}, SectionComponent)
+
     local wrapper = Instance.new("Frame")
-    wrapper.Size = UDim2.new(1, 0, 0, 30)
+    wrapper.Size = UDim2.new(1, 0, 0, 0)
     wrapper.BackgroundTransparency = 1
+    wrapper.LayoutOrder = 0
+    wrapper.AutomaticSize = Enum.AutomaticSize.Y
     wrapper.Parent = parent
 
-    local label = Instance.new("TextLabel")
-    label.Size = UDim2.new(1, -10, 1, 0)
-    label.Position = UDim2.new(0, 5, 0, 0)
-    label.BackgroundTransparency = 1
-    label.Text = title or "Section"
-    label.TextColor3 = SugarUI.Theme.Muted
-    label.Font = Enum.Font.GothamBold
-    label.TextSize = 12
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.Parent = wrapper
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Size = UDim2.new(1, -10, 0, 20)
+    titleLabel.Position = UDim2.new(0, 5, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = title or "Section"
+    titleLabel.TextColor3 = SugarUI.Theme.Muted
+    titleLabel.Font = Enum.Font.GothamBold
+    titleLabel.TextSize = 12
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = wrapper
 
-    local line = Instance.new("Frame")
-    line.Size = UDim2.new(1, -10, 0, 1)
-    line.Position = UDim2.new(0, 5, 1, -1)
-    line.BackgroundColor3 = SugarUI.Theme.Border
-    line.BorderSizePixel = 0
-    line.Parent = wrapper
+    local content = Instance.new("Frame")
+    content.Size = UDim2.new(1, 0, 0, 0)
+    content.Position = UDim2.new(0, 0, 0, 24)
+    content.BackgroundTransparency = 1
+    content.AutomaticSize = Enum.AutomaticSize.Y
+    content.Parent = wrapper
 
+    local list = Instance.new("UIListLayout", content)
+    list.SortOrder = Enum.SortOrder.LayoutOrder
+    list.Padding = UDim.new(0, 8)
+
+    -- API to add components to this section
+    function self:AddButton(text, cb)
+        local btn = ButtonComponent.new(content, text, cb)
+        btn.Instance.LayoutOrder = #content:GetChildren() + 1
+        return btn
+    end
+
+    function self:AddToggle(text, default, cb, configKey)
+        local tog = ToggleComponent.new(content, text, default, cb, configKey)
+        tog.Instance.LayoutOrder = #content:GetChildren() + 1
+        return tog
+    end
+
+    function self:AddSlider(text, min, max, default, cb, configKey)
+        local slider = SliderComponent.new(content, text, min, max, default, cb, configKey)
+        slider.Instance.LayoutOrder = #content:GetChildren() + 1
+        return slider
+    end
+
+    function self:AddDropdown(text, options, default, cb, multi, configKey)
+        local drop = DropdownComponent.new(content, text, options, default, cb, multi, configKey)
+        drop.Instance.LayoutOrder = #content:GetChildren() + 1
+        return drop
+    end
+
+    -- expose wrapper for layout control by creator
     self._wrapper = wrapper
     return self
 end
@@ -1055,12 +1091,10 @@ function Window.new(title)
         local vp = getViewport()
         local w = math.clamp(math.floor(vp.X * 0.6), 300, 1100)
         local h = math.clamp(math.floor(vp.Y * 0.6), 200, 800)
-        -- если пользователь вручную менял размер, сохраняем текущий; иначе устанавливаем рассчитанный
         if not selfObj._userResized then
             OuterFrame.Size = UDim2.new(0, w, 0, h)
         end
-        -- всегда центрируем при показе
-        OuterFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+        -- не меняем позицию при апдейте размера (во избежание "телепорта")
     end
 
     if Camera then
@@ -1097,6 +1131,9 @@ function Window.new(title)
             local delta = input.Position - mousePos
             local newPos = UDim2.new(framePos.X.Scale, framePos.X.Offset + delta.X, framePos.Y.Scale, framePos.Y.Offset + delta.Y)
             OuterFrame.Position = newPos
+            -- mark as user moved
+            selfObj._userResized = selfObj._userResized or false
+            selfObj._userMoved = true
         end
     end)
 
@@ -1142,14 +1179,12 @@ function Window.new(title)
     end
     setupToggleKey(Enum.KeyCode.V)
 
-    -- Мобильные кнопки: только toggle кнопка, всегда draggable и tappable
+    -- Мобильная кнопка (только одна). Удалена кнопка lock.
     local mobileButtons = {}
-
-    local function createMobileButton(name, sizeX, sizeY)
+    local function createMobileButton(name, sizeX, sizeY, pos)
         local btn = Instance.new("TextButton")
         btn.Size = UDim2.new(0, sizeX, 0, sizeY)
-        local vp = getViewport()
-        btn.Position = UDim2.new(0, vp.X - sizeX - 20, 0, vp.Y - sizeY - 20)
+        btn.Position = pos or UDim2.new(1, -140, 1, -100)
         btn.AnchorPoint = Vector2.new(0, 0)
         btn.BackgroundColor3 = SugarUI.Theme.Panel
         btn.Text = name
@@ -1163,32 +1198,16 @@ function Window.new(title)
     end
 
     if UserInputService.TouchEnabled then
-        local toggleBtn = createMobileButton("GUI", 84, 44)
+        local toggleBtn = createMobileButton("GUI", 84, 44, UDim2.new(1, -140, 1, -100))
         mobileButtons.toggle = toggleBtn
 
-        -- Функции перетаскивания с разделением drag vs tap
+        -- Make draggable + tap
         local function makeDraggable(btn, onTap)
-            local draggingTouch = false
             local touchInput = nil
             local startPos = nil
             local startBtnPos = nil
             local moved = false
-            local threshold = 10
-
-            local function onInputChanged(input)
-                if not touchInput or input ~= touchInput then return end
-                if input.Delta then
-                    local delta = input.Position - startPos
-                    if math.abs(delta.X) > threshold or math.abs(delta.Y) > threshold then
-                        moved = true
-                        draggingTouch = true
-                        local vp = getViewport()
-                        local newX = math.clamp(startBtnPos.X.Offset + delta.X, 8, vp.X - btn.AbsoluteSize.X - 8)
-                        local newY = math.clamp(startBtnPos.Y.Offset + delta.Y, 8, vp.Y - btn.AbsoluteSize.Y - 8)
-                        btn.Position = UDim2.new(0, newX, 0, newY)
-                    end
-                end
-            end
+            local threshold = 8
 
             btn.InputBegan:Connect(function(input)
                 if input.UserInputType == Enum.UserInputType.Touch then
@@ -1198,11 +1217,8 @@ function Window.new(title)
                     moved = false
                     input.Changed:Connect(function()
                         if input.UserInputState == Enum.UserInputState.End then
-                            if not moved then
-                                if onTap then pcall(onTap) end
-                            end
+                            if not moved and onTap then pcall(onTap) end
                             touchInput = nil
-                            draggingTouch = false
                         end
                     end)
                 elseif input.UserInputType == Enum.UserInputType.MouseButton1 then
@@ -1215,9 +1231,11 @@ function Window.new(title)
                             local delta = mouse.Position - startPos
                             if math.abs(delta.X) > threshold or math.abs(delta.Y) > threshold then
                                 moved = true
+                                local newX = startBtnPos.X.Offset + delta.X
+                                local newY = startBtnPos.Y.Offset + delta.Y
                                 local vp = getViewport()
-                                local newX = math.clamp(startBtnPos.X.Offset + delta.X, 8, vp.X - btn.AbsoluteSize.X - 8)
-                                local newY = math.clamp(startBtnPos.Y.Offset + delta.Y, 8, vp.Y - btn.AbsoluteSize.Y - 8)
+                                newX = math.clamp(newX, 8, vp.X - btn.AbsoluteSize.X - 8)
+                                newY = math.clamp(newY, 8, vp.Y - btn.AbsoluteSize.Y - 8)
                                 btn.Position = UDim2.new(0, newX, 0, newY)
                             end
                         end
@@ -1234,32 +1252,59 @@ function Window.new(title)
             end)
 
             UserInputService.InputChanged:Connect(function(input)
-                if touchInput and input == touchInput then
-                    onInputChanged(input)
+                if touchInput and input == touchInput and input.Delta then
+                    local delta = input.Position - startPos
+                    if math.abs(delta.X) > threshold or math.abs(delta.Y) > threshold then
+                        moved = true
+                        local newX = startBtnPos.X.Offset + delta.X
+                        local newY = startBtnPos.Y.Offset + delta.Y
+                        local vp = getViewport()
+                        newX = math.clamp(newX, 8, vp.X - btn.AbsoluteSize.X - 8)
+                        newY = math.clamp(newY, 8, vp.Y - btn.AbsoluteSize.Y - 8)
+                        btn.Position = UDim2.new(0, newX, 0, newY)
+                    end
                 end
             end)
         end
 
-        -- Toggle button tap behavior
         makeDraggable(mobileButtons.toggle, function()
             if selfObj.Visible then selfObj:Hide() else selfObj:Show() end
         end)
     end
 
-    -- Simplified show/hide with simple transparency animation
+    -- apply theme function (applies live to main UI parts)
+    local function applyTheme()
+        Frame.BackgroundColor3 = SugarUI.Theme.Background
+        Sidebar.BackgroundColor3 = SugarUI.Theme.Panel
+        TopBar.BackgroundColor3 = SugarUI.Theme.Panel
+        TitleLbl.TextColor3 = SugarUI.Theme.Text
+        MinimizeBtn.TextColor3 = SugarUI.Theme.Highlight
+        CloseBtn.TextColor3 = SugarUI.Theme.Highlight
+        -- notifications will use new theme on next notify creation
+        -- update saved config colors
+        SugarUI.CurrentConfig["Theme_Background"] = {r = math.floor(SugarUI.Theme.Background.R * 255), g = math.floor(SugarUI.Theme.Background.G * 255), b = math.floor(SugarUI.Theme.Background.B * 255)}
+        SugarUI.CurrentConfig["Theme_Panel"] = {r = math.floor(SugarUI.Theme.Panel.R * 255), g = math.floor(SugarUI.Theme.Panel.G * 255), b = math.floor(SugarUI.Theme.Panel.B * 255)}
+        SugarUI.CurrentConfig["Theme_Accent"] = {r = math.floor(SugarUI.Theme.Accent.R * 255), g = math.floor(SugarUI.Theme.Accent.G * 255), b = math.floor(SugarUI.Theme.Accent.B * 255)}
+        SugarUI.CurrentConfig["Theme_Text"] = {r = math.floor(SugarUI.Theme.Text.R * 255), g = math.floor(SugarUI.Theme.Text.G * 255), b = math.floor(SugarUI.Theme.Text.B * 255)}
+    end
+
+    -- Simplified show/hide that does NOT re-center or teleport the window
     function selfObj:Show()
         selfObj.Visible = true
         OuterFrame.Visible = true
-        updateOuterSize()
-        SugarUI.Tween(Frame, {BackgroundTransparency = 0.06}, 0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+        -- simple fade-in: tween background transparency from 1 (hidden) to target (0.06)
+        Frame.BackgroundTransparency = Frame.BackgroundTransparency or 1
+        SugarUI.Tween(Frame, {BackgroundTransparency = 0.06}, 0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.Out)
+        -- no notify on show (per user request)
     end
 
     function selfObj:Hide()
         selfObj.Visible = false
-        SugarUI.Tween(Frame, {BackgroundTransparency = 1}, 0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
-        task.delay(0.22, function()
+        -- fade-out
+        SugarUI.Tween(Frame, {BackgroundTransparency = 1}, 0.18, Enum.EasingStyle.Sine, Enum.EasingDirection.In)
+        task.delay(0.18, function()
             if not selfObj.Visible then OuterFrame.Visible = false end
-            Notifications:Notify("Info", "GUI hidden. Press " .. selfObj.ToggleKey.Name .. " to show.", 4, "Info")
+            Notifications:Notify("Info", "GUI hidden. Press " .. (selfObj.ToggleKey and selfObj.ToggleKey.Name or "V") .. " to show.", 4, "Info")
         end)
     end
 
@@ -1378,22 +1423,74 @@ function Window.new(title)
             local key = Enum.KeyCode[config["ToggleKey"]]
             if key then selfObj:SetToggleKey(key) end
         end
-        if config.Theme then
-            for k, v in pairs(config.Theme) do
-                SugarUI.Theme[k] = Color3.fromRGB(unpack(v))
+
+        -- apply theme values if present
+        if config["Theme_Background"] then
+            local t = config["Theme_Background"]
+            if type(t) == "table" and t.r and t.g and t.b then
+                SugarUI.Theme.Background = Color3.fromRGB(t.r or 20, t.g or 20, t.b or 20)
             end
         end
+        if config["Theme_Panel"] then
+            local t = config["Theme_Panel"]
+            if type(t) == "table" and t.r and t.g and t.b then
+                SugarUI.Theme.Panel = Color3.fromRGB(t.r or 30, t.g or 30, t.b or 30)
+            end
+        end
+        if config["Theme_Accent"] then
+            local t = config["Theme_Accent"]
+            if type(t) == "table" and t.r and t.g and t.b then
+                SugarUI.Theme.Accent = Color3.fromRGB(t.r or 100, t.g or 181, t.b or 246)
+            end
+        end
+        if config["Theme_Text"] then
+            local t = config["Theme_Text"]
+            if type(t) == "table" and t.r and t.g and t.b then
+                SugarUI.Theme.Text = Color3.fromRGB(t.r or 240, t.g or 240, t.b or 240)
+            end
+        end
+
+        applyTheme()
+
         -- уведомление после применения конфига — с defer чтобы гарантировать показ
         task.defer(function()
-            pcall(function() selfObj:Notify("Config", "Configuration applied.", 3, "Info") end
+            pcall(function() selfObj:Notify("Config", "Configuration applied.", 3, "Info") end)
         end)
     end
+
+    -- --- Add built-in Settings -> Theme editor (RGB sliders)
+    local settingsTab = selfObj:AddTab("Settings")
+    local themeSection = settingsTab:AddSection("Theme")
+    -- helper to make 3 sliders for color component, uses immediate apply
+    local function addColorEditor(label, themeKey)
+        local col = SugarUI.Theme[themeKey] or Color3.fromRGB(0,0,0)
+        themeSection:AddSlider(label.." R", 0, 255, math.floor(col.R*255), function(v)
+            SugarUI.Theme[themeKey] = Color3.fromRGB(math.floor(v), math.floor(SugarUI.Theme[themeKey].G*255), math.floor(SugarUI.Theme[themeKey].B*255))
+            applyTheme()
+        end, nil)
+        themeSection:AddSlider(label.." G", 0, 255, math.floor(col.G*255), function(v)
+            SugarUI.Theme[themeKey] = Color3.fromRGB(math.floor(SugarUI.Theme[themeKey].R*255), math.floor(v), math.floor(SugarUI.Theme[themeKey].B*255))
+            applyTheme()
+        end, nil)
+        themeSection:AddSlider(label.." B", 0, 255, math.floor(col.B*255), function(v)
+            SugarUI.Theme[themeKey] = Color3.fromRGB(math.floor(SugarUI.Theme[themeKey].R*255), math.floor(SugarUI.Theme[themeKey].G*255), math.floor(v))
+            applyTheme()
+        end, nil)
+    end
+
+    addColorEditor("Background", "Background")
+    addColorEditor("Panel", "Panel")
+    addColorEditor("Accent", "Accent")
+    addColorEditor("Text", "Text")
+
+    -- ensure theme initial application
+    applyTheme()
 
     return selfObj
 end
 
 function SugarUI:CreateWindow(title)
-    SugarUI.CurrentConfig = {}
+    SugarUI.CurrentConfig = SugarUI.CurrentConfig or {}
     local window = Window.new(title)
     return window
 end
