@@ -1,6 +1,6 @@
 -- source.lua (Updated Library Source)
 
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKAdwwwwww -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKAdwwwwwwцццццццццццццццццц -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -2423,7 +2423,7 @@ function Library.new(config)
 					Clear = function()
 						drop.Data = {}
 					end,
-					Set = function(table)
+					SetOptions = function(table)
 						drop.Data = table
 					end
 				};
@@ -2645,7 +2645,7 @@ function Library.new(config)
 end;
 
 -- LucideIcons.lua
--- Небольшой самодостаточный модуль для получения и использования Lucide-иконок,
+-- Небольшой самодостаточный небольшой модуль для получения и использования Lucide-иконок,
 -- извлечённый и адаптированный из вашего скрипта.
 
 local Lucide = {}
