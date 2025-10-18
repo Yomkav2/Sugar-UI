@@ -1,11 +1,21 @@
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKA  ещкере -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKAвцвцв -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
 local TextServ = game:GetService('TextService');
 local LocalPlayer = game:GetService('Players').LocalPlayer;
 local CoreGui = (gethui and gethui()) or game:FindFirstChild('CoreGui') or LocalPlayer.PlayerGui;
-local HttpService = game:GetService("HttpService")
+local Icons = (function()
+	local p,c = pcall(function()
+		local Http = game:HttpGetAsync('https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua');
+		local Module = loadstring(Http)();
+		return Module.icons;
+	end);
+
+	if p then return c end;
+
+	return nil;
+end)() or {};
 
 local ElBlurSource = function()
 	local GuiSystem = {}
@@ -188,365 +198,6 @@ pcall(function()
 	Library['Icons'] = Module.icons;
 end)
 
--- ---------- Icons (Lucide) ----------
-local FetchIcons, Icons = pcall(function()
-    return (loadstring and loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua")) or function() end)()
-end)
-
-local function IsValidCustomIcon(Icon)
-    if typeof then -- Roblox environment
-        if typeof(Icon) ~= "string" then return false end
-    else
-        if type(Icon) ~= "string" then return false end
-    end
-    return Icon:match("rbxasset") or Icon:match("roblox%.com/asset/%?id=") or Icon:match("rbxthumb://type=") or Icon:match("^https?://")
-end
-
-local function GetIcon(IconName)
-    if not FetchIcons then return nil end
-    local ok, asset = pcall(function() return Icons.GetAsset(Icons, IconName) end)
-    if not ok or not asset then return nil end
-    return asset
-end
-
-local function GetCustomIcon(IconName)
-    if IsValidCustomIcon(IconName) then
-        return {
-            Url = IconName,
-            ImageRectOffset = Vector2.new(0,0),
-            ImageRectSize = Vector2.new(0,0),
-            Custom = true
-        }
-    else
-        return GetIcon(IconName)
-    end
-end
-
-Library.GetIcon = GetCustomIcon
-
--- ---------- Notification system ----------
-local Notification = {}
-Notification.__index = Notification
-
-function Notification.new(opts)
-    opts = opts or {}
-    -- defaults: make notifications taller and slightly narrower width, anchor bottom-right
-    local data = {
-        Title = opts.Title or "Title",
-        Description = opts.Description or "",
-        Duration = opts.Duration or 5,
-        Icon = opts.Icon or nil,
-        Width = opts.Width or 300,   -- default width slightly shorter than typical
-        Height = opts.Height or 90,  -- increased height
-        Position = opts.Position or UDim2.new(1, -20, 1, -20), -- bottom-right with margin (requires AnchorPoint (1,1) on the frame)
-        AnchorPoint = opts.AnchorPoint or Vector2.new(1,1)
-    }
-    -- In actual Roblox usage this would create instances. Here return a table for library API.
-    return setmetatable({
-        _data = data,
-        Show = function(self)
-            -- placeholder: in real env create GUI using data.Width/data.Height and position at data.Position with AnchorPoint
-            if type(self._data.Icon) == "string" then
-                -- attempt to resolve icon using Sugar.GetIcon
-                local ic = Library.GetIcon(self._data.Icon)
-                if ic then
-                    self._data.IconResolved = ic.Url
-                end
-            end
-            -- no-op else
-        end
-    }, Notification)
-end
-
-Library.Notification = setmetatable({}, { __call = function(_,...) return Notification end })
-Library.Notification.new = Notification.new
-
--- ---------- Config Manager (adapted) ----------
-local ConfigManager = {
-    Folder = nil,
-    Path = nil,
-    Configs = {},
-    Parser = {
-        Colorpicker = {
-            Save = function(obj)
-                return {
-                    __type = obj.__type,
-                    value = obj.Default and (obj.Default:ToHex()) or tostring(obj.Default),
-                    transparency = obj.Transparency or nil,
-                }
-            end,
-            Load = function(element, data)
-                if element and element.Update then
-                    local color = data.value
-                    if type(color) == "string" and color:match("#") and Color3 and Color3.fromHex then
-                        element:Update(Color3.fromHex(data.value), data.transparency or nil)
-                    else
-                        element:Update(data.value, data.transparency or nil)
-                    end
-                end
-            end
-        },
-        Dropdown = {
-            Save = function(obj)
-                return {
-                    __type = obj.__type,
-                    value = obj.Value,
-                }
-            end,
-            Load = function(element, data)
-                if element and element.Select then
-                    element:Select(data.value)
-                end
-            end
-        },
-        Input = {
-            Save = function(obj)
-                return {
-                    __type = obj.__type,
-                    value = obj.Value,
-                }
-            end,
-            Load = function(element, data)
-                if element and element.Set then
-                    element:Set(data.value)
-                end
-            end
-        },
-        Keybind = {
-            Save = function(obj)
-                return {
-                    __type = obj.__type,
-                    value = tostring(obj.Value), -- save as string like "Enum.KeyCode.Space"
-                }
-            end,
-            Load = function(element, data)
-                if element and element.Set then
-                    local v = data.value
-                    if type(v) == "string" then
-                        local keyName = v:match("Enum%.KeyCode%.(.+)")
-                        if keyName and Enum and Enum.KeyCode then
-                            local enumVal = Enum.KeyCode[keyName]
-                            if enumVal then
-                                element:Set(enumVal)
-                                return
-                            end
-                        end
-                    end
-                    element:Set(data.value)
-                end
-            end
-        },
-        Slider = {
-            Save = function(obj)
-                return {
-                    __type = obj.__type,
-                    value = obj.Value,
-                }
-            end,
-            Load = function(element, data)
-                if element and element.Set then
-                    element:Set(tonumber(data.value))
-                end
-            end
-        },
-        Toggle = {
-            Save = function(obj)
-                return {
-                    __type = obj.__type,
-                    value = obj.Value,
-                }
-            end,
-            Load = function(element, data)
-                if element and element.Set then
-                    element:Set(data.value)
-                end
-            end
-        },
-    }
-}
-
-function ConfigManager:Init(WindowTable)
-    if not WindowTable then
-        warn("[ SugarUI.ConfigManager ] No window table provided.")
-        return false
-    end
-
-    Window = WindowTable
-    ConfigManager.Folder = Window.Folder or "Sugar"
-    ConfigManager.Path = "SugarUI/" .. tostring(ConfigManager.Folder) .. "/config/"
-
-    if not isfolder then
-        -- fallback: if environment lacks filesystem, just return manager for in-memory use
-        warn("[ SugarUI.ConfigManager ] Filesystem API not detected. Configs will only exist in memory.")
-        return ConfigManager
-    end
-
-    if not isfolder("SugarUI/" .. ConfigManager.Folder) then
-        makefolder("SugarUI/" .. ConfigManager.Folder)
-    end
-    if not isfolder(ConfigManager.Path) then
-        makefolder(ConfigManager.Path)
-    end
-
-    local files = ConfigManager:AllConfigs()
-
-    for _, f in next, files do
-        local full = ConfigManager.Path .. f .. ".json"
-        if isfile and readfile and isfile(full) then
-            local ok, content = pcall(function() return readfile(full) end)
-            if ok and content then
-                ConfigManager.Configs[f] = content
-            end
-        end
-    end
-
-    return ConfigManager
-end
-
-function ConfigManager:CreateConfig(configFilename)
-    local ConfigModule = {
-        Path = ConfigManager.Path .. configFilename .. ".json",
-        Elements = {},
-        CustomData = {},
-        Version = 1.1
-    }
-
-    if not configFilename then
-        return false, "No config file is selected"
-    end
-
-    function ConfigModule:SetAsCurrent()
-        if Window and Window.SetCurrentConfig then
-            Window:SetCurrentConfig(ConfigModule)
-        end
-    end
-
-    function ConfigModule:Register(Name, Element)
-        ConfigModule.Elements[Name] = Element
-    end
-
-    function ConfigModule:Set(key, value)
-        ConfigModule.CustomData[key] = value
-    end
-
-    function ConfigModule:Get(key)
-        return ConfigModule.CustomData[key]
-    end
-
-    function ConfigModule:Save()
-        if Window and Window.PendingFlags then
-            for flag, element in next, Window.PendingFlags do
-                ConfigModule:Register(flag, element)
-            end
-        end
-
-        local saveData = {
-            __version = ConfigModule.Version,
-            __elements = {},
-            __custom = ConfigModule.CustomData
-        }
-
-        for name, element in next, ConfigModule.Elements do
-            if ConfigManager.Parser[element.__type] then
-                saveData.__elements[tostring(name)] = ConfigManager.Parser[element.__type].Save(element)
-            end
-        end
-
-        local jsonData = HttpService and HttpService.JSONEncode(saveData) or "{}"
-        if writefile then
-            writefile(ConfigModule.Path, jsonData)
-        end
-
-        return saveData
-    end
-
-    function ConfigModule:Load()
-        if isfile and not isfile(ConfigModule.Path) then
-            return false, "Config file does not exist"
-        end
-
-        local success, loadData = pcall(function()
-            local rf = readfile or function()
-                warn("[ SugarUI.ConfigManager ] The config system doesn't work in this environment.")
-                return nil
-            end
-            return HttpService and HttpService.JSONDecode(rf(ConfigModule.Path)) or {}
-        end)
-
-        if not success then
-            return false, "Failed to parse config file"
-        end
-
-        if not loadData.__version then
-            local migratedData = {
-                __version = ConfigModule.Version,
-                __elements = loadData,
-                __custom = {}
-            }
-            loadData = migratedData
-        end
-
-        if Window and Window.PendingFlags then
-            for flag, element in next, Window.PendingFlags do
-                ConfigModule:Register(flag, element)
-            end
-        end
-
-        for name, data in next, (loadData.__elements or {}) do
-            if ConfigModule.Elements[name] and ConfigManager.Parser[data.__type] then
-                -- use task.spawn if available, else call directly
-                if task and task.spawn then
-                    task.spawn(function()
-                        ConfigManager.Parser[data.__type].Load(ConfigModule.Elements[name], data)
-                    end)
-                else
-                    ConfigManager.Parser[data.__type].Load(ConfigModule.Elements[name], data)
-                end
-            end
-        end
-
-        ConfigModule.CustomData = loadData.__custom or {}
-
-        return ConfigModule.CustomData
-    end
-
-    function ConfigModule:GetData()
-        return {
-            elements = ConfigModule.Elements,
-            custom = ConfigModule.CustomData
-        }
-    end
-
-    ConfigModule:SetAsCurrent()
-    ConfigManager.Configs[configFilename] = ConfigModule
-    return ConfigModule
-end
-
-function ConfigManager:AllConfigs()
-    if not listfiles then return {} end
-
-    local files = {}
-    if not isfolder(ConfigManager.Path) then
-        makefolder(ConfigManager.Path)
-        return files
-    end
-
-    for _, file in next, listfiles(ConfigManager.Path) do
-        local name = file:match("([^\\/]+)%.json$")
-        if name then
-            table.insert(files, name)
-        end
-    end
-
-    return files
-end
-
-function ConfigManager:GetConfig(configName)
-    return ConfigManager.Configs[configName]
-end
-
-Library.ConfigManager = ConfigManager
-
 function Library.GradientImage(E : Frame , Color)
 	local GLImage = Instance.new("ImageLabel")
 	local upd = tick();
@@ -608,13 +259,41 @@ function Library.new(config)
 		Keybind = Enum.KeyCode.LeftControl,
 		Logo = "http://www.roblox.com/asset/?id=18810965406",
 		Size = UDim2.new(0.100000001, 445, 0.100000001, 315),
-		Folder = "SugarConfigs"
+		ConfigFolder = "SugarConfigs"
 	});
 
 	local TweenInfo1 = TweenInfo.new(0.5,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut);
 	local TweenInfo2 = TweenInfo.new(0.3,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut);
 
 	local WindowTable = {};
+	local ScreenGui = Instance.new("ScreenGui")
+	local MainFrame = Instance.new("Frame")
+	local UICorner = Instance.new("UICorner")
+	local MainDropShadow = Instance.new("ImageLabel")
+	local Headers = Instance.new("Frame")
+	local Logo = Instance.new("ImageLabel")
+	local UICorner_2 = Instance.new("UICorner")
+	local Title = Instance.new("TextLabel")
+	local UIGradient = Instance.new("UIGradient")
+	local Description = Instance.new("TextLabel")
+	local UIGradient_2 = Instance.new("UIGradient")
+	local BlockFrame1 = Instance.new("Frame")
+	local UICorner_3 = Instance.new("UICorner")
+	local UIGradient_3 = Instance.new("UIGradient")
+	local BlockFrame3 = Instance.new("Frame")
+	local UICorner_4 = Instance.new("UICorner")
+	local UIGradient_4 = Instance.new("UIGradient")
+	local BlockFrame2 = Instance.new("Frame")
+	local UICorner_5 = Instance.new("UICorner")
+	local UIGradient_5 = Instance.new("UIGradient")
+	local TabButtonFrame = Instance.new("Frame")
+	local UICorner_6 = Instance.new("UICorner")
+	local TabButtons = Instance.new("ScrollingFrame")
+	local UIListLayout = Instance.new("UIListLayout")
+	local MainTabFrame = Instance.new("Frame")
+	local UICorner_7 = Instance.new("UICorner")
+	local InputFrame = Instance.new("Frame")
+
 	WindowTable.Tabs = {};
 	WindowTable.Elements = {};  -- For config system
 	WindowTable.Dropdown = {};
@@ -622,31 +301,11 @@ function Library.new(config)
 	WindowTable.Keybind = config.Keybind;
 	WindowTable.ToggleButton = nil
 	WindowTable.LastPosition = UDim2.new(0.5, 0, 0.05, 0)  -- Для запоминания позиции в свернутом виде
-
-	WindowTable.PendingFlags = {}
-	WindowTable.SetCurrentConfig = function(self, cfg) self.CurrentConfig = cfg end
-
-	-- initialize config manager
-	Library.ConfigManager:Init(WindowTable)
-
-	WindowTable.GetConfig = function(self) return self.CurrentConfig and self.CurrentConfig:GetData() end
-
-	WindowTable.SetConfig = function(self, data)
-		-- naive apply: iterate elements if present
-		if not data then return end
-		local elems = data.elements or {}
-		for name, el in pairs(elems) do
-			if self.PendingFlags and self.PendingFlags[name] and el then
-				local element = self.PendingFlags[name]
-				if element.Set and el.Default ~= nil then
-					pcall(function() element:Set(el.Default) end)
-				end
-			end
-		end
-	end
+	
+	local HttpService = game:GetService("HttpService")
 
 	-- Config folder setup
-	local configFolder = config.Folder
+	local configFolder = config.ConfigFolder
 	if not isfolder(configFolder) then
 		makefolder(configFolder)
 	end
@@ -677,26 +336,6 @@ function Library.new(config)
 			WindowTable:SetConfig(cfg)
 		end
 	end
-
-	local ScreenGui = Instance.new("ScreenGui")
-	ScreenGui.Parent = CoreGui;
-	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global;
-	ScreenGui.ResetOnSpawn = false;
-	ScreenGui.IgnoreGuiInset = true;
-	ScreenGui.Name = "RobloxGameGui";
-
-	local MainFrame = Instance.new("Frame")
-	MainFrame.Name = "MainFrame"
-	MainFrame.Parent = ScreenGui
-	MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-	MainFrame.BackgroundColor3 = Color3.fromRGB(15, 5, 5)  -- Darker red
-	MainFrame.BackgroundTransparency = 1
-	MainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-	MainFrame.BorderSizePixel = 0
-	MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-	MainFrame.Size = UDim2.fromOffset(config.Size.X.Offset,config.Size.Y.Offset)
-	MainFrame.Active = true;
-	MainFrame.ClipsDescendants = true;
 
 	local ImageButton = Instance.new("ImageButton")
 
@@ -831,6 +470,24 @@ function Library.new(config)
 		end
 	end)
 
+	ScreenGui.Parent = CoreGui;
+	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global;
+	ScreenGui.ResetOnSpawn = false;
+	ScreenGui.IgnoreGuiInset = true;
+	ScreenGui.Name = "RobloxGameGui";
+
+	MainFrame.Name = "MainFrame"
+	MainFrame.Parent = ScreenGui
+	MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	MainFrame.BackgroundColor3 = Color3.fromRGB(15, 5, 5)  -- Darker red
+	MainFrame.BackgroundTransparency = 1
+	MainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	MainFrame.BorderSizePixel = 0
+	MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+	MainFrame.Size = UDim2.fromOffset(config.Size.X.Offset,config.Size.Y.Offset)
+	MainFrame.Active = true;
+	MainFrame.ClipsDescendants = true;
+	
 	WindowTable.AddEffect = function(color)
 		Library.GradientImage(MainFrame,color or Color3.fromRGB(100, 0, 0))  -- Darker gradient
 	end
@@ -839,11 +496,9 @@ function Library.new(config)
 
 	WindowTable.ElBlurUI = ElBlurSource.new(MainFrame);
 
-	local UICorner = Instance.new("UICorner")
 	UICorner.CornerRadius = UDim.new(0, 7)
 	UICorner.Parent = MainFrame
 
-	local MainDropShadow = Instance.new("ImageLabel")
 	MainDropShadow.Name = "MainDropShadow"
 	MainDropShadow.Parent = MainFrame
 	MainDropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -861,7 +516,6 @@ function Library.new(config)
 	
 	Twen:Create(MainDropShadow,TweenInfo2,{ImageTransparency = 0.6}):Play();
 
-	local Headers = Instance.new("Frame")
 	Headers.Name = "Headers"
 	Headers.Parent = MainFrame
 	Headers.BackgroundColor3 = Color3.fromRGB(20, 5, 5)  -- Darker red
@@ -874,7 +528,6 @@ function Library.new(config)
 	Headers.ZIndex = 3
 	Twen:Create(Headers,TweenInfo2,{BackgroundTransparency = 0.5}):Play();
 
-	local Logo = Instance.new("ImageLabel")
 	Logo.Name = "Logo"
 	Logo.Parent = Headers
 	Logo.Active = true
@@ -892,12 +545,10 @@ function Library.new(config)
 
 	Twen:Create(Logo,TweenInfo2,{ImageTransparency = 0}):Play();
 
-	local UICorner_2 = Instance.new("UICorner")
 	UICorner_2.CornerRadius = UDim.new(0, 15)
 	UICorner_2.Parent = Headers
 	Twen:Create(UICorner_2,TweenInfo2,{CornerRadius = UDim.new(0, 4)}):Play();
 
-	local Title = Instance.new("TextLabel")
 	Title.Name = "Title"
 	Title.Parent = MainFrame
 	Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -917,13 +568,11 @@ function Library.new(config)
 
 	Twen:Create(Title,TweenInfo2,{TextTransparency = 0}):Play();
 
-	local UIGradient = Instance.new("UIGradient")
 	UIGradient.Color = ColorSequence.new(Color3.fromRGB(150, 0, 0), Color3.fromRGB(255, 255, 255))  -- Darker red gradient
 	UIGradient.Rotation = 90
 	UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.75, 0.27), NumberSequenceKeypoint.new(1.00, 1.00)}
 	UIGradient.Parent = Title
 
-	local Description = Instance.new("TextLabel")
 	Description.Name = "Description"
 	Description.Parent = MainFrame
 	Description.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -942,13 +591,11 @@ function Library.new(config)
 	Description.TextXAlignment = Enum.TextXAlignment.Left
 	Twen:Create(Description,TweenInfo2,{TextTransparency = 0.5}):Play();
 
-	local UIGradient_2 = Instance.new("UIGradient")
 	UIGradient_2.Color = ColorSequence.new(Color3.fromRGB(150, 0, 0), Color3.fromRGB(255, 255, 255))  -- Darker red gradient
 	UIGradient_2.Rotation = 90
 	UIGradient_2.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.75, 0.27), NumberSequenceKeypoint.new(1.00, 1.00)}
 	UIGradient_2.Parent = Description
 
-	local BlockFrame1 = Instance.new("Frame")
 	BlockFrame1.Name = "BlockFrame1"
 	BlockFrame1.Parent = MainFrame
 	BlockFrame1.AnchorPoint = Vector2.new(0, 0.5)
@@ -961,16 +608,13 @@ function Library.new(config)
 	BlockFrame1.ZIndex = 3
 	Twen:Create(BlockFrame1,TweenInfo2,{BackgroundTransparency = 0.8}):Play();
 
-	local UICorner_3 = Instance.new("UICorner")
 	UICorner_3.CornerRadius = UDim.new(0.5, 0)
 	UICorner_3.Parent = BlockFrame1
 
-	local UIGradient_3 = Instance.new("UIGradient")
 	UIGradient_3.Rotation = 90
 	UIGradient_3.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 1.00), NumberSequenceKeypoint.new(0.05, 0.00), NumberSequenceKeypoint.new(0.96, 0.00), NumberSequenceKeypoint.new(1.00, 1.00)}
 	UIGradient_3.Parent = BlockFrame1
 
-	local BlockFrame3 = Instance.new("Frame")
 	BlockFrame3.Name = "BlockFrame3"
 	BlockFrame3.Parent = MainFrame
 	BlockFrame3.AnchorPoint = Vector2.new(0, 0.5)
@@ -983,15 +627,12 @@ function Library.new(config)
 	BlockFrame3.ZIndex = 3
 	Twen:Create(BlockFrame3,TweenInfo2,{BackgroundTransparency = 0.8}):Play();
 
-	local UICorner_4 = Instance.new("UICorner")
 	UICorner_4.CornerRadius = UDim.new(0.5, 0)
 	UICorner_4.Parent = BlockFrame3
 
-	local UIGradient_4 = Instance.new("UIGradient")
 	UIGradient_4.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.98, 0.00), NumberSequenceKeypoint.new(1.00, 1.00)}
 	UIGradient_4.Parent = BlockFrame3
 
-	local BlockFrame2 = Instance.new("Frame")
 	BlockFrame2.Name = "BlockFrame2"
 	BlockFrame2.Parent = MainFrame
 	BlockFrame2.AnchorPoint = Vector2.new(0, 0.5)
@@ -1004,16 +645,13 @@ function Library.new(config)
 	BlockFrame2.ZIndex = 3
 	Twen:Create(BlockFrame2,TweenInfo2,{BackgroundTransparency = 0.8}):Play();
 
-	local UICorner_5 = Instance.new("UICorner")
 	UICorner_5.CornerRadius = UDim.new(0.5, 0)
 	UICorner_5.Parent = BlockFrame2
 
-	local UIGradient_5 = Instance.new("UIGradient")
 	UIGradient_5.Rotation = -180
 	UIGradient_5.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.98, 0.00), NumberSequenceKeypoint.new(1.00, 1.00)}
 	UIGradient_5.Parent = BlockFrame2
 
-	local TabButtonFrame = Instance.new("Frame")
 	TabButtonFrame.Name = "TabButtonFrame"
 	TabButtonFrame.Parent = MainFrame
 	TabButtonFrame.AnchorPoint = Vector2.new(0.5, 0)
@@ -1026,11 +664,9 @@ function Library.new(config)
 	TabButtonFrame.Size = UDim2.new(0.300000012, 0, 0.774999976, 0)
 	Twen:Create(TabButtonFrame,TweenInfo2,{BackgroundTransparency = 0.5}):Play();
 
-	local UICorner_6 = Instance.new("UICorner")
 	UICorner_6.CornerRadius = UDim.new(0, 3)
 	UICorner_6.Parent = TabButtonFrame
 
-	local TabButtons = Instance.new("ScrollingFrame")
 	TabButtons.Name = "TabButtons"
 	TabButtons.Parent = TabButtonFrame
 	TabButtons.Active = true
@@ -1043,7 +679,6 @@ function Library.new(config)
 	TabButtons.Position = UDim2.new(0.5, 0, 0.5, 0)
 	TabButtons.Size = UDim2.new(0.970000029, 0, 0.970000029, 0)
 	TabButtons.ScrollBarThickness = 0
-	local UIListLayout = Instance.new("UIListLayout")
 	UIListLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
 		TabButtons.CanvasSize = UDim2.fromOffset(0,UIListLayout.AbsoluteContentSize.Y)
 	end)
@@ -1052,7 +687,6 @@ function Library.new(config)
 	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 	UIListLayout.Padding = UDim.new(0, 3)
 
-	local MainTabFrame = Instance.new("Frame")
 	MainTabFrame.Name = "MainTabFrame"
 	MainTabFrame.Parent = MainFrame
 	MainTabFrame.AnchorPoint = Vector2.new(0.5, 0)
@@ -1065,11 +699,9 @@ function Library.new(config)
 	MainTabFrame.Size = UDim2.new(0.670000017, 0, 0.860000014, 0)
 	Twen:Create(MainTabFrame,TweenInfo2,{BackgroundTransparency = 0.5}):Play();
 
-	local UICorner_7 = Instance.new("UICorner")
 	UICorner_7.CornerRadius = UDim.new(0, 3)
 	UICorner_7.Parent = MainTabFrame
 
-	local InputFrame = Instance.new("Frame")
 	InputFrame.Name = "InputFrame"
 	InputFrame.Parent = MainFrame
 	InputFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -1465,6 +1097,24 @@ function Library.new(config)
 		return all
 	end
 
+	function WindowTable:GetConfig()
+		local cfg = {}
+		for _, el in ipairs(self:GetAllElements()) do
+			if el.Name then
+				cfg[el.Name] = el.Get()
+			end
+		end
+		return cfg
+	end
+
+	function WindowTable:SetConfig(cfg)
+		for _, el in ipairs(self:GetAllElements()) do
+			if el.Name and cfg[el.Name] ~= nil then
+				el.Set(cfg[el.Name])
+			end
+		end
+	end
+
 	function WindowTable:NewTab(cfg)
 		cfg = Config(cfg,{
 			Title = "Example",
@@ -1518,8 +1168,7 @@ function Library.new(config)
 		Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 		Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 		Icon.ZIndex = 6
-		local ic = Library.GetIcon(cfg.Icon)
-		Icon.Image = ic and ic.Url or cfg.Icon
+		Icon.Image = Icons[cfg.Icon] or cfg.Icon
 		Icon.ImageTransparency = 1
 		Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
@@ -1790,8 +1439,7 @@ function Library.new(config)
 			Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 			Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 			Icon.ZIndex = 6
-			local ic = Library.GetIcon(c_o_n_f_i_g.Icon)
-			Icon.Image = ic and ic.Url or c_o_n_f_i_g.Icon
+			Icon.Image = Icons[c_o_n_f_i_g.Icon] or c_o_n_f_i_g.Icon; 
 			Icon.ImageTransparency = 1
 			Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
@@ -1873,8 +1521,6 @@ function Library.new(config)
 					Default = false,
 					Callback = function() end;
 				});
-				toggle.__type = "Toggle"
-				WindowTable:RegisterFlag(toggle.Name, toggle)
 
 				local FunctionToggle = Instance.new("Frame")
 				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
@@ -2013,8 +1659,6 @@ function Library.new(config)
 
 				local el = {
 					Name = toggle.Name,
-					Default = toggle.Default,
-					__type = "Toggle",
 					Get = function() return toggle.Default end,
 					Set = function(v) toggle.Default = v; OnChange(v) end,
 					Visible = function(newindx)
@@ -2219,9 +1863,6 @@ function Library.new(config)
 					Default = Enum.KeyCode.E,
 
 				});
-				ctfx.__type = "Keybind"
-				ctfx.Value = ctfx.Default
-				WindowTable:RegisterFlag(ctfx.Name, ctfx)
 
 				local BindEvent = Instance.new('BindableEvent',Section);
 				local FunctionKeybind = Instance.new("Frame")
@@ -2375,8 +2016,6 @@ function Library.new(config)
 
 				local el = {
 					Name = ctfx.Name,
-					Value = ctfx.Default,
-					__type = "Keybind",
 					Get = function() return ctfx.Default end,
 					Set = function(v) ctfx.Default = v; UpdateUI(v); ctfx.Callback(v) end,
 					Visible = function(newindx)
@@ -2400,9 +2039,6 @@ function Library.new(config)
 
 					end,
 				});
-				slider.__type = "Slider"
-				slider.Value = slider.Default
-				WindowTable:RegisterFlag(slider.Name, slider)
 
 				local FunctionSlider = Instance.new("Frame")
 				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
@@ -2556,8 +2192,6 @@ function Library.new(config)
 
 				local el = {
 					Name = slider.Name,
-					Value = slider.Default,
-					__type = "Slider",
 					Get = function() return math.round(((TFrame.Size.X.Scale * slider.Max) - slider.Min) / (slider.Max - slider.Min) * (slider.Max - slider.Min) + slider.Min) end,
 					Set = function(v) local scale = (v - slider.Min) / (slider.Max - slider.Min); TFrame.Size = UDim2.new(scale, 0, 1, 0); ValueText.Text = tostring(v)..'/'..tostring(slider.Max); slider.Callback(v) end,
 					Visible = function(newindx)
@@ -2580,9 +2214,6 @@ function Library.new(config)
 
 					end,
 				});
-				drop.__type = "Dropdown"
-				drop.Value = drop.Default
-				WindowTable:RegisterFlag(drop.Name, drop)
 
 				local FunctionDropdown = Instance.new("Frame")
 				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
@@ -2722,9 +2353,6 @@ function Library.new(config)
 
 				local el = {
 					Name = drop.Name,
-					Value = drop.Default,
-					__type = "Dropdown",
-					Select = Updater,
 					Get = function() return drop.Default end,
 					Set = function(v) Updater(v) end,
 					Visible = function(newindx)
@@ -2767,9 +2395,6 @@ function Library.new(config)
 
 					end,
 				})
-				conf.__type = "Input"
-				conf.Value = conf.Default
-				WindowTable:RegisterFlag(conf.Name, conf)
 
 				local FunctionTextbox = Instance.new("Frame")
 				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
@@ -2912,8 +2537,6 @@ function Library.new(config)
 
 				local el = {
 					Name = conf.Name,
-					Value = conf.Default,
-					__type = "Input",
 					Get = function() return TextBox.Text end,
 					Set = function(v) TextBox.Text = v end,
 					Visible = function(newindx)
@@ -3403,6 +3026,143 @@ Library.NewAuth = function(conf)
 	}
 end;
 
+Library.Notification = function()
+	local Notification = Instance.new("ScreenGui")
+	local Frame = Instance.new("Frame")
+	local UIListLayout = Instance.new("UIListLayout")
+
+	Notification.Name = "Notification"
+	Notification.Parent = CoreGui
+	Notification.ResetOnSpawn = false
+	Notification.ZIndexBehavior = Enum.ZIndexBehavior.Global;
+	Notification.Name = game:GetService('HttpService'):GenerateGUID(false)
+	Notification.IgnoreGuiInset = true
+
+	Frame.Parent = Notification
+	Frame.AnchorPoint = Vector2.new(1, 1)
+	Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	Frame.BackgroundTransparency = 1.000
+	Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Frame.BorderSizePixel = 0
+	Frame.Position = UDim2.new(0.98, 0, 0.98, 0)
+	Frame.Size = UDim2.new(0.3, 0, 0.5, 0)
+
+	UIListLayout.Parent = Frame
+	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+	UIListLayout.Padding = UDim.new(0,5);
+
+	return {
+		new = function(ctfx)
+			ctfx = Config(ctfx,{
+				Title = "Notification",
+				Description = "Description",
+				Duration = 5,
+				Icon = "rbxassetid://8997385628"
+			})
+			local css_style = TweenInfo.new(0.5,Enum.EasingStyle.Quint,Enum.EasingDirection.Out);  -- Smoother animation
+			local Notifiy = Instance.new("Frame")
+			local UICorner = Instance.new("UICorner")
+			local icon = Instance.new("ImageLabel")
+			local UICorner_2 = Instance.new("UICorner")
+			local TextLabel = Instance.new("TextLabel")
+			local TextLabel_2 = Instance.new("TextLabel")
+			local DropShadow = Instance.new('ImageLabel')
+
+			DropShadow.Name = "DropShadow"
+			DropShadow.Parent = Notifiy
+			DropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+			DropShadow.BackgroundTransparency = 1.000
+			DropShadow.BorderSizePixel = 0
+			DropShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+			DropShadow.Size = UDim2.new(1, 37, 1, 37)
+			DropShadow.Image = "rbxassetid://6015897843"
+			DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+			DropShadow.ImageTransparency = 1
+			DropShadow.ScaleType = Enum.ScaleType.Slice
+			DropShadow.Rotation = 0.001
+			DropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
+			Twen:Create(DropShadow,css_style,{
+				ImageTransparency = 0.600
+			}):Play()
+
+			Notifiy.Name = "Notifiy"
+			Notifiy.Parent = Frame
+			Notifiy.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+			Notifiy.BackgroundTransparency = 1
+			Notifiy.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			Notifiy.BorderSizePixel = 0
+			Notifiy.ClipsDescendants = true
+			Notifiy.Size = UDim2.new(1,0,0.1,0)
+			Notifiy.Position = UDim2.new(1,0,1,0)
+			Twen:Create(Notifiy,css_style,{
+				BackgroundTransparency = 0.350,
+				Position = UDim2.new(0,0,1,0)
+			}):Play()
+
+			UICorner.CornerRadius = UDim.new(0,4)
+			UICorner.Parent = Notifiy
+
+			icon.Name = "icon"
+			icon.Parent = Notifiy
+			icon.AnchorPoint = Vector2.new(0, 0.5)
+			icon.BackgroundTransparency = 1.000
+			icon.Position = UDim2.new(0.05, 0, 0.5, 0)
+			icon.Size = UDim2.new(0,30,0,30)
+			icon.Image = Icons[ctfx.Icon] or ctfx.Icon
+			icon.ImageTransparency = 1;
+			Twen:Create(icon,css_style,{
+				ImageTransparency = 0
+			}):Play()
+
+			UICorner_2.CornerRadius = UDim.new(0,4)
+			UICorner_2.Parent = icon
+
+			TextLabel.Parent = Notifiy
+			TextLabel.BackgroundTransparency = 1.000
+			TextLabel.Position = UDim2.new(0.2, 0, 0.1, 0)
+			TextLabel.Size = UDim2.new(0.8, 0, 0.3, 0)
+			TextLabel.Font = Enum.Font.GothamBold
+			TextLabel.Text = ctfx.Title
+			TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+			TextLabel.TextScaled = true
+			TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+			TextLabel.TextTransparency = 1
+			Twen:Create(TextLabel,css_style,{
+				TextTransparency = 0
+			}):Play()
+
+			TextLabel_2.Parent = Notifiy
+			TextLabel_2.BackgroundTransparency = 1.000
+			TextLabel_2.Position = UDim2.new(0.2, 0, 0.4, 0)
+			TextLabel_2.Size = UDim2.new(0.8, 0, 0.5, 0)
+			TextLabel_2.Font = Enum.Font.GothamBold
+			TextLabel_2.Text = ctfx.Description
+			TextLabel_2.TextColor3 = Color3.fromRGB(200, 200, 200)
+			TextLabel_2.TextSize = 12.000
+			TextLabel_2.TextWrapped = true
+			TextLabel_2.TextXAlignment = Enum.TextXAlignment.Left
+			TextLabel_2.TextYAlignment = Enum.TextYAlignment.Top
+			TextLabel_2.TextTransparency = 1
+			Twen:Create(TextLabel_2,css_style,{
+				TextTransparency = 0
+			}):Play()
+
+			task.delay(ctfx.Duration, function()
+				Twen:Create(Notifiy,css_style,{
+					Position = UDim2.new(1,0,1,0),
+					BackgroundTransparency = 1
+				}):Play()
+				Twen:Create(icon,css_style,{ImageTransparency=1}):Play()
+				Twen:Create(TextLabel,css_style,{TextTransparency=1}):Play()
+				Twen:Create(TextLabel_2,css_style,{TextTransparency=1}):Play()
+				Twen:Create(DropShadow,css_style,{ImageTransparency=1}):Play()
+				task.delay(0.6, Notifiy.Destroy, Notifiy)
+			end)
+		end,
+	}
+end;
+
 function Library:Console()
 	local Terminal = Instance.new("ScreenGui")
 	local MFrame = Instance.new("Frame")
@@ -3832,3 +3592,426 @@ end;
 print(' [ DONE <3 ]: Sugar UI LOADED!! YOMKA MADE IT')
 
 return table.freeze(Library);
+
+Сап.
+
+1 - мне нужно чтобы ты, исправил уведомления, исправил логику Люцид Иконок, и исправил логику конфигов, вот тебе скрипт для этого, там вроде все адаптировано - 
+
+-- sugar_ui_modified.lua
+-- Modified Sugar UI core pieces: Notification sizing/position, ConfigManager adapted from WindUI, and Lucide icons integration.
+-- Author: adapted for user (Yomka).
+
+local HttpService = game:GetService and game:GetService("HttpService") or { JSONEncode = function(t) return "[]" end, JSONDecode = function(s) return {} end }
+
+local Sugar = {}
+Sugar.__VERSION = "SugarUI-Modified-1.0"
+
+-- ---------- Icons (Lucide) ----------
+local FetchIcons, Icons = pcall(function()
+    return (loadstring and loadstring(game:HttpGet("https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua")) or function() end)()
+end)
+
+local function IsValidCustomIcon(Icon)
+    if typeof then -- Roblox environment
+        if typeof(Icon) ~= "string" then return false end
+    else
+        if type(Icon) ~= "string" then return false end
+    end
+    return Icon:match("rbxasset") or Icon:match("roblox%.com/asset/%?id=") or Icon:match("rbxthumb://type=") or Icon:match("^https?://")
+end
+
+local function GetIcon(IconName)
+    if not FetchIcons then return nil end
+    local ok, asset = pcall(function() return Icons.GetAsset(Icons, IconName) end)
+    if not ok or not asset then return nil end
+    return asset
+end
+
+local function GetCustomIcon(IconName)
+    if IsValidCustomIcon(IconName) then
+        return {
+            Url = IconName,
+            ImageRectOffset = Vector2.new(0,0),
+            ImageRectSize = Vector2.new(0,0),
+            Custom = true
+        }
+    else
+        return GetIcon(IconName)
+    end
+end
+
+Sugar.GetIcon = GetCustomIcon
+
+-- ---------- Notification system ----------
+local Notification = {}
+Notification.__index = Notification
+
+function Notification.new(opts)
+    opts = opts or {}
+    -- defaults: make notifications taller and slightly narrower width, anchor bottom-right
+    local data = {
+        Title = opts.Title or "Title",
+        Description = opts.Description or "",
+        Duration = opts.Duration or 5,
+        Icon = opts.Icon or nil,
+        Width = opts.Width or 300,   -- default width slightly shorter than typical
+        Height = opts.Height or 90,  -- increased height
+        Position = opts.Position or UDim2.new(1, -20, 1, -20), -- bottom-right with margin (requires AnchorPoint (1,1) on the frame)
+        AnchorPoint = opts.AnchorPoint or Vector2.new(1,1)
+    }
+    -- In actual Roblox usage this would create instances. Here return a table for library API.
+    return setmetatable({
+        _data = data,
+        Show = function(self)
+            -- placeholder: in real env create GUI using data.Width/data.Height and position at data.Position with AnchorPoint
+            if type(self._data.Icon) == "string" then
+                -- attempt to resolve icon using Sugar.GetIcon
+                local ic = Sugar.GetIcon(self._data.Icon)
+                if ic then
+                    self._data.IconResolved = ic.Url
+                end
+            end
+            -- no-op else
+        end
+    }, Notification)
+end
+
+Sugar.Notification = setmetatable({}, { __call = function(_,...) return Notification end })
+Sugar.Notification.new = Notification.new
+
+-- ---------- Config Manager (adapted) ----------
+local ConfigManager = {
+    Folder = nil,
+    Path = nil,
+    Configs = {},
+    Parser = {
+        Colorpicker = {
+            Save = function(obj)
+                return {
+                    __type = obj.__type,
+                    value = obj.Default and (obj.Default:ToHex and obj.Default:ToHex()) or tostring(obj.Default),
+                    transparency = obj.Transparency or nil,
+                }
+            end,
+            Load = function(element, data)
+                if element and element.Update then
+                    local color = data.value
+                    if type(color) == "string" and color:match("#") and Color3 and Color3.fromHex then
+                        element:Update(Color3.fromHex(data.value), data.transparency or nil)
+                    else
+                        element:Update(data.value, data.transparency or nil)
+                    end
+                end
+            end
+        },
+        Dropdown = {
+            Save = function(obj)
+                return {
+                    __type = obj.__type,
+                    value = obj.Value,
+                }
+            end,
+            Load = function(element, data)
+                if element and element.Select then
+                    element:Select(data.value)
+                end
+            end
+        },
+        Input = {
+            Save = function(obj)
+                return {
+                    __type = obj.__type,
+                    value = obj.Value,
+                }
+            end,
+            Load = function(element, data)
+                if element and element.Set then
+                    element:Set(data.value)
+                end
+            end
+        },
+        Keybind = {
+            Save = function(obj)
+                return {
+                    __type = obj.__type,
+                    value = tostring(obj.Value), -- save as string like "Enum.KeyCode.Space"
+                }
+            end,
+            Load = function(element, data)
+                if element and element.Set then
+                    local v = data.value
+                    if type(v) == "string" then
+                        local keyName = v:match("Enum%.KeyCode%.(.+)")
+                        if keyName and Enum and Enum.KeyCode then
+                            local enumVal = Enum.KeyCode[keyName]
+                            if enumVal then
+                                element:Set(enumVal)
+                                return
+                            end
+                        end
+                    end
+                    element:Set(data.value)
+                end
+            end
+        },
+        Slider = {
+            Save = function(obj)
+                return {
+                    __type = obj.__type,
+                    value = obj.Value,
+                }
+            end,
+            Load = function(element, data)
+                if element and element.Set then
+                    element:Set(tonumber(data.value))
+                end
+            end
+        },
+        Toggle = {
+            Save = function(obj)
+                return {
+                    __type = obj.__type,
+                    value = obj.Value,
+                }
+            end,
+            Load = function(element, data)
+                if element and element.Set then
+                    element:Set(data.value)
+                end
+            end
+        },
+    }
+}
+
+function ConfigManager:Init(WindowTable)
+    if not WindowTable then
+        warn("[ SugarUI.ConfigManager ] No window table provided.")
+        return false
+    end
+
+    Window = WindowTable
+    ConfigManager.Folder = Window.Folder or "Sugar"
+    ConfigManager.Path = "SugarUI/" .. tostring(ConfigManager.Folder) .. "/config/"
+
+    if not isfolder then
+        -- fallback: if environment lacks filesystem, just return manager for in-memory use
+        warn("[ SugarUI.ConfigManager ] Filesystem API not detected. Configs will only exist in memory.")
+        return ConfigManager
+    end
+
+    if not isfolder("SugarUI/" .. ConfigManager.Folder) then
+        makefolder("SugarUI/" .. ConfigManager.Folder)
+    end
+    if not isfolder(ConfigManager.Path) then
+        makefolder(ConfigManager.Path)
+    end
+
+    local files = ConfigManager:AllConfigs()
+
+    for _, f in next, files do
+        local full = ConfigManager.Path .. f .. ".json"
+        if isfile and readfile and isfile(full) then
+            local ok, content = pcall(function() return readfile(full) end)
+            if ok and content then
+                ConfigManager.Configs[f] = content
+            end
+        end
+    end
+
+    return ConfigManager
+end
+
+function ConfigManager:CreateConfig(configFilename)
+    local ConfigModule = {
+        Path = ConfigManager.Path .. configFilename .. ".json",
+        Elements = {},
+        CustomData = {},
+        Version = 1.1
+    }
+
+    if not configFilename then
+        return false, "No config file is selected"
+    end
+
+    function ConfigModule:SetAsCurrent()
+        if Window and Window.SetCurrentConfig then
+            Window:SetCurrentConfig(ConfigModule)
+        end
+    end
+
+    function ConfigModule:Register(Name, Element)
+        ConfigModule.Elements[Name] = Element
+    end
+
+    function ConfigModule:Set(key, value)
+        ConfigModule.CustomData[key] = value
+    end
+
+    function ConfigModule:Get(key)
+        return ConfigModule.CustomData[key]
+    end
+
+    function ConfigModule:Save()
+        if Window and Window.PendingFlags then
+            for flag, element in next, Window.PendingFlags do
+                ConfigModule:Register(flag, element)
+            end
+        end
+
+        local saveData = {
+            __version = ConfigModule.Version,
+            __elements = {},
+            __custom = ConfigModule.CustomData
+        }
+
+        for name, element in next, ConfigModule.Elements do
+            if ConfigManager.Parser[element.__type] then
+                saveData.__elements[tostring(name)] = ConfigManager.Parser[element.__type].Save(element)
+            end
+        end
+
+        local jsonData = HttpService and HttpService.JSONEncode(saveData) or "{}"
+        if writefile then
+            writefile(ConfigModule.Path, jsonData)
+        end
+
+        return saveData
+    end
+
+    function ConfigModule:Load()
+        if isfile and not isfile(ConfigModule.Path) then
+            return false, "Config file does not exist"
+        end
+
+        local success, loadData = pcall(function()
+            local rf = readfile or function()
+                warn("[ SugarUI.ConfigManager ] The config system doesn't work in this environment.")
+                return nil
+            end
+            return HttpService and HttpService.JSONDecode(rf(ConfigModule.Path)) or {}
+        end)
+
+        if not success then
+            return false, "Failed to parse config file"
+        end
+
+        if not loadData.__version then
+            local migratedData = {
+                __version = ConfigModule.Version,
+                __elements = loadData,
+                __custom = {}
+            }
+            loadData = migratedData
+        end
+
+        if Window and Window.PendingFlags then
+            for flag, element in next, Window.PendingFlags do
+                ConfigModule:Register(flag, element)
+            end
+        end
+
+        for name, data in next, (loadData.__elements or {}) do
+            if ConfigModule.Elements[name] and ConfigManager.Parser[data.__type] then
+                -- use task.spawn if available, else call directly
+                if task and task.spawn then
+                    task.spawn(function()
+                        ConfigManager.Parser[data.__type].Load(ConfigModule.Elements[name], data)
+                    end)
+                else
+                    ConfigManager.Parser[data.__type].Load(ConfigModule.Elements[name], data)
+                end
+            end
+        end
+
+        ConfigModule.CustomData = loadData.__custom or {}
+
+        return ConfigModule.CustomData
+    end
+
+    function ConfigModule:GetData()
+        return {
+            elements = ConfigModule.Elements,
+            custom = ConfigModule.CustomData
+        }
+    end
+
+    ConfigModule:SetAsCurrent()
+    ConfigManager.Configs[configFilename] = ConfigModule
+    return ConfigModule
+end
+
+function ConfigManager:AllConfigs()
+    if not listfiles then return {} end
+
+    local files = {}
+    if not isfolder(ConfigManager.Path) then
+        makefolder(ConfigManager.Path)
+        return files
+    end
+
+    for _, file in next, listfiles(ConfigManager.Path) do
+        local name = file:match("([^\\/]+)%.json$")
+        if name then
+            table.insert(files, name)
+        end
+    end
+
+    return files
+end
+
+function ConfigManager:GetConfig(configName)
+    return ConfigManager.Configs[configName]
+end
+
+Sugar.ConfigManager = ConfigManager
+
+-- ---------- Minimal Window API helpers (for example integration) ----------
+function Sugar.new(opts)
+    opts = opts or {}
+    local Window = {
+        Title = opts.Title or "SUGAR",
+        Description = opts.Description or "",
+        Keybind = opts.Keybind or Enum and Enum.KeyCode and Enum.KeyCode.LeftControl or nil,
+        Logo = opts.Logo,
+        Folder = opts.Folder or "Sugar", -- configurable folder name for configs
+        PendingFlags = {},
+        CurrentConfig = nil,
+        SetCurrentConfig = function(self, cfg) self.CurrentConfig = cfg end,
+        GetConfig = function(self) return self.CurrentConfig and self.CurrentConfig:GetData() end,
+        SetConfig = function(self, data)
+            -- naive apply: iterate elements if present
+            if not data then return end
+            local elems = data.elements or {}
+            for name, el in pairs(elems) do
+                if self.PendingFlags and self.PendingFlags[name] and el then
+                    local element = self.PendingFlags[name]
+                    if element.Set and el.Default ~= nil then
+                        pcall(function() element:Set(el.Default) end)
+                    end
+                end
+            end
+        end,
+        NewTab = function(self, tabopts)
+            local tab = { Title = tabopts.Title, Description = tabopts.Description, Icon = tabopts.Icon }
+            -- resolve icon early
+            tab.IconResolved = Sugar.GetIcon(tab.Icon)
+            return tab
+        end,
+        NewSection = function(self, sectopts)
+            local sec = { Title = sectopts.Title, Icon = sectopts.Icon, Position = sectopts.Position }
+            sec.IconResolved = Sugar.GetIcon(sec.Icon)
+            return sec
+        end,
+        -- helpers to register UI elements to config system
+        RegisterFlag = function(self, name, element)
+            self.PendingFlags[name] = element
+        end
+    }
+
+    -- initialize config manager
+    Sugar.ConfigManager:Init(Window)
+
+    return Window
+end
+
+return Sugar
