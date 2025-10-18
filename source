@@ -1,4 +1,4 @@
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua 66 -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua 77 -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -371,8 +371,6 @@ function Library.new(config)
 	WindowTable.SaveConfig = function(name)
 		local cfg = WindowTable:GetConfig()
 		writefile(configFolder .. "/" .. name .. ".json", HttpService:JSONEncode(cfg))
-		local notify = Library.Notification()
-		notify.new({Title="Config Saved", Description=name, Duration=3})
 	end
 
 	WindowTable.LoadConfig = function(name)
@@ -380,16 +378,12 @@ function Library.new(config)
 			local data = readfile(configFolder .. "/" .. name .. ".json")
 			local cfg = HttpService:JSONDecode(data)
 			WindowTable:SetConfig(cfg)
-			local notify = Library.Notification()
-			notify.new({Title="Config Loaded", Description=name, Duration=3})
 		end
 	end
 
 	WindowTable.DeleteConfig = function(name)
 		if isfile(configFolder .. "/" .. name .. ".json") then
 			delfile(configFolder .. "/" .. name .. ".json")
-			local notify = Library.Notification()
-			notify.new({Title="Config Deleted", Description=name, Duration=3})
 		end
 	end
 
@@ -2414,8 +2408,6 @@ function Library.new(config)
 						if newData then drop.Data = newData end
 						WindowTable.Dropdown:Close()
 						WindowTable.Dropdown:Open(drop.Data, drop.Default, Updater)
-						local notify = Library.Notification()
-						notify.new({Title="List Refreshed", Description="", Duration=3})
 					end,
 					Open = function(value)
 						WindowTable.Dropdown:Setup(MFrame)
