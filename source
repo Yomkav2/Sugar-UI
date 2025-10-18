@@ -1,6 +1,6 @@
 -- source.lua (Updated Library Source)
 
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKA3333 -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKA11111 -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -342,7 +342,7 @@ function Library.new(config)
 	local ImageButton = Instance.new("ImageButton")
 
 	ImageButton.Parent = MainFrame
-	ImageButton.AnchorPoint = Vector2.new(1, 0)
+	ImageButton.AnchorPoint = Vector2.new(0.5, 0.5)
 	ImageButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	ImageButton.BackgroundTransparency = 1.000
 	ImageButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
@@ -1170,7 +1170,7 @@ function Library.new(config)
 		Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 		Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 		Icon.ZIndex = 6
-		Icon.Image = Library.Icons[cfg.Icon] or cfg.Icon
+		Icon.Image = Icons[cfg.Icon] or cfg.Icon
 		Icon.ImageTransparency = 1
 		Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
@@ -2612,7 +2612,7 @@ local ok, mod = pcall(function()
 end)
 
 local FetchIcons = ok and type(mod) == "table"
-local Icons = FetchIcons and mod.icons or nil
+local Icons = FetchIcons and mod or nil
 
 -- Устанавливает вручную модуль иконок (если вы хотите подменить или предоставить локальную таблицу).
 -- Ожидается таблица с методом GetAsset(name) -> iconTable или nil.
@@ -2620,7 +2620,7 @@ function Lucide:SetIconModule(moduleTable)
     if type(moduleTable) ~= "table" then
         error("SetIconModule expects a table")
     end
-    Icons = moduleTable.icons
+    Icons = moduleTable
     FetchIcons = true
 end
 
@@ -2649,7 +2649,15 @@ function Lucide:GetIcon(name)
     if not FetchIcons or not Icons then
         return nil
     end
-    return Icons[name]
+    if type(Icons.GetAsset) ~= "function" then
+        return nil
+    end
+
+    local success, icon = pcall(Icons.GetAsset, Icons, name)
+    if not success then
+        return nil
+    end
+    return icon
 end
 
 -- Возвращает структуру иконки для произвольной строки.
@@ -3039,7 +3047,7 @@ Library.Notification = function()
 	Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	Frame.BorderSizePixel = 0
 	Frame.Position = UDim2.new(0.98, 0, 0.98, 0)
-	Frame.Size = UDim2.new(0.25, 0, 0.6, 0)
+	Frame.Size = UDim2.new(0.25, 0, 0.5, 0)
 
 	UIListLayout.Parent = Frame
 	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
