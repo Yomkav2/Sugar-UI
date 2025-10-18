@@ -1,6 +1,4 @@
--- source.lua (Updated Library Source)
-
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua 4 -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua 55555 -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -395,9 +393,6 @@ function Library.new(config)
 		end
 	end
 
-	local isMobile = game:GetService("UserInputService").TouchEnabled
-	local buttonSize = isMobile and UDim2.new(0.1, 0, 0.1, 0) or UDim2.new(0.0850000009, 0, 0.0850000009, 0)
-
 	local ImageButton = Instance.new("ImageButton")
 
 	ImageButton.Parent = MainFrame
@@ -407,7 +402,7 @@ function Library.new(config)
 	ImageButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	ImageButton.BorderSizePixel = 0
 	ImageButton.Position = UDim2.new(0.992500007, 0, 0.00999999978, 0)
-	ImageButton.Size = buttonSize
+	ImageButton.Size = UDim2.new(0.0850000009, 0, 0.0850000009, 0)
 	ImageButton.SizeConstraint = Enum.SizeConstraint.RelativeYY
 	ImageButton.ZIndex = 50
 	ImageButton.Image = "rbxassetid://10002398990"
@@ -426,6 +421,11 @@ function Library.new(config)
 	HomeIcon.ScaleType = Enum.ScaleType.Fit
 	HomeIcon.ImageTransparency = 1;
 	HomeIcon.BackgroundTransparency = 1;
+	
+	local isMobile = Input.TouchEnabled
+	if isMobile then
+		ImageButton.Size = UDim2.new(0.12, 0, 0.12, 0)
+	end
 	
 	local function Update()
 		if WindowTable.WindowToggle then
@@ -449,7 +449,7 @@ function Library.new(config)
 
 			Twen:Create(ImageButton,TweenInfo.new(0.4,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut),{
 				Position = UDim2.new(0.992500007, 0, 0.00999999978, 0),
-				Size = buttonSize,
+				Size = UDim2.new(0.0850000009, 0, 0.0850000009, 0),
 				ImageTransparency = 0.5,
 				AnchorPoint = Vector2.new(1, 0)
 			}):Play();
@@ -484,7 +484,7 @@ function Library.new(config)
 			
 			Twen:Create(ImageButton,TweenInfo1,{
 				Position = UDim2.new(0.5, 0, 0.5, 0),
-				Size = buttonSize,
+				Size = UDim2.new(1,0,1,0),
 				ImageTransparency = 1,
 				AnchorPoint = Vector2.new(0.5,0.5)
 			}):Play();
@@ -3083,7 +3083,7 @@ end;
 
 Library.Notification = function()
 	local Notification = Instance.new("ScreenGui")
-	local MFrame = Instance.new("Frame")
+	local Frame = Instance.new("Frame")
 	local UIListLayout = Instance.new("UIListLayout")
 
 	Notification.Name = "Notification"
@@ -3093,16 +3093,16 @@ Library.Notification = function()
 	Notification.Name = game:GetService('HttpService'):GenerateGUID(false)
 	Notification.IgnoreGuiInset = true
 
-	MFrame.Parent = Notification
-	MFrame.AnchorPoint = Vector2.new(1, 1)
-	MFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	MFrame.BackgroundTransparency = 1.000
-	MFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-	MFrame.BorderSizePixel = 0
-	MFrame.Position = UDim2.new(0.98, 0, 0.98, 0)
-	MFrame.Size = UDim2.new(0.25, 0, 0.5, 0)  -- Slightly smaller width
+	Frame.Parent = Notification
+	Frame.AnchorPoint = Vector2.new(1, 1)
+	Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	Frame.BackgroundTransparency = 1.000
+	Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Frame.BorderSizePixel = 0
+	Frame.Position = UDim2.new(0.98, 0, 0.98, 0)
+	Frame.Size = UDim2.new(0.25, 0, 0.5, 0)  -- Slightly smaller width
 
-	UIListLayout.Parent = MFrame
+	UIListLayout.Parent = Frame
 	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 	UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
 	UIListLayout.Padding = UDim.new(0,5);
@@ -3115,7 +3115,6 @@ Library.Notification = function()
 				Duration = 5,
 				Icon = "rbxassetid://8997385628"
 			})
-			local isMobile = game:GetService("UserInputService").TouchEnabled
 			local css_style = TweenInfo.new(0.5,Enum.EasingStyle.Quint,Enum.EasingDirection.Out);  -- Smoother animation
 			local Notifiy = Instance.new("Frame")
 			local UICorner = Instance.new("UICorner")
@@ -3124,6 +3123,10 @@ Library.Notification = function()
 			local TextLabel = Instance.new("TextLabel")
 			local TextLabel_2 = Instance.new("TextLabel")
 			local DropShadow = Instance.new('ImageLabel')
+
+			local isMobile = Input.TouchEnabled
+			local notifySize = isMobile and UDim2.new(0.8,0,0.2,0) or UDim2.new(1,0,0.15,0)
+			local iconSize = isMobile and UDim2.new(0,30,0,30) or UDim2.new(0,60,0,60)
 
 			DropShadow.Name = "DropShadow"
 			DropShadow.Parent = Notifiy
@@ -3143,13 +3146,13 @@ Library.Notification = function()
 			}):Play()
 
 			Notifiy.Name = "Notifiy"
-			Notifiy.Parent = MFrame
+			Notifiy.Parent = Frame
 			Notifiy.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 			Notifiy.BackgroundTransparency = 1
 			Notifiy.BorderColor3 = Color3.fromRGB(0, 0, 0)
 			Notifiy.BorderSizePixel = 0
 			Notifiy.ClipsDescendants = true
-			Notifiy.Size = isMobile and UDim2.new(0.8,0,0.2,0) or UDim2.new(1,0,0.15,0)  -- Increased height
+			Notifiy.Size = notifySize
 			Notifiy.Position = UDim2.new(1,0,1,0)
 			Twen:Create(Notifiy,css_style,{
 				BackgroundTransparency = 0.350,
@@ -3164,7 +3167,7 @@ Library.Notification = function()
 			icon.AnchorPoint = Vector2.new(0, 0.5)
 			icon.BackgroundTransparency = 1.000
 			icon.Position = UDim2.new(0.05, 0, 0.5, 0)
-			icon.Size = isMobile and UDim2.new(0,30,0,30) or UDim2.new(0,60,0,60)
+			icon.Size = iconSize
 			icon.Image = Icons[ctfx.Icon] or ctfx.Icon
 			icon.ImageTransparency = 1;
 			Twen:Create(icon,css_style,{
