@@ -1,4 +1,6 @@
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKA вввввввввв-
+-- source.lua (Updated Library Source)
+
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKAdwwwwww -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -198,6 +200,51 @@ pcall(function()
 	Library['Icons'] = Module.icons;
 end)
 
+-- Lucide Icons Adaptation
+local FetchIcons, IconsModule = pcall(function()
+    return (loadstring(
+        game:HttpGet("https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua")
+    ) :: () -> { GetAsset: (string) -> { Url: string, Id: number, IconName: string, ImageRectOffset: Vector2, ImageRectSize: Vector2 }? })()
+end)
+
+local function IsValidCustomIcon(Icon: string)
+    return typeof(Icon) == "string"
+        and (Icon:match("rbxasset") or Icon:match("roblox%.com/asset/%?id=") or Icon:match("rbxthumb://type="))
+end
+
+local function GetIcon(IconName: string)
+    if not FetchIcons then
+        return nil
+    end
+
+    local Success, Icon = pcall(IconsModule.GetAsset, IconsModule, IconName)
+    if not Success then
+        return nil
+    end
+    return Icon
+end
+
+local function GetCustomIcon(IconName: string)
+    if not IsValidCustomIcon(IconName) then
+        return GetIcon(IconName)
+    else
+        return {
+            Url = IconName,
+            ImageRectOffset = Vector2.zero,
+            ImageRectSize = Vector2.zero,
+            Custom = true,
+        }
+    end
+end
+
+local function GetIconUrl(IconName: string)
+    local Icon = GetCustomIcon(IconName)
+    if not Icon then
+        return nil
+    end
+    return Icon.Url
+end
+
 function Library.GradientImage(E : Frame , Color)
 	local GLImage = Instance.new("ImageLabel")
 	local upd = tick();
@@ -301,11 +348,12 @@ function Library.new(config)
 	WindowTable.Keybind = config.Keybind;
 	WindowTable.ToggleButton = nil
 	WindowTable.LastPosition = UDim2.new(0.5, 0, 0.05, 0)  -- Для запоминания позиции в свернутом виде
+	WindowTable.ConfigFolder = config.ConfigFolder
 	
 	local HttpService = game:GetService("HttpService")
 
 	-- Config folder setup
-	local configFolder = config.ConfigFolder
+	local configFolder = WindowTable.ConfigFolder
 	if not isfolder(configFolder) then
 		makefolder(configFolder)
 	end
@@ -1168,7 +1216,7 @@ function Library.new(config)
 		Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 		Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 		Icon.ZIndex = 6
-		Icon.Image = Icons[cfg.Icon] or cfg.Icon
+		Icon.Image = GetIconUrl(cfg.Icon) or cfg.Icon
 		Icon.ImageTransparency = 1
 		Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
@@ -1439,7 +1487,7 @@ function Library.new(config)
 			Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 			Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 			Icon.ZIndex = 6
-			Icon.Image = Icons[c_o_n_f_i_g.Icon] or c_o_n_f_i_g.Icon; 
+			Icon.Image = GetIconUrl(c_o_n_f_i_g.Icon) or c_o_n_f_i_g.Icon; 
 			Icon.ImageTransparency = 1
 			Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
@@ -2408,6 +2456,7 @@ function Library.new(config)
 				local FileType = Instance.new("TextLabel")
 				local UIGradient_2 = Instance.new("UIGradient")
 				local TextBox = Instance.new("TextBox")
+				local UICorner_3 = Instance.new("UICorner")
 				local Button = Instance.new("TextButton")
 
 				FunctionTextbox.Name = "FunctionTextbox"
@@ -3045,7 +3094,7 @@ Library.Notification = function()
 	Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	Frame.BorderSizePixel = 0
 	Frame.Position = UDim2.new(0.98, 0, 0.98, 0)
-	Frame.Size = UDim2.new(0.3, 0, 0.5, 0)
+	Frame.Size = UDim2.new(0.25, 0, 0.5, 0)  -- Slightly smaller width
 
 	UIListLayout.Parent = Frame
 	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -3093,7 +3142,7 @@ Library.Notification = function()
 			Notifiy.BorderColor3 = Color3.fromRGB(0, 0, 0)
 			Notifiy.BorderSizePixel = 0
 			Notifiy.ClipsDescendants = true
-			Notifiy.Size = UDim2.new(1,0,0.1,0)
+			Notifiy.Size = UDim2.new(1,0,0.15,0)  -- Increased height
 			Notifiy.Position = UDim2.new(1,0,1,0)
 			Twen:Create(Notifiy,css_style,{
 				BackgroundTransparency = 0.350,
@@ -3549,39 +3598,6 @@ function Library:Console()
 
 					overview:print("[Error]: command not found: \""..tostring(n).."\"");
 				end;
-			end;
-		end;
-	end)
-
-	local dragToggle = nil;
-	local dragSpeed = 0.1;
-	local dragStart = nil;
-	local startPos = nil;
-
-	local function updateInput(input)
-		local delta = input.Position - dragStart;
-		local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
-			startPos.Y.Scale, startPos.Y.Offset + delta.Y);
-		game:GetService('TweenService'):Create(MFrame, TweenInfo.new(dragSpeed), {Position = position}):Play()
-	end;
-
-	MFrame.InputBegan:Connect(function(input)
-		if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then 
-			dragToggle = true
-			dragStart = input.Position
-			startPos = MFrame.Position
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragToggle = false;
-				end;
-			end)
-		end;
-	end)
-
-	Input.InputChanged:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-			if dragToggle then
-				updateInput(input);
 			end;
 		end;
 	end)
