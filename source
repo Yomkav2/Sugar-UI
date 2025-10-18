@@ -1,115 +1,21 @@
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua UPD -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua UPPPPPPPPDDDD -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
 local TextServ = game:GetService('TextService');
 local LocalPlayer = game:GetService('Players').LocalPlayer;
 local CoreGui = (gethui and gethui()) or game:FindFirstChild('CoreGui') or LocalPlayer.PlayerGui;
+local Icons = (function()
+	local p,c = pcall(function()
+		local Http = game:HttpGetAsync('https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua');
+		local Module = loadstring(Http)();
+		return Module.icons;
+	end);
 
--- LucideIcons.lua (вставлен точно как просили)
-local Lucide = {}
+	if p then return c end;
 
--- Попытка загрузить официальный источник иконок (как в оригинале).
--- Если загрузка провалится, Icons останется nil и GetIcon вернёт nil.
-local ok, mod = pcall(function()
-    local url = "https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua"
-    local fn = assert(loadstring(game:HttpGet(url)))
-    return fn()
-end)
-
-local FetchIcons = ok and type(mod) == "table"
-local Icons = FetchIcons and mod or nil
-
--- Устанавливает вручную модуль иконок (если вы хотите подменить или предоставить локальную таблицу).
--- Ожидается таблица с методом GetAsset(name) -> iconTable или nil.
-function Lucide:SetIconModule(moduleTable)
-    if type(moduleTable) ~= "table" then
-        error("SetIconModule expects a table")
-    end
-    Icons = moduleTable
-    FetchIcons = true
-end
-
--- Валидация строки кастомной иконки (rbxasset*, roblox.com/asset/?id=, rbxthumb://type=)
-local function IsValidCustomIcon(icon)
-    if type(icon) ~= "string" then
-        return false
-    end
-    if icon:match("rbxasset") then
-        return true
-    end
-    if icon:match("roblox%.com/asset/%?id=") then
-        return true
-    end
-    if icon:match("rbxthumb://type=") then
-        return true
-    end
-    return false
-end
-
--- Получить иконку по имени через модуль lucide.
--- Возвращает nil если модуль недоступен или нет такой иконки.
--- Ожидаемый формат возвращаемой иконки:
--- { Url = string, Id = number?, IconName = string, ImageRectOffset = Vector2, ImageRectSize = Vector2, ... }
-function Lucide:GetIcon(name)
-    if not FetchIcons or not Icons then
-        return nil
-    end
-    if type(Icons.GetAsset) ~= "function" then
-        return nil
-    end
-
-    local success, icon = pcall(Icons.GetAsset, Icons, name)
-    if not success then
-        return nil
-    end
-    return icon
-end
-
--- Возвращает структуру иконки для произвольной строки.
--- Если строка распознана как прямой URL/asset, возвращает объект с полями Url, ImageRectOffset, ImageRectSize, Custom = true.
--- Если нет — пытается получить иконку по имени через GetIcon.
-function Lucide:GetCustomIcon(iconName)
-    if IsValidCustomIcon(iconName) then
-        return {
-            Url = iconName,
-            ImageRectOffset = Vector2.new(0, 0),
-            ImageRectSize = Vector2.new(0, 0),
-            Custom = true,
-        }
-    else
-        return self:GetIcon(iconName)
-    end
-end
-
--- Утилита: безопасная попытка получить URL (возвращает строку или nil).
-function Lucide:GetIconUrl(name)
-    local icon = self:GetIcon(name)
-    if not icon then
-        return nil
-    end
-    return icon.Url
-end
-
--- Экспорт переменных для отладки/совместимости
-Lucide._FetchIcons = FetchIcons
-Lucide._Icons = Icons
-
--- конец LucideIcons.lua вставки
-
--- Утилита для резолва иконок в строку, которую можно присвоить ImageLabel.Image
-local function ResolveIcon(icon)
-	if not icon then return nil end
-	-- если передали уже URL/asset — вернём прямо
-	if type(icon) == "string" then
-		local custom = Lucide and Lucide:GetCustomIcon(icon)
-		if custom and custom.Url then
-			return custom.Url
-		end
-		return icon
-	end
-	return nil
-end
+	return nil;
+end)() or {};
 
 local ElBlurSource = function()
 	local GuiSystem = {}
@@ -287,8 +193,102 @@ local Library = {};
 Library['.'] = '1';
 Library['FetchIcon'] = "https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua";
 
--- accent: добавим небольшие красные акценты
-local ACCENT = Color3.fromRGB(195,20,30);
+pcall(function()
+	local Module = loadstring(game:HttpGetAsync(Library.FetchIcon))();
+	Library['Icons'] = Module.icons;
+end)
+
+-- LucideIcons.lua
+-- Небольшой самодостаточный модуль для получения и использования Lucide-иконок,
+-- извлечённый и адаптированный из вашего скрипта.
+
+local Lucide = {}
+
+-- Попытка загрузить официальный источник иконок (как в оригинале).
+-- Если загрузка провалится, Icons останется nil и GetIcon вернёт nil.
+local ok, mod = pcall(function()
+    local url = "https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua"
+    local fn = assert(loadstring(game:HttpGet(url)))
+    return fn()
+end)
+
+local FetchIcons = ok and type(mod) == "table"
+local Icons = FetchIcons and mod or nil
+
+-- Устанавливает вручную модуль иконок (если вы хотите подменить или предоставить локальную таблицу).
+-- Ожидается таблица с методом GetAsset(name) -> iconTable или nil.
+function Lucide:SetIconModule(moduleTable)
+    if type(moduleTable) ~= "table" then
+        error("SetIconModule expects a table")
+    end
+    Icons = moduleTable
+    FetchIcons = true
+end
+
+-- Валидация строки кастомной иконки (rbxasset*, roblox.com/asset/?id=, rbxthumb://type=)
+local function IsValidCustomIcon(icon)
+    if type(icon) ~= "string" then
+        return false
+    end
+    if icon:match("rbxasset") then
+        return true
+    end
+    if icon:match("roblox%.com/asset/%?id=") then
+        return true
+    end
+    if icon:match("rbxthumb://type=") then
+        return true
+    end
+    return false
+end
+
+-- Получить иконку по имени через модуль lucide.
+-- Возвращает nil если модуль недоступен или нет такой иконки.
+-- Ожидаемый формат возвращаемой иконки:
+-- { Url = string, Id = number?, IconName = string, ImageRectOffset = Vector2, ImageRectSize = Vector2, ... }
+function Lucide:GetIcon(name)
+    if not FetchIcons or not Icons then
+        return nil
+    end
+    if type(Icons.GetAsset) ~= "function" then
+        return nil
+    end
+
+    local success, icon = pcall(Icons.GetAsset, Icons, name)
+    if not success then
+        return nil
+    end
+    return icon
+end
+
+-- Возвращает структуру иконки для произвольной строки.
+-- Если строка распознана как прямой URL/asset, возвращает объект с полями Url, ImageRectOffset, ImageRectSize, Custom = true.
+-- Если нет — пытается получить иконку по имени через GetIcon.
+function Lucide:GetCustomIcon(iconName)
+    if IsValidCustomIcon(iconName) then
+        return {
+            Url = iconName,
+            ImageRectOffset = Vector2.new(0, 0),
+            ImageRectSize = Vector2.new(0, 0),
+            Custom = true,
+        }
+    else
+        return self:GetIcon(iconName)
+    end
+end
+
+-- Утилита: безопасная попытка получить URL (возвращает строку или nil).
+function Lucide:GetIconUrl(name)
+    local icon = self:GetIcon(name)
+    if not icon then
+        return nil
+    end
+    return icon.Url
+end
+
+-- Экспорт переменных для отладки/совместимости
+Lucide._FetchIcons = FetchIcons
+Lucide._Icons = Icons
 
 function Library.GradientImage(E : Frame , Color)
 	local GLImage = Instance.new("ImageLabel")
@@ -385,138 +385,15 @@ function Library.new(config)
 	local UICorner_7 = Instance.new("UICorner")
 	local InputFrame = Instance.new("Frame")
 
-	-- registry для конфигов (значения сохраняются по порядку создания контролов)
-	WindowTable.ConfigRegistry = {};
-	WindowTable.ConfigPath = "SugarConfigs/";
 	WindowTable.Tabs = {};
 	WindowTable.Dropdown = {};
 	WindowTable.WindowToggle = true;
 	WindowTable.Keybind = config.Keybind;
 	WindowTable.ToggleButton = nil
-	WindowTable.StoredPosition = UDim2.new(0.5,0,0.5,0); -- сохраняем позицию при перемещении
-	WindowTable.Configs = {} -- вспомогательно
-
-	-- helper для регистрации контролов
-	local HttpService = game:GetService("HttpService")
-	local function RegisterControl(kind,title,getfn,setfn)
-		table.insert(WindowTable.ConfigRegistry,{
-			kind = kind,
-			title = title,
-			get = getfn,
-			set = setfn
-		})
-		return #WindowTable.ConfigRegistry
-	end
-
-	-- функции сохранения/загрузки конфигов (поддерживают exploit-файловые API если доступны)
-	local function MakeFolderIfNeeded()
-		if makefolder then
-			if not pcall(function() return isfolder(WindowTable.ConfigPath) end) then
-				pcall(function() makefolder(WindowTable.ConfigPath) end)
-			else
-				if not isfolder(WindowTable.ConfigPath) then
-					pcall(function() makefolder(WindowTable.ConfigPath) end)
-				end
-			end
-		end
-	end
-
-	function WindowTable.SaveConfig(name)
-		if not name or name == "" then return false end
-		MakeFolderIfNeeded()
-		local data = {values = {}}
-		for i,v in ipairs(WindowTable.ConfigRegistry) do
-			local ok, val = pcall(v.get)
-			if ok then
-				table.insert(data.values, val)
-			else
-				table.insert(data.values, nil)
-			end
-		end
-		local encoded = HttpService:JSONEncode(data)
-		local filename = WindowTable.ConfigPath..name..".json"
-		local okw, err = pcall(function()
-			if writefile then
-				writefile(filename, encoded)
-			elseif syn and syn.write_file then
-				syn.write_file(filename, encoded)
-			else
-				-- fallback: try to store in memory table
-				WindowTable.Configs[name] = encoded
-			end
-		end)
-		return okw, err
-	end
-
-	function WindowTable.LoadConfig(name)
-		if not name or name == "" then return false end
-		MakeFolderIfNeeded()
-		local filename = WindowTable.ConfigPath..name..".json"
-		local content = nil
-		local okr, err = pcall(function()
-			if readfile then
-				content = readfile(filename)
-			elseif syn and syn.read_file then
-				content = syn.read_file(filename)
-			else
-				content = WindowTable.Configs[name]
-			end
-		end)
-		if not okr or not content then return false end
-		local okd, decoded = pcall(function() return HttpService:JSONDecode(content) end)
-		if not okd or not decoded or not decoded.values then return false end
-		for i,val in ipairs(decoded.values) do
-			local reg = WindowTable.ConfigRegistry[i]
-			if reg and reg.set then
-				pcall(function() reg.set(val) end)
-			end
-		end
-		return true
-	end
-
-	function WindowTable.DeleteConfig(name)
-		if not name or name == "" then return false end
-		MakeFolderIfNeeded()
-		local filename = WindowTable.ConfigPath..name..".json"
-		local okd = false
-		if delfile then
-			okd = pcall(delfile, filename)
-		end
-		if not okd then
-			-- try to remove by writing empty
-			local okw = pcall(function()
-				if writefile then
-					writefile(filename, "")
-				else
-					WindowTable.Configs[name] = nil
-				end
-			end)
-			return okw
-		end
-		return okd
-	end
-
-	function WindowTable.RefreshConfigList()
-		MakeFolderIfNeeded()
-		local list = {}
-		if listfiles then
-			local ok, files = pcall(function() return listfiles(WindowTable.ConfigPath) end)
-			if ok and files then
-				for _,f in ipairs(files) do
-					local name = f:match("^"..WindowTable.ConfigPath.."(.+)%.json$")
-					if name then table.insert(list,name) end
-				end
-			end
-		else
-			-- fallback memory
-			for name,_ in pairs(WindowTable.Configs) do
-				table.insert(list,name)
-			end
-		end
-		table.sort(list)
-		return list
-	end
-
+	WindowTable.MinimizedPosition = UDim2.new(0.5, 0,0.05, 0)  -- Default minimized position
+	WindowTable.Configs = {}  -- Table to store configs
+	WindowTable.CurrentConfig = nil
+	
 	local ImageButton = Instance.new("ImageButton")
 
 	ImageButton.Parent = MainFrame
@@ -547,14 +424,12 @@ function Library.new(config)
 	HomeIcon.BackgroundTransparency = 1;
 	
 	local function Update()
-		-- не меняем позицию при переключении. Позиция хранится в WindowTable.StoredPosition.
 		if WindowTable.WindowToggle then
 			Twen:Create(MainFrame,TweenInfo.new(0.7,Enum.EasingStyle.Quint),{BackgroundTransparency = 0.4,Size = config.Size}):Play();
 			Twen:Create(MainDropShadow,TweenInfo1,{ImageTransparency = 0.6}):Play();
 			Twen:Create(Headers,TweenInfo1,{BackgroundTransparency = 0.5}):Play();
 			Twen:Create(Logo,TweenInfo1,{ImageTransparency = 0}):Play();
-			-- Трансформации позиции убраны. Используем сохранённую позицию.
-			Twen:Create(MainFrame,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{Position = WindowTable.StoredPosition}):Play();
+			Twen:Create(MainFrame,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{Position = UDim2.fromScale(0.5,0.5)}):Play();
 			WindowTable.ElBlurUI.Enabled = true;
 			
 			Twen:Create(BlockFrame1,TweenInfo1,{BackgroundTransparency = 0.8}):Play();
@@ -586,13 +461,9 @@ function Library.new(config)
 			}):Play()
 
 		else
-			-- при сворачивании не пермещаем в фиксированную позицию, оставляем ту, что пользователь передвинул
+			WindowTable.MinimizedPosition = MainFrame.Position  -- Save current position before minimizing
 			Twen:Create(MainFrame,TweenInfo.new(0.5,Enum.EasingStyle.Quint),{BackgroundTransparency = 1,Size = UDim2.new(0.085, 10,0.05, 0)}):Play();
-			-- сохраняем позицию в WindowTable.StoredPosition (если она ещё не установлена)
-			if WindowTable.StoredPosition == nil then
-				WindowTable.StoredPosition = MainFrame.Position
-			end
-			Twen:Create(MainFrame,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{Position = WindowTable.StoredPosition}):Play();
+			Twen:Create(MainFrame,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{Position = WindowTable.MinimizedPosition}):Play();
 			Twen:Create(MainDropShadow,TweenInfo1,{ImageTransparency = 1}):Play();
 			Twen:Create(Headers,TweenInfo1,{BackgroundTransparency = 1}):Play();
 			Twen:Create(Logo,TweenInfo1,{ImageTransparency = 1}):Play();
@@ -670,7 +541,7 @@ function Library.new(config)
 	MainFrame.ClipsDescendants = true;
 	
 	WindowTable.AddEffect = function(color)
-		Library.GradientImage(MainFrame,color)
+		Library.GradientImage(MainFrame,color or Color3.fromRGB(139, 0, 0))  -- Red accents
 	end
 
 	Twen:Create(MainFrame,TweenInfo1,{BackgroundTransparency = 0.4,Size = config.Size}):Play();
@@ -689,7 +560,7 @@ function Library.new(config)
 	MainDropShadow.Size = UDim2.new(1, 47, 1, 47)
 	MainDropShadow.ZIndex = 0
 	MainDropShadow.Image = "rbxassetid://6015897843"
-	MainDropShadow.ImageColor3 = ACCENT -- акцент
+	MainDropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
 	MainDropShadow.ImageTransparency = 1
 	MainDropShadow.ScaleType = Enum.ScaleType.Slice
 	MainDropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
@@ -713,7 +584,7 @@ function Library.new(config)
 	Logo.Parent = Headers
 	Logo.Active = true
 	Logo.AnchorPoint = Vector2.new(0.5, 0.5)
-	Logo.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
+	Logo.BackgroundColor3 = Color3.fromRGB(139, 0, 0)  -- Red accent
 	Logo.BackgroundTransparency = 1.000
 	Logo.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	Logo.BorderSizePixel = 0
@@ -722,8 +593,6 @@ function Library.new(config)
 	Logo.ZIndex = 4
 	Logo.Image = config.Logo;
 	Logo.ScaleType = Enum.ScaleType.Crop
-	Logo.ImageTransparency = 1;
-	Logo.ImageColor3 = ACCENT -- акцент на лого
 	Logo.ImageTransparency = 1;
 
 	Twen:Create(Logo,TweenInfo2,{ImageTransparency = 0}):Play();
@@ -893,143 +762,6 @@ function Library.new(config)
 	InputFrame.Size = UDim2.new(1, 0, 0.121327251, 0)
 	InputFrame.ZIndex = 15;
 
-	-- добавим в InputFrame панель конфигов: текущий выбранный конфиг + кнопки Save/Delete/Refresh
-	local ConfigPanel = Instance.new("Frame")
-	local ConfigLabel = Instance.new("TextLabel")
-	local ConfigButton = Instance.new("TextButton")
-	local SaveButton = Instance.new("TextButton")
-	local DeleteButton = Instance.new("TextButton")
-	local RefreshButton = Instance.new("TextButton")
-
-	ConfigPanel.Name = "ConfigPanel"
-	ConfigPanel.Parent = InputFrame
-	ConfigPanel.AnchorPoint = Vector2.new(1,0)
-	ConfigPanel.BackgroundTransparency = 1
-	ConfigPanel.BorderSizePixel = 0
-	ConfigPanel.Position = UDim2.new(1, -10, 0.1, 0)
-	ConfigPanel.Size = UDim2.new(0, 260, 0, 36)
-	ConfigPanel.ZIndex = 50
-
-	ConfigLabel.Name = "ConfigLabel"
-	ConfigLabel.Parent = ConfigPanel
-	ConfigLabel.BackgroundTransparency = 1
-	ConfigLabel.Size = UDim2.new(0.6, 0, 1, 0)
-	ConfigLabel.Position = UDim2.new(0,0,0,0)
-	ConfigLabel.Font = Enum.Font.GothamBold
-	ConfigLabel.Text = "Config: NONE"
-	ConfigLabel.TextColor3 = Color3.fromRGB(255,255,255)
-	ConfigLabel.TextScaled = true
-	ConfigLabel.TextTransparency = 0.5
-	ConfigLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-	ConfigButton.Name = "ConfigButton"
-	ConfigButton.Parent = ConfigPanel
-	ConfigButton.AnchorPoint = Vector2.new(0,0)
-	ConfigButton.BackgroundTransparency = 0.6
-	ConfigButton.Position = UDim2.new(0.6, 6, 0.1, 0)
-	ConfigButton.Size = UDim2.new(0.18, 0, 0.8, 0)
-	ConfigButton.Font = Enum.Font.GothamBold
-	ConfigButton.Text = "Load"
-	ConfigButton.TextColor3 = Color3.fromRGB(255,255,255)
-	ConfigButton.TextScaled = true
-
-	SaveButton.Name = "SaveButton"
-	SaveButton.Parent = ConfigPanel
-	SaveButton.AnchorPoint = Vector2.new(0,0)
-	SaveButton.BackgroundTransparency = 0.6
-	SaveButton.Position = UDim2.new(0.78, 6, 0.1, 0)
-	SaveButton.Size = UDim2.new(0.18, 0, 0.8, 0)
-	SaveButton.Font = Enum.Font.GothamBold
-	SaveButton.Text = "Save"
-	SaveButton.TextColor3 = Color3.fromRGB(255,255,255)
-	SaveButton.TextScaled = true
-
-	DeleteButton.Name = "DeleteButton"
-	DeleteButton.Parent = ConfigPanel
-	DeleteButton.AnchorPoint = Vector2.new(0,0)
-	DeleteButton.BackgroundTransparency = 0.6
-	DeleteButton.Position = UDim2.new(0.96, 6, 0.1, 0)
-	DeleteButton.Size = UDim2.new(0.18, 0, 0.8, 0)
-	DeleteButton.Font = Enum.Font.GothamBold
-	DeleteButton.Text = "Delete"
-	DeleteButton.TextColor3 = Color3.fromRGB(255,255,255)
-	DeleteButton.TextScaled = true
-
-	RefreshButton.Name = "RefreshButton"
-	RefreshButton.Parent = ConfigPanel
-	RefreshButton.AnchorPoint = Vector2.new(0,0)
-	RefreshButton.BackgroundTransparency = 0.6
-	RefreshButton.Position = UDim2.new(1.14, 6, 0.1, 0)
-	RefreshButton.Size = UDim2.new(0.18, 0, 0.8, 0)
-	RefreshButton.Font = Enum.Font.GothamBold
-	RefreshButton.Text = "Refresh"
-	RefreshButton.TextColor3 = Color3.fromRGB(255,255,255)
-	RefreshButton.TextScaled = true
-
-	-- вспомогательная логика открытия дропдауна со списком конфигов, выбором и загрузкой
-	local CurrentSelectedConfig = nil
-	local function OpenConfigDropdown()
-		local list = WindowTable.RefreshConfigList()
-		WindowTable.Dropdown:Setup(ConfigPanel)
-		WindowTable.Dropdown:Open(list, CurrentSelectedConfig, function(val)
-			CurrentSelectedConfig = val
-			ConfigLabel.Text = "Config: "..tostring(val)
-		end)
-	end
-
-	ConfigButton.MouseButton1Click:Connect(function()
-		OpenConfigDropdown()
-	end)
-
-	RefreshButton.MouseButton1Click:Connect(function()
-		local list = WindowTable.RefreshConfigList()
-		-- просто обновим вид
-		WindowTable.Dropdown:Close()
-	end)
-
-	SaveButton.MouseButton1Click:Connect(function()
-		-- простая inline-подсказка: попросим имя у пользователя через TextBox фрейм
-		local prompt = Instance.new("Frame", ScreenGui)
-		prompt.AnchorPoint = Vector2.new(0.5,0.5)
-		prompt.Size = UDim2.new(0,300,0,120)
-		prompt.Position = UDim2.new(0.5,0,0.5,0)
-		prompt.BackgroundColor3 = Color3.fromRGB(17,17,17)
-		prompt.BorderSizePixel = 0
-		local tb = Instance.new("TextBox", prompt)
-		tb.Position = UDim2.new(0.1,0,0.2,0)
-		tb.Size = UDim2.new(0.8,0,0.3,0)
-		tb.Text = ""
-		tb.PlaceholderText = "Config name"
-		tb.TextColor3 = Color3.fromRGB(255,255,255)
-		local okBtn = Instance.new("TextButton", prompt)
-		okBtn.Position = UDim2.new(0.1,0,0.6,0)
-		okBtn.Size = UDim2.new(0.35,0,0.25,0)
-		okBtn.Text = "Save"
-		local cancelBtn = Instance.new("TextButton", prompt)
-		cancelBtn.Position = UDim2.new(0.55,0,0.6,0)
-		cancelBtn.Size = UDim2.new(0.35,0,0.25,0)
-		cancelBtn.Text = "Cancel"
-		okBtn.MouseButton1Click:Connect(function()
-			local name = tb.Text
-			if name and name ~= "" then
-				local ok,err = WindowTable.SaveConfig(name)
-				if ok then
-					CurrentSelectedConfig = name
-					ConfigLabel.Text = "Config: "..tostring(name)
-				end
-			end
-			prompt:Destroy()
-		end)
-		cancelBtn.MouseButton1Click:Connect(function() prompt:Destroy() end)
-	end)
-
-	DeleteButton.MouseButton1Click:Connect(function()
-		if not CurrentSelectedConfig then return end
-		WindowTable.DeleteConfig(CurrentSelectedConfig)
-		CurrentSelectedConfig = nil
-		ConfigLabel.Text = "Config: NONE"
-	end)
-
 	task.spawn(function()
 		local Locked = nil;
 		local Looped = false;
@@ -1076,7 +808,7 @@ function Library.new(config)
 		MiniDropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
 
 		UIStroke.Transparency = 0.900
-		UIStroke.Color = ACCENT -- акцент
+		UIStroke.Color = Color3.fromRGB(255, 255, 255)
 		UIStroke.Parent = DropdownFrame
 
 		ValueId.Name = "ValueId"
@@ -1201,8 +933,8 @@ function Library.new(config)
 
 			Frame.Parent = Selector
 			Frame.AnchorPoint = Vector2.new(1, 0.5)
-			Frame.BackgroundColor3 = ACCENT -- акцент
-			Frame.BackgroundTransparency = value and 0.8 or 1
+			Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			Frame.BackgroundTransparency = 0.600
 			Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 			Frame.BorderSizePixel = 0
 			Frame.Position = UDim2.new(1.02499998, 0, 0.5, 0)
@@ -1230,7 +962,7 @@ function Library.new(config)
 			Button.TextTransparency = 1.000
 
 			UIStroke.Transparency = 0.900
-			UIStroke.Color = ACCENT
+			UIStroke.Color = Color3.fromRGB(255, 255, 255)
 			UIStroke.Parent = Selector;
 
 			local caller = function(a)
@@ -1327,6 +1059,17 @@ function Library.new(config)
 				table.insert(list,{v,butt})
 			end;
 		end;
+
+		function WindowTable.Dropdown:Refresh(args)
+			for i,v in pairs(ScrollingFrame:GetChildren()) do
+				if v ~= Block then
+					if v:IsA('Frame') then
+						v:Destroy();
+					end;
+				end;
+			end;
+			-- Rebuild selectors with new args
+		end
 
 		function WindowTable.Dropdown:Close(args)
 			Looped = false;
@@ -1455,7 +1198,8 @@ function Library.new(config)
 		Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 		Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 		Icon.ZIndex = 6
-		Icon.Image = ResolveIcon(cfg.Icon) or cfg.Icon
+		local lucideIcon = Lucide:GetCustomIcon(cfg.Icon)
+		Icon.Image = lucideIcon and lucideIcon.Url or cfg.Icon
 		Icon.ImageTransparency = 1
 		Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
@@ -1724,7 +1468,8 @@ function Library.new(config)
 			Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 			Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 			Icon.ZIndex = 6
-			Icon.Image = ResolveIcon(c_o_n_f_i_g.Icon) or c_o_n_f_i_g.Icon; 
+			local lucideIcon = Lucide:GetCustomIcon(c_o_n_f_i_g.Icon)
+			Icon.Image = lucideIcon and lucideIcon.Url or c_o_n_f_i_g.Icon; 
 			Icon.ImageTransparency = 1
 			Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
@@ -1789,7 +1534,7 @@ function Library.new(config)
 			end)
 
 			UIStroke.Transparency = 1
-			UIStroke.Color = ACCENT
+			UIStroke.Color = Color3.fromRGB(255, 255, 255)
 			UIStroke.Parent = Section
 			Twen:Create(UIStroke,TweenInfo1,{Transparency = 0.9}):Play();
 
@@ -1869,7 +1614,7 @@ function Library.new(config)
 				Button.TextTransparency = 1.000
 
 				UIStroke.Transparency = 0.950
-				UIStroke.Color = ACCENT
+				UIStroke.Color = Color3.fromRGB(255, 255, 255)
 				UIStroke.Parent = FunctionToggle
 
 				System.Name = "System"
@@ -1887,7 +1632,7 @@ function Library.new(config)
 				UICorner.Parent = System
 
 				UIStroke_2.Transparency = 0.850
-				UIStroke_2.Color = ACCENT
+				UIStroke_2.Color = Color3.fromRGB(255, 255, 255)
 				UIStroke_2.Parent = System
 
 				Icon.Name = "Icon"
@@ -1939,7 +1684,7 @@ function Library.new(config)
 					task.spawn(toggle.Callback,toggle.Default)
 				end)
 
-				local ret = {
+				return {
 					Value = function(newindex)
 						toggle.Default = newindex;
 						OnChange(toggle.Default);
@@ -1949,10 +1694,6 @@ function Library.new(config)
 						FunctionToggle.Visible = newindx
 					end,
 				};
-				-- регистрация в реестре конфигов
-				RegisterControl('toggle', toggle.Title, function() return toggle.Default end, ret.Value)
-
-				return ret;
 			end;
 
 			function SectionTable:NewTitle(lrm)
@@ -1992,8 +1733,6 @@ function Library.new(config)
 				TextInt.TextScaled = true
 				TextInt.TextSize = 14.000
 				TextInt.TextTransparency = 1
-				TextInt.TextWrapped = true
-				TextInt.TextXAlignment = Enum.TextXAlignment.Left
 				Twen:Create(TextInt,TweenInfo1,{TextTransparency = 0.25}):Play();
 
 				UIGradient.Rotation = 90
@@ -2103,7 +1842,7 @@ function Library.new(config)
 				Button.TextTransparency = 1.000
 
 				UIStroke.Transparency = 0.920
-				UIStroke.Color = ACCENT
+				UIStroke.Color = Color3.fromRGB(255, 255, 255)
 				UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 				UIStroke.Parent = FunctionButton
 
@@ -2211,7 +1950,7 @@ function Library.new(config)
 				Button.TextTransparency = 1.000
 
 				UIStroke.Transparency = 0.950
-				UIStroke.Color = ACCENT
+				UIStroke.Color = Color3.fromRGB(255, 255, 255)
 				UIStroke.Parent = FunctionKeybind
 
 				System.Name = "System"
@@ -2229,7 +1968,7 @@ function Library.new(config)
 				UICorner.Parent = System
 
 				UIStroke_2.Transparency = 0.950
-				UIStroke_2.Color = ACCENT
+				UIStroke_2.Color = Color3.fromRGB(255, 255, 255)
 				UIStroke_2.Parent = System
 
 				Bindkey.Name = "Bindkey"
@@ -2297,7 +2036,7 @@ function Library.new(config)
 
 				end)
 
-				local ret = {
+				return {
 					Visible = function(newindx)
 						FunctionKeybind.Visible = newindx
 					end,
@@ -2308,10 +2047,6 @@ function Library.new(config)
 						ctfx.Callback(lrm);
 					end,
 				};
-				-- регистрация keybind
-				RegisterControl('keybind', ctfx.Title, function() return Bindkey.Text end, ret.Value)
-
-				return ret;
 			end;
 
 			function SectionTable:NewSlider(slider)
@@ -2376,7 +2111,7 @@ function Library.new(config)
 				UIGradient.Parent = TextInt
 
 				UIStroke.Transparency = 0.950
-				UIStroke.Color = ACCENT
+				UIStroke.Color = Color3.fromRGB(255, 255, 255)
 				UIStroke.Parent = FunctionSlider
 
 				UICorner.CornerRadius = UDim.new(0, 2)
@@ -2422,7 +2157,7 @@ function Library.new(config)
 
 				TFrame.Name = "TFrame"
 				TFrame.Parent = MFrame
-				TFrame.BackgroundColor3 = ACCENT
+				TFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 				TFrame.BackgroundTransparency = 0.500
 				TFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 				TFrame.BorderSizePixel = 0
@@ -2433,7 +2168,7 @@ function Library.new(config)
 				UICorner_3.Parent = TFrame
 
 				UIStroke_2.Transparency = 0.975
-				UIStroke_2.Color = ACCENT
+				UIStroke_2.Color = Color3.fromRGB(255, 255, 255)
 				UIStroke_2.Parent = MFrame
 
 				local Holding = false
@@ -2475,7 +2210,7 @@ function Library.new(config)
 					end
 				end)
 
-				local ret = {
+				return {
 					Visible = function(newindx)
 						FunctionSlider.Visible = newindx
 					end,
@@ -2485,9 +2220,6 @@ function Library.new(config)
 						slider.Callback(lrm);
 					end,
 				};
-				RegisterControl('slider', slider.Title, function() return tonumber(string.match(ValueText.Text or "0","(%d+)")) or slider.Default end, ret.Value)
-
-				return ret;
 			end;
 
 			function SectionTable:NewDropdown(drop)
@@ -2550,7 +2282,7 @@ function Library.new(config)
 				UIGradient.Parent = TextInt
 
 				UIStroke.Transparency = 0.950
-				UIStroke.Color = ACCENT
+				UIStroke.Color = Color3.fromRGB(255, 255, 255)
 				UIStroke.Parent = FunctionDropdown
 
 				UICorner.CornerRadius = UDim.new(0, 2)
@@ -2572,7 +2304,7 @@ function Library.new(config)
 				UICorner_2.Parent = MFrame
 
 				UIStroke_2.Transparency = 0.975
-				UIStroke_2.Color = ACCENT
+				UIStroke_2.Color = Color3.fromRGB(255, 255, 255)
 				UIStroke_2.Parent = MFrame
 
 				ValueText.Name = "ValueText"
@@ -2618,10 +2350,11 @@ function Library.new(config)
 				Button.Size = UDim2.new(1, 0, 1, 0)
 				Button.ZIndex = 25
 				Button.Font = Enum.Font.SourceSans
-				Button.Text = ""
+				Button.Text = "";
 				Button.TextColor3 = Color3.fromRGB(0, 0, 0)
 				Button.TextSize = 14.000
 				Button.TextTransparency = 1.000
+
 
 				local Updater = function(value)
 					drop.Default = value;
@@ -2635,7 +2368,7 @@ function Library.new(config)
 					WindowTable.Dropdown:Open(drop.Data,drop.Default,Updater)
 				end)
 
-				local ret = {
+				return {
 					Visible = function(newindx)
 						FunctionDropdown.Visible = newindx
 					end,
@@ -2657,11 +2390,9 @@ function Library.new(config)
 					end,
 					Set = function(table)
 						drop.Data = table
+						WindowTable.Dropdown:Refresh(drop.Data)
 					end
 				};
-				RegisterControl('dropdown', drop.Title, function() return ValueText.Text end, ret.Value)
-
-				return ret;
 			end;
 
 			function SectionTable:NewTextbox(conf)
@@ -2725,7 +2456,7 @@ function Library.new(config)
 				UIGradient.Parent = TextInt
 
 				UIStroke.Transparency = 0.950
-				UIStroke.Color = ACCENT
+				UIStroke.Color = Color3.fromRGB(255, 255, 255)
 				UIStroke.Parent = FunctionTextbox
 
 				UICorner.CornerRadius = UDim.new(0, 2)
@@ -2747,7 +2478,7 @@ function Library.new(config)
 				UICorner_2.Parent = MFrame
 
 				UIStroke_2.Transparency = 0.975
-				UIStroke_2.Color = ACCENT
+				UIStroke_2.Color = Color3.fromRGB(255, 255, 255)
 				UIStroke_2.Parent = MFrame
 
 				FileType.Name = "FileType"
@@ -2810,19 +2541,6 @@ function Library.new(config)
 				TextBox.FocusLost:Connect(function(press)
 					conf.Callback(TextBox.Text);
 				end)
-
-				local ret = {
-					Value = function(newVal)
-						TextBox.Text = tostring(newVal)
-						conf.Callback(TextBox.Text)
-					end,
-					Visible = function(newindx)
-						FunctionTextbox.Visible = newindx
-					end
-				};
-				RegisterControl('textbox', conf.Title, function() return TextBox.Text end, ret.Value)
-
-				return ret;
 			end;
 
 			return SectionTable;
@@ -2841,25 +2559,10 @@ function Library.new(config)
 		local delta = input.Position - dragStart;
 		local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
 			startPos.Y.Scale, startPos.Y.Offset + delta.Y);
-		WindowTable.StoredPosition = position -- сохраняем позицию при перемещении
 		game:GetService('TweenService'):Create(MainFrame, TweenInfo.new(dragSpeed), {Position = position}):Play()
 	end;
 
-	-- позволим перетягивать как по InputFrame так и по ImageButton (в свернутом виде)
 	InputFrame.InputBegan:Connect(function(input)
-		if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then 
-			dragToggle = true
-			dragStart = input.Position
-			startPos = MainFrame.Position
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragToggle = false;
-				end;
-			end)
-		end;
-	end)
-
-	ImageButton.InputBegan:Connect(function(input)
 		if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then 
 			dragToggle = true
 			dragStart = input.Position
@@ -2880,651 +2583,1016 @@ function Library.new(config)
 		end;
 	end)
 
-	-- Логика уведомлений: ПК — чуть больше и появляться быстрее. Мобильные — гарантированно показывать весь текст.
-	Library.Notification = function()
-		local Notification = Instance.new("ScreenGui")
-		local Frame = Instance.new("Frame")
-		local UIListLayout = Instance.new("UIListLayout")
-
-		Notification.Name = "Notification"
-		Notification.Parent = CoreGui
-		Notification.ResetOnSpawn = false
-		Notification.ZIndexBehavior = Enum.ZIndexBehavior.Global;
-		Notification.Name = game:GetService('HttpService'):GenerateGUID(false)
-		Notification.IgnoreGuiInset = true
-
-		Frame.Parent = Notification
-		Frame.AnchorPoint = Vector2.new(0.5, 0.5)
-		Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		Frame.BackgroundTransparency = 1.000
-		Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-		Frame.BorderSizePixel = 0
-		Frame.Position = UDim2.new(0.151568726, 0, 0.5, 0)
-		Frame.Size = UDim2.new(0.400000006, 0, 0.400000006, 0)
-		Frame.SizeConstraint = Enum.SizeConstraint.RelativeYY
-
-		UIListLayout.Parent = Frame
-		UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-		UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
-		UIListLayout.Padding = UDim.new(0,2);
-
-		local isMobile = Input.TouchEnabled or false
-
-		return {
-			new = function(ctfx)
-				ctfx = Config(ctfx,{
-					Title = "Notification",
-					Description = "Description",
-					Duration = 5,
-					Icon = "rbxassetid://7733993369"
-				})
-				-- быстрее для ПК, чуть меньше по времени анимации
-				local css_time = isMobile and 0.35 or 0.15
-				local css_style = TweenInfo.new(css_time,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut);
-				local Notifiy = Instance.new("Frame")
-				local UICorner = Instance.new("UICorner")
-				local icon = Instance.new("ImageLabel")
-				local UICorner_2 = Instance.new("UICorner")
-				local TextLabel = Instance.new("TextLabel")
-				local TextLabel_2 = Instance.new("TextLabel")
-				local DropShadow = Instance.new('ImageLabel')
-
-				DropShadow.Name = "DropShadow"
-				DropShadow.Parent = Notifiy
-				DropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
-				DropShadow.BackgroundTransparency = 1.000
-				DropShadow.BorderSizePixel = 0
-				DropShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
-				DropShadow.Size = UDim2.new(1, 37, 1, 37)
-				DropShadow.Image = "rbxassetid://6015897843"
-				DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-				DropShadow.ImageTransparency = 1
-				DropShadow.ScaleType = Enum.ScaleType.Slice
-				DropShadow.Rotation = 0.001
-				DropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
-				Twen:Create(DropShadow,css_style,{
-					ImageTransparency = 0.600
-				}):Play()
-
-				Notifiy.Name = "Notifiy"
-				Notifiy.Parent = Frame
-				Notifiy.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-				Notifiy.BackgroundTransparency = 1
-				Notifiy.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				Notifiy.BorderSizePixel = 0
-				Notifiy.ClipsDescendants = true
-				Notifiy.Size = UDim2.new(0,0,0,0)
-				Twen:Create(Notifiy,css_style,{
-					BackgroundTransparency = 0.350,
-					Size = isMobile and UDim2.new(0.9, 0, 0.25, 0) or UDim2.new(0.28, 0, 0.14, 0)
-				}):Play()
-
-				UICorner.CornerRadius = UDim.new(0.3,0)
-				UICorner.Parent = Notifiy
-
-				icon.Name = "icon"
-				icon.Parent = Notifiy
-				icon.AnchorPoint = Vector2.new(0.5, 0.5)
-				icon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				icon.BackgroundTransparency = 1.000
-				icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				icon.BorderSizePixel = 0
-				icon.Position = UDim2.new(0.5, 0, 0.5, 0)
-				icon.Size = UDim2.new(0.3, 0, 0.3, 0)
-				icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
-				icon.Image = ResolveIcon(ctfx.Icon) or ctfx.Icon
-				icon.ImageTransparency = 1;
-
-				Twen:Create(icon,css_style,{
-					ImageTransparency = 0.1,
-					Size = isMobile and UDim2.new(0.18,0,0.18,0) or UDim2.new(0.699999988, 0, 0.699999988, 0)
-				}):Play()
-
-
-				UICorner_2.CornerRadius = UDim.new(1,0)
-				UICorner_2.Parent = icon
-
-				Twen:Create(UICorner_2,css_style,{
-					CornerRadius = UDim.new(0.4, 0)
-				}):Play()
-
-				TextLabel.Parent = Notifiy
-				TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				TextLabel.BackgroundTransparency = 1.000
-				TextLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				TextLabel.BorderSizePixel = 0
-				TextLabel.Position = isMobile and UDim2.new(0.26, 0, 0.05, 0) or UDim2.new(0.199930489, 0, 0.130389422, 0)
-				TextLabel.Size = isMobile and UDim2.new(0.7,0,0.25,0) or UDim2.new(0.800069451, 0, 0.217663303, 0)
-				TextLabel.Font = Enum.Font.GothamBold
-				TextLabel.Text = ctfx.Title
-				TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-				TextLabel.TextScaled = true
-				TextLabel.TextSize = 14.000
-				TextLabel.TextWrapped = true
-				TextLabel.TextXAlignment = Enum.TextXAlignment.Left
-
-				TextLabel_2.Parent = Notifiy
-				TextLabel_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				TextLabel_2.BackgroundTransparency = 1.000
-				TextLabel_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				TextLabel_2.BorderSizePixel = 0
-				TextLabel_2.Position = isMobile and UDim2.new(0.26, 0, 0.28, 0) or UDim2.new(0.199930489, 0, 0.34770447, 0)
-				TextLabel_2.Size = isMobile and UDim2.new(0.68,0,0.66,0) or UDim2.new(0.769645274, 0, 0.502295375, 0)
-				TextLabel_2.Font = Enum.Font.GothamBold
-				TextLabel_2.Text = ctfx.Description
-				TextLabel_2.TextColor3 = Color3.fromRGB(255, 255, 255)
-				TextLabel_2.TextSize = isMobile and 12 or 9
-				TextLabel_2.TextTransparency = 0.500
-				TextLabel_2.TextWrapped = true
-				TextLabel_2.TextXAlignment = Enum.TextXAlignment.Left
-				TextLabel_2.TextYAlignment = Enum.TextYAlignment.Top
-				TextLabel_2.RichText = false
-
-				local mkView = function()
-					Twen:Create(Notifiy,css_style,{
-						Size = isMobile and UDim2.new(0.9,0,0.25,0) or UDim2.new(0.28, 0, 0.14, 0)
-					}):Play()
-
-					Twen:Create(UICorner,css_style,{
-						CornerRadius = UDim.new(0, 4)
-					}):Play()
-
-					Twen:Create(icon,css_style,{
-						Position = isMobile and UDim2.new(0.07,0,0.5,0) or UDim2.new(0.100000001, 0, 0.5, 0)
-					}):Play()
-
-					Twen:Create(TextLabel,css_style,{
-						Position = isMobile and UDim2.new(0.26,0,0.05,0) or UDim2.new(0.199930489, 0, 0.130389422, 0)
-					}):Play()
-
-					Twen:Create(TextLabel_2,css_style,{
-						Position = isMobile and UDim2.new(0.26,0,0.28,0) or UDim2.new(0.199930489, 0, 0.34770447, 0)
-					}):Play()
-				end;
-
-
-				local mkLoad = function()
-					Twen:Create(Notifiy,css_style,{
-						Size = isMobile and UDim2.new(0.35,0,0.12,0) or UDim2.new(0.2, 0, 0.2, 0)
-					}):Play()
-
-					Twen:Create(UICorner,css_style,{
-						CornerRadius = UDim.new(0.4,0)
-					}):Play()
-
-					Twen:Create(icon,css_style,{
-						Position = UDim2.new(0.5, 0, 0.5, 0)
-					}):Play()
-
-					Twen:Create(TextLabel,css_style,{
-						Position = UDim2.new(1, 0, 0.130389422, 0)
-					}):Play()
-
-					Twen:Create(TextLabel_2,css_style,{
-						Position = UDim2.new(1, 0, 0.34770447, 0)
-					}):Play()
-				end;
-
-				mkLoad();
-
-				task.spawn(function()
-					task.wait(0.5)
-					mkView();
-
-
-
-					task.delay(1 + ctfx.Duration,function()
-						mkLoad();
-
-						task.wait(0.65)
-
-						Twen:Create(Notifiy,css_style,{
-							BackgroundTransparency = 1,
-							Size = UDim2.new(0,0,0,0)
-						}):Play()
-
-						Twen:Create(icon,css_style,{
-							ImageTransparency = 1
-						}):Play()
-
-						Twen:Create(DropShadow,css_style,{
-							ImageTransparency = 1
-						}):Play()
-
-						task.delay(0.5,Notifiy.Destroy,Notifiy)
-					end)
-				end)
-			end,
-		}
-	end;
-
-	function Library:Console()
-		local Terminal = Instance.new("ScreenGui")
-		local MFrame = Instance.new("Frame")
-		local UICorner = Instance.new("UICorner")
-		local DropShadow = Instance.new("ImageLabel")
-		local konsole_title = Instance.new("TextLabel")
-		local terminalicon = Instance.new("ImageLabel")
-		local ExitButton = Instance.new("ImageButton")
-		local KFrame = Instance.new("Frame")
-		local Frame = Instance.new("Frame")
-		local cmdFrame = Instance.new("ScrollingFrame")
-		local UIListLayout = Instance.new("UIListLayout")
-		local Frame_2 = Instance.new("Frame")
-
-		Terminal.Name = "RobloxDevGui"
-		Terminal.Parent = CoreGui
-		Terminal.ResetOnSpawn = false
-		Terminal.ZIndexBehavior = Enum.ZIndexBehavior.Global;
-
-		Terminal.IgnoreGuiInset = true;
-
-		MFrame.Name = "MFrame"
-		MFrame.Parent = Terminal
-		MFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-		MFrame.BackgroundColor3 = Color3.fromRGB(49, 54, 59)
-		MFrame.BackgroundTransparency = 0.100
-		MFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-		MFrame.BorderSizePixel = 0
-		MFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-		MFrame.Size = UDim2.new(0.075000003, 450, 0.075000003, 300)
-
-		UICorner.CornerRadius = UDim.new(0, 4)
-		UICorner.Parent = MFrame
-
-		DropShadow.Name = "DropShadow"
-		DropShadow.Parent = MFrame
-		DropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
-		DropShadow.BackgroundTransparency = 1.000
-		DropShadow.BorderSizePixel = 0
-		DropShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
-		DropShadow.Size = UDim2.new(1, 47, 1, 47)
-		DropShadow.ZIndex = 0
-		DropShadow.Image = "rbxassetid://6014261993"
-		DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-		DropShadow.ImageTransparency = 0.500
-		DropShadow.ScaleType = Enum.ScaleType.Slice
-		DropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
-
-		konsole_title.Name = "konsole_title"
-		konsole_title.Parent = MFrame
-		konsole_title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		konsole_title.BackgroundTransparency = 1.000
-		konsole_title.BorderColor3 = Color3.fromRGB(0, 0, 0)
-		konsole_title.BorderSizePixel = 0
-		konsole_title.Position = UDim2.new(0, 0, 0.0161176082, 0)
-		konsole_title.Size = UDim2.new(1, 0, 0.0380379669, 0)
-		konsole_title.Font = Enum.Font.SourceSansBold
-		konsole_title.Text = "~ : neu -- Konsole"
-		konsole_title.TextColor3 = Color3.fromRGB(255, 255, 255)
-		konsole_title.TextScaled = true
-		konsole_title.TextSize = 14.000
-		konsole_title.TextWrapped = true
-
-		terminalicon.Name = "terminal-icon"
-		terminalicon.Parent = MFrame
-		terminalicon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		terminalicon.BackgroundTransparency = 1.000
-		terminalicon.BorderColor3 = Color3.fromRGB(0, 0, 0)
-		terminalicon.BorderSizePixel = 0
-		terminalicon.Size = UDim2.new(0.075000003, 0, 0.075000003, 0)
-		terminalicon.SizeConstraint = Enum.SizeConstraint.RelativeYY
-		terminalicon.Image = "rbxassetid://12097983462"
-
-		ExitButton.Name = "ExitButton"
-		ExitButton.Parent = MFrame
-		ExitButton.AnchorPoint = Vector2.new(1, 0)
-		ExitButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		ExitButton.BackgroundTransparency = 1.000
-		ExitButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
-		ExitButton.BorderSizePixel = 0
-		ExitButton.Position = UDim2.new(0.995000005, 0, 0.00999999978, 0)
-		ExitButton.Size = UDim2.new(0.0549999997, 0, 0.0549999997, 0)
-		ExitButton.SizeConstraint = Enum.SizeConstraint.RelativeYY
-		ExitButton.Image = "rbxassetid://7743878857"
-
-		KFrame.Name = "KFrame"
-		KFrame.Parent = MFrame
-		KFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-		KFrame.BackgroundColor3 = Color3.fromRGB(34, 38, 38)
-		KFrame.BackgroundTransparency = 0.100
-		KFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-		KFrame.BorderSizePixel = 0
-		KFrame.Position = UDim2.new(0.5, 0, 0.537500083, 0)
-		KFrame.Size = UDim2.new(1, 0, 0.925000012, 0)
-		KFrame.ZIndex = 2
-
-		Frame.Parent = KFrame
-		Frame.BackgroundColor3 = Color3.fromRGB(85, 88, 93)
-		Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-		Frame.BorderSizePixel = 0
-		Frame.Size = UDim2.new(1, 0, 0, 1)
-		Frame.ZIndex = 3
-
-		cmdFrame.Name = "cmdFrame"
-		cmdFrame.Parent = KFrame
-		cmdFrame.Active = true
-		cmdFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-		cmdFrame.BackgroundTransparency = 1.000
-		cmdFrame.BorderColor3 = Color3.fromRGB(73, 74, 77)
-		cmdFrame.BorderSizePixel = 0
-		cmdFrame.Size = UDim2.new(1, 0, 1, 0)
-		cmdFrame.ZIndex = 4
-		cmdFrame.ScrollBarThickness = 6
-
-		UIListLayout.Parent = cmdFrame
-		UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-		UIListLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
-			cmdFrame.CanvasSize = UDim2.new(0,0,0,UIListLayout.AbsoluteContentSize.Y)
-		end);
-
-		Frame_2.Parent = KFrame
-		Frame_2.AnchorPoint = Vector2.new(1, 0)
-		Frame_2.BackgroundColor3 = Color3.fromRGB(85, 88, 93)
-		Frame_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
-		Frame_2.BorderSizePixel = 0
-		Frame_2.Position = UDim2.new(0.980000019, 0, 0, 0)
-		Frame_2.Size = UDim2.new(0, 1, 1, 0)
-		Frame_2.ZIndex = 3
-
-		local mkLine = function()
-			local line = Instance.new("Frame")
-			local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
-			local UIListLayout = Instance.new("UIListLayout")
-			local StartK = Instance.new("TextLabel")
-			local TextBox = Instance.new("TextBox")
-			local TitleK = Instance.new("TextLabel")
-
-			line.Name = "line"
-			line.Parent = cmdFrame
-			line.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-			line.BackgroundTransparency = 1.000
-			line.BorderColor3 = Color3.fromRGB(0, 0, 0)
-			line.BorderSizePixel = 0
-			line.Size = UDim2.new(1, 0, 0.5, 0)
-			line.ZIndex = 5
-
-			UIAspectRatioConstraint.Parent = line
-			UIAspectRatioConstraint.AspectRatio = 45.000
-			UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
-
-			UIListLayout.Parent = line
-			UIListLayout.FillDirection = Enum.FillDirection.Horizontal
-			UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-			UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-
-			StartK.Name = "StartK"
-			StartK.Parent = line
-			StartK.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-			StartK.BackgroundTransparency = 1.000
-			StartK.BorderColor3 = Color3.fromRGB(0, 0, 0)
-			StartK.BorderSizePixel = 0
-			StartK.Size = UDim2.new(0.177329257, 0, 1, 0)
-			StartK.ZIndex = 6
-			StartK.Font = Enum.Font.SourceSans
-			StartK.Text = "[neuronx@rubuntu ~]$"
-			StartK.TextColor3 = Color3.fromRGB(255, 255, 255)
-			StartK.TextScaled = true
-			StartK.TextSize = 14.000
-			StartK.TextWrapped = true
-			StartK.TextXAlignment = Enum.TextXAlignment.Left
-			StartK.RichText = true;
-
-			TextBox.Parent = line
-			TextBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-			TextBox.BackgroundTransparency = 1.000
-			TextBox.BorderColor3 = Color3.fromRGB(0, 0, 0)
-			TextBox.BorderSizePixel = 0
-			TextBox.Size = UDim2.new(1, 0, 1, 0)
-			TextBox.Visible = false
-			TextBox.ZIndex = 6
-			TextBox.ClearTextOnFocus = false
-			TextBox.Font = Enum.Font.SourceSans
-			TextBox.Text = ""
-			TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-			TextBox.TextScaled = true
-			TextBox.TextSize = 14.000
-			TextBox.TextTransparency = 0.350
-			TextBox.TextWrapped = true
-			TextBox.TextXAlignment = Enum.TextXAlignment.Left
-
-			TitleK.Name = "TitleK"
-			TitleK.Parent = line
-			TitleK.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-			TitleK.BackgroundTransparency = 1.000
-			TitleK.BorderColor3 = Color3.fromRGB(0, 0, 0)
-			TitleK.BorderSizePixel = 0
-			TitleK.Size = UDim2.new(1, 0, 1, 0)
-			TitleK.Visible = false
-			TitleK.ZIndex = 6
-			TitleK.Font = Enum.Font.SourceSans
-			TitleK.Text = "failed"
-			TitleK.TextColor3 = Color3.fromRGB(255, 255, 255)
-			TitleK.TextScaled = true
-			TitleK.TextSize = 14.000
-			TitleK.TextWrapped = true
-			TitleK.TextXAlignment = Enum.TextXAlignment.Left;
-			TitleK.RichText = true;
-
-			local event = Instance.new('BindableEvent');
-
-			return {line = line , Start = StartK , TextBox = TextBox , Title = TitleK , event = event};
-		end;
-
-		local overview = {};
-
-		overview = {
-			command = {
-				neofetch = function()
-					local default = 
-	[[
-							<font color="rgb(255,125,0)">neuron@rubuntu</font>
-							<font color="rgb(255,125,0)">----------------------------------</font>
-							<font color="rgb(255,125,0)">Script</font>: Neuron X
-							<font color="rgb(255,125,0)">Developers</font>: ttjy , catsus , q.r2s
-							<font color="rgb(255,125,0)">Discord</font>: https://discord.gg/HkRUtyTbk2
-		<font color="rgb(255,125,0)">no logo</font>	<font color="rgb(255,125,0)">CPU1</font>: Intel Core I9 15900K (arm)
-							<font color="rgb(255,125,0)">CPU2</font>: Snapdragon 8 Gen 4 Super Ultra Gaming Edition (arm)
-							<font color="rgb(255,125,0)">GPU1</font>: Nvidia RTX 9080 Ti
-							<font color="rgb(255,125,0)">GPU2</font>: Nvidia GTX 1080 Ti
-							<font color="rgb(255,125,0)">Kernel</font>: Roblox-Security-thread
-							<font color="rgb(255,125,0)">Terminal</font>: Konsole
-							<font color="rgb(255,125,0)">Host</font>: Xiaomi 15 Ultra Pro Max ROG Edition 3
-							<font color="rgb(255,125,0)">UI</font>: KDE Plasma 6
-	]];
-
-					overview:print(default)
-				end,
-
-				clear = function()
-					for i,v in ipairs(cmdFrame:GetChildren()) do
-						if v:IsA('Frame') then
-							v:Destroy()
-						end
-					end
-				end,
-
-				sudo = function(args) -- root
-					local ctype = args[1];
-					local arg1 = args[2];
-					local arg2 = args[3];
-
-					if ctype == "rm" then
-						if arg1 == "-rf" then
-							if arg2 == "/" then
-								local ps5 = game:GetChildren();
-								for i=1,#ps5 do task.wait()
-									overview:print("[ OK ]: Deleted /"..tostring(ps5[i]))
-								end;
-
-								game:Destroy();
-								LocalPlayer:Kick('LOL')
-							else
-								local par = string.gsub(arg2,'/','.')
-
-								if string.sub(par,1,1) == '.' then
-									par = string.sub(par,2);
-								end;
-
-								local ppt = loadstring('return '..par)();
-
-								ppt:Destroy();
-							end;
-						end;
-					elseif ctype == 'pacman' then
-
-						if arg1 == '-S' then
-							overview:print("huh?")
-						elseif arg1 == "-R" then
-
-							overview:print("what?")
-
-						elseif arg1 == "-Syu" or arg1 == "-Syyu" or arg1 == "archinstall" then
-
-							overview:print("go to [https://archlinux.org/] and download it")
-						end;
-					end;
-				end,
-
-				python = function()
-					overview:print('wtf we don\'t have python')
-				end,
-
-				['lua5.1'] = function(source)
-					return loadstring(table.concat(source))();
-				end,
-
-				['lua'] = function(source)
-					return loadstring(table.concat(source))();
-				end,
-
-				['luau'] = function(source)
-					return loadstring(table.concat(source))();
-				end,
-
-				['exit'] = function()
-					Terminal.Enabled = false
-				end,
-			};
-			IsInType = false;
-			LastInput = nil
-		};
-
-		ExitButton.MouseButton1Click:Connect(function()
-			Terminal.Enabled = not Terminal.Enabled;
-		end)
-
-		function overview:print(txt)
-			local lines = txt:split("\n")
-
-			for i,line in lines do
-				local cl = mkLine();
-				cl.Start.Visible = false;
-				cl.TextBox.Visible = false;
-				cl.Title.Visible = true;
-				cl.Title.Text = line;
-			end;
-
-		end;
-
-		function overview:Input()
-			local cl = mkLine();
-			cl.Start.Visible = true;
-			cl.TextBox.Visible  = true;
-			cl.Title.Visible = false;
-			overview.LastInput = cl;
-
-			local event = cl.TextBox.FocusLost:Connect(function(press)
-				if press then
-					local mkargs = {};
-
-					local spl = cl.TextBox.Text:split(' ');
-
-					local commandname = spl[1];
-
-					for i=2,#spl do
-
-						table.insert(mkargs,spl[i])
-					end;
-
-					cl.event:Fire(commandname,mkargs)
+	-- Drag for minimized state
+	MainFrame.InputBegan:Connect(function(input)
+		if not WindowTable.WindowToggle and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then 
+			dragToggle = true
+			dragStart = input.Position
+			startPos = MainFrame.Position
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragToggle = false;
 				end;
 			end)
-
-			return cl.event.Event:Wait();
 		end;
+	end)
 
-		function overview:add(name,callback)
-			overview.command[name] = function(args)
-				local ca,mess = pcall(callback,args);
+	-- Config system (simplified, assume using setclipboard or local storage)
+	function WindowTable:SaveConfig(name)
+		local config = {}
+		-- Traverse all elements and save states (toggles, sliders, etc.)
+		WindowTable.Configs[name] = config
+	end
 
-				if not ca then
-					overview:print("[Error]: ["..tostring(mess)..'] at "'..tostring(name).."\"");
-				end;
+	function WindowTable:LoadConfig(name)
+		local config = WindowTable.Configs[name]
+		if config then
+			-- Apply states to elements
+		end
+	end
+
+	function WindowTable:RefreshConfigs()
+		-- Refresh dropdown with config names
+	end
+
+	return WindowTable;
+end;
+
+Library.NewAuth = function(conf)
+	conf = Config(conf,{
+		Title = "Sugar $ KEY SYSTEM",
+		GetKey = function() return 'https://example.com' end,
+		Auth = function(key) if key == '1 or 1' then return key; end; end,
+		Freeze = false,
+	});
+
+
+	if conf.Auth then
+		if debug.info(conf.Auth,'s') == '[C]' then
+			if error then
+				error('huh');
 			end;
+
+			return;
 		end;
-
-		task.spawn(function()
-			while true do task.wait(0.1)
-				if not overview.IsInType then
-
-					if overview.LastInput then
-						overview.LastInput.TextBox.TextEditable = false;
-					end;
-
-					local n , args = overview:Input();
-
-					if overview.command[n] then
-						local ca,mess = pcall(overview.command[n],args);
-
-						if not ca then
-							overview:print("[Error]: ["..tostring(mess)..'] at "'..tostring(n).."\"");
-						end;
-					else
-
-						overview:print("[Error]: command not found: \""..tostring(n).."\"");
-					end;
-				end;
-			end;
-		end)
-
-		local dragToggle = nil;
-		local dragSpeed = 0.1;
-		local dragStart = nil;
-		local startPos = nil;
-
-		local function updateInput(input)
-			local delta = input.Position - dragStart;
-			local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
-				startPos.Y.Scale, startPos.Y.Offset + delta.Y);
-			game:GetService('TweenService'):Create(MFrame, TweenInfo.new(dragSpeed), {Position = position}):Play()
-		end;
-
-		MFrame.InputBegan:Connect(function(input)
-			if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then 
-				dragToggle = true
-				dragStart = input.Position
-				startPos = MFrame.Position
-				input.Changed:Connect(function()
-					if input.UserInputState == Enum.UserInputState.End then
-						dragToggle = false;
-					end;
-				end)
-			end;
-		end)
-
-		Input.InputChanged:Connect(function(input)
-			if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-				if dragToggle then
-					updateInput(input);
-				end;
-			end;
-		end)
-
-		return overview;
 	end;
 
-	print(' [ DONE <3 ]: Sugar UI LOADED!! YOMKA MADE IT')
+	if conf.GetKey then
+		if debug.info(conf.GetKey,'s') == '[C]' then
+			if error then
+				error('huh');
+			end;
 
-	return table.freeze(Library);
+			return;
+		end;
+	end;
+
+	local ScreenGui = Instance.new("ScreenGui")
+	local vaid = Instance.new('BindableEvent')
+	local Auth = Instance.new("Frame")
+	local MainFrame = Instance.new("Frame")
+	local BlockFrame = Instance.new("Frame")
+	local UICorner = Instance.new("UICorner")
+	local UIGradient = Instance.new("UIGradient")
+	local UICorner_2 = Instance.new("UICorner")
+	local Button2 = Instance.new("TextButton")
+	local UICorner_3 = Instance.new("UICorner")
+	local DropShadow = Instance.new("ImageLabel")
+	local UIStroke = Instance.new("UIStroke")
+	local TextBox = Instance.new("TextBox")
+	local UICorner_4 = Instance.new("UICorner")
+	local DropShadow_2 = Instance.new("ImageLabel")
+	local UIStroke_2 = Instance.new("UIStroke")
+	local Button1 = Instance.new("TextButton")
+	local UICorner_5 = Instance.new("UICorner")
+	local DropShadow_3 = Instance.new("ImageLabel")
+	local UIStroke_3 = Instance.new("UIStroke")
+	local MainDropShadow = Instance.new("ImageLabel")
+	local Title = Instance.new("TextLabel")
+	local UIGradient_2 = Instance.new("UIGradient")
+	local UICorner_6 = Instance.new("UICorner")
+
+	ScreenGui.Parent = CoreGui
+	ScreenGui.IgnoreGuiInset = true
+	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+
+	Auth.Name = "Auth"
+	Auth.Parent = ScreenGui
+	Auth.Active = true
+	Auth.AnchorPoint = Vector2.new(0.5, 0.5)
+	Auth.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+	Auth.BackgroundTransparency = 1.000
+	Auth.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Auth.BorderSizePixel = 0
+	Auth.ClipsDescendants = true
+	Auth.Position = UDim2.new(0.5, 0, 0.5, 0)
+	Auth.Size = UDim2.new(0, 245, 0, 115)
+
+	local BlueEffect = ElBlurSource.new(MainFrame,true);
+	local cose = {Library.GradientImage(MainFrame),
+		Library.GradientImage(MainFrame,Color3.fromRGB(255, 0, 4))}
+
+	MainFrame.Name = "MainFrame"
+	MainFrame.Parent = Auth
+	MainFrame.Active = true
+	MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	MainFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	MainFrame.BackgroundTransparency = 0.500
+	MainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	MainFrame.BorderSizePixel = 0
+	MainFrame.Position = UDim2.new(0.5, 0, -1.5, 0)
+	MainFrame.Size = UDim2.new(0.8,0,0.8,0)
+	Twen:Create(MainFrame,TweenInfo.new(1,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut),{
+		Position = UDim2.new(0.5, 0, 0.5, 0),
+		Size = UDim2.new(1, 0, 1, 0)
+	}):Play();
+
+	BlockFrame.Name = "BlockFrame"
+	BlockFrame.Parent = MainFrame
+	BlockFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	BlockFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	BlockFrame.BackgroundTransparency = 0.800
+	BlockFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	BlockFrame.BorderSizePixel = 0
+	BlockFrame.Position = UDim2.new(0.5, 0, 0.150000006, 0)
+	BlockFrame.Size = UDim2.new(1, 0, 0, 1)
+	BlockFrame.ZIndex = 3
+
+	UICorner.CornerRadius = UDim.new(0.5, 0)
+	UICorner.Parent = BlockFrame
+
+	UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 1.00), NumberSequenceKeypoint.new(0.05, 0.00), NumberSequenceKeypoint.new(0.96, 0.00), NumberSequenceKeypoint.new(1.00, 1.00)}
+	UIGradient.Parent = BlockFrame
+
+	UICorner_2.CornerRadius = UDim.new(0, 7)
+	UICorner_2.Parent = MainFrame
+
+	Button2.Name = "Button2"
+	Button2.Parent = MainFrame
+	Button2.AnchorPoint = Vector2.new(0.5, 0.5)
+	Button2.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	Button2.BackgroundTransparency = 0.500
+	Button2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Button2.BorderSizePixel = 0
+	Button2.Position = UDim2.new(0.75, 0, 0.649999976, 0)
+	Button2.Size = UDim2.new(0.447547048, 0, 0.155089319, 0)
+	Button2.ZIndex = 3
+	Button2.Font = Enum.Font.GothamBold
+	Button2.Text = "ACTIVATE"
+	Button2.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Button2.TextSize = 14.000
+
+	UICorner_3.CornerRadius = UDim.new(0, 2)
+	UICorner_3.Parent = Button2
+
+	DropShadow.Name = "DropShadow"
+	DropShadow.Parent = Button2
+	DropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+	DropShadow.BackgroundTransparency = 1.000
+	DropShadow.BorderSizePixel = 0
+	DropShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+	DropShadow.Size = UDim2.new(1, 37, 1, 37)
+	DropShadow.Image = "rbxassetid://6015897843"
+	DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+	DropShadow.ImageTransparency = 0.600
+	DropShadow.ScaleType = Enum.ScaleType.Slice
+	DropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
+
+	UIStroke.Transparency = 1
+	UIStroke.Color = Color3.fromRGB(255, 255, 255)
+	UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	UIStroke.Parent = Button2
+	Twen:Create(UIStroke,TweenInfo.new(1,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut),{
+		Transparency = 0.900
+	}):Play();
+
+	TextBox.Parent = MainFrame
+	TextBox.AnchorPoint = Vector2.new(0.5, 0.5)
+	TextBox.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	TextBox.BackgroundTransparency = 0.500
+	TextBox.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	TextBox.BorderSizePixel = 0
+	TextBox.Position = UDim2.new(0.5, 0, 0.300000012, 0)
+	TextBox.Size = UDim2.new(0.800000012, 0, 0.115000002, 0)
+	TextBox.ZIndex = 2
+	TextBox.ClearTextOnFocus = false
+	TextBox.Font = Enum.Font.Unknown
+	TextBox.PlaceholderText = "ENTER KEY"
+	TextBox.Text = ""
+	TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+	TextBox.TextSize = 10.000
+	TextBox.TextTransparency = 0.250
+	TextBox.TextWrapped = true
+
+	UICorner_4.CornerRadius = UDim.new(0, 2)
+	UICorner_4.Parent = TextBox
+
+	DropShadow_2.Name = "DropShadow"
+	DropShadow_2.Parent = TextBox
+	DropShadow_2.AnchorPoint = Vector2.new(0.5, 0.5)
+	DropShadow_2.BackgroundTransparency = 1.000
+	DropShadow_2.BorderSizePixel = 0
+	DropShadow_2.Position = UDim2.new(0.5, 0, 0.5, 0)
+	DropShadow_2.Size = UDim2.new(1, 37, 1, 37)
+	DropShadow_2.Image = "rbxassetid://6015897843"
+	DropShadow_2.ImageColor3 = Color3.fromRGB(0, 0, 0)
+	DropShadow_2.ImageTransparency = 0.600
+	DropShadow_2.ScaleType = Enum.ScaleType.Slice
+	DropShadow_2.SliceCenter = Rect.new(49, 49, 450, 450)
+
+	UIStroke_2.Transparency = 1
+	UIStroke_2.Color = Color3.fromRGB(255, 255, 255)
+	UIStroke_2.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	UIStroke_2.Parent = TextBox
+	Twen:Create(UIStroke_2,TweenInfo.new(1,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut),{
+		Transparency = 0.900
+	}):Play();
+	Button1.Name = "Button1"
+	Button1.Parent = MainFrame
+	Button1.AnchorPoint = Vector2.new(0.5, 0.5)
+	Button1.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	Button1.BackgroundTransparency = 0.500
+	Button1.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Button1.BorderSizePixel = 0
+	Button1.Position = UDim2.new(0.25, 0, 0.649999976, 0)
+	Button1.Size = UDim2.new(0.447547048, 0, 0.155089319, 0)
+	Button1.ZIndex = 3
+	Button1.Font = Enum.Font.GothamBold
+	Button1.Text = "GET KEY"
+	Button1.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Button1.TextSize = 14.000
+
+	UICorner_5.CornerRadius = UDim.new(0, 2)
+	UICorner_5.Parent = Button1
+
+	DropShadow_3.Name = "DropShadow"
+	DropShadow_3.Parent = Button1
+	DropShadow_3.AnchorPoint = Vector2.new(0.5, 0.5)
+	DropShadow_3.BackgroundTransparency = 1.000
+	DropShadow_3.BorderSizePixel = 0
+	DropShadow_3.Position = UDim2.new(0.5, 0, 0.5, 0)
+	DropShadow_3.Size = UDim2.new(1, 37, 1, 37)
+	DropShadow_3.Image = "rbxassetid://6015897843"
+	DropShadow_3.ImageColor3 = Color3.fromRGB(0, 0, 0)
+	DropShadow_3.ImageTransparency = 0.600
+	DropShadow_3.ScaleType = Enum.ScaleType.Slice
+	DropShadow_3.SliceCenter = Rect.new(49, 49, 450, 450)
+
+	UIStroke_3.Transparency = 1
+	UIStroke_3.Color = Color3.fromRGB(255, 255, 255)
+	UIStroke_3.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	UIStroke_3.Parent = Button1
+	Twen:Create(UIStroke_3,TweenInfo.new(1,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut),{
+		Transparency = 0.900
+	}):Play();
+	MainDropShadow.Name = "MainDropShadow"
+	MainDropShadow.Parent = MainFrame
+	MainDropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+	MainDropShadow.BackgroundTransparency = 1.000
+	MainDropShadow.BorderSizePixel = 0
+	MainDropShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+	MainDropShadow.Rotation = 0.0001
+	MainDropShadow.Size = UDim2.new(1, 47, 1, 47)
+	MainDropShadow.ZIndex = 0
+	MainDropShadow.Image = "rbxassetid://6015897843"
+	MainDropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+	MainDropShadow.ImageTransparency = 1
+	MainDropShadow.ScaleType = Enum.ScaleType.Slice
+	MainDropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
+	Twen:Create(MainDropShadow,TweenInfo.new(2,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut),{
+		ImageTransparency = 0.600
+	}):Play();
+	Title.Name = "Title"
+	Title.Parent = MainFrame
+	Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	Title.BackgroundTransparency = 1.000
+	Title.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Title.BorderSizePixel = 0
+	Title.Position = UDim2.new(0.0250000004, 0, 0.0350000001, 0)
+	Title.Size = UDim2.new(0.899999976, 0, 0.075000003, 0)
+	Title.Font = Enum.Font.GothamBold
+	Title.Text = conf.Title;
+	Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+	Title.TextScaled = true
+	Title.TextSize = 14.000
+	Title.TextWrapped = true
+	Title.TextXAlignment = Enum.TextXAlignment.Left
+
+	UIGradient_2.Rotation = 90
+	UIGradient_2.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.75, 0.27), NumberSequenceKeypoint.new(1.00, 1.00)}
+	UIGradient_2.Parent = Title
+
+	UICorner_6.CornerRadius = UDim.new(0, 7)
+	UICorner_6.Parent = MainFrame
+
+	local id = tostring(math.random(1,100))..tostring(math.random(1,100))..tostring(math.random(1,100))..tostring(math.random(1,100))..tostring(math.random(1,100))..tostring(math.random(1,100))..tostring(tick()):reverse();
+
+	Button1.MouseButton1Click:Connect(function()
+		local str = conf.GetKey();
+
+		if str then
+			if typeof(str) == 'string' then
+				local clip = getfenv()['toclipboard'] or getfenv()['setclipboard'] or getfenv()['print'];
+
+				clip(str);
+			end;
+		end;
+	end);
+
+
+	Button2.MouseButton1Click:Connect(function()
+		local str = conf.Auth(TextBox.Text);
+
+		if str then
+			TextBox.Text = "*/*/*/*/*/*/*/*/*/*/*/*/*/*";
+
+			vaid:Fire(id)
+		else
+			TextBox.Text = "";
+		end;
+	end);
+
+	if conf.Freeze then
+		while ScreenGui do task.wait();
+			local ez = vaid.Event:Wait();
+
+			if ez == id then
+				break;
+			end;
+		end;
+	end;
+
+	return {
+		Close = function()
+			Twen:Create(MainDropShadow,TweenInfo.new(1,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut),{
+				ImageTransparency = 1
+			}):Play();
+
+			BlueEffect.Destroy();
+
+
+			for i,v in ipairs(cose) do
+				game:GetService('RunService'):UnbindFromRenderStep(v);
+			end;
+
+			Twen:Create(MainFrame,TweenInfo.new(1,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut),{
+				Size = UDim2.new(0.8,0,0.8,0)
+			}):Play();
+
+			task.delay(1,function()
+				Twen:Create(MainFrame,TweenInfo.new(1,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut),{
+					Position = UDim2.new(0.5, 0, 1.5, 0),
+					Size = UDim2.new(0.8,0,0.8,0)
+				}):Play();
+
+				task.delay(1.2,function()
+
+					ScreenGui:Destroy()
+
+				end)
+			end)
+		end,
+	}
 end;
+
+Library.Notification = function()
+	local Notification = Instance.new("ScreenGui")
+	local Frame = Instance.new("Frame")
+	local UIListLayout = Instance.new("UIListLayout")
+
+	Notification.Name = "Notification"
+	Notification.Parent = CoreGui
+	Notification.ResetOnSpawn = false
+	Notification.ZIndexBehavior = Enum.ZIndexBehavior.Global;
+	Notification.Name = game:GetService('HttpService'):GenerateGUID(false)
+	Notification.IgnoreGuiInset = true
+
+	Frame.Parent = Notification
+	Frame.AnchorPoint = Vector2.new(0.5, 0.5)
+	Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	Frame.BackgroundTransparency = 1.000
+	Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Frame.BorderSizePixel = 0
+	Frame.Position = UDim2.new(0.151568726, 0, 0.5, 0)
+	Frame.Size = UDim2.new(0.400000006, 0, 0.400000006, 0)
+	Frame.SizeConstraint = Enum.SizeConstraint.RelativeYY
+
+	UIListLayout.Parent = Frame
+	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+	UIListLayout.Padding = UDim.new(0,2);
+
+	return {
+		new = function(ctfx)
+			ctfx = Config(ctfx,{
+				Title = "Notification",
+				Description = "Description",
+				Duration = 5,
+				Icon = "rbxassetid://7733993369"
+			})
+			local css_style = TweenInfo.new(0.3,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut);  -- Faster animation
+			local Notifiy = Instance.new("Frame")
+			local UICorner = Instance.new("UICorner")
+			local icon = Instance.new("ImageLabel")
+			local UICorner_2 = Instance.new("UICorner")
+			local TextLabel = Instance.new("TextLabel")
+			local TextLabel_2 = Instance.new("TextLabel")
+			local DropShadow = Instance.new('ImageLabel')
+
+			DropShadow.Name = "DropShadow"
+			DropShadow.Parent = Notifiy
+			DropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+			DropShadow.BackgroundTransparency = 1.000
+			DropShadow.BorderSizePixel = 0
+			DropShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+			DropShadow.Size = UDim2.new(1, 37, 1, 37)
+			DropShadow.Image = "rbxassetid://6015897843"
+			DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+			DropShadow.ImageTransparency = 1
+			DropShadow.ScaleType = Enum.ScaleType.Slice
+			DropShadow.Rotation = 0.001
+			DropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
+			Twen:Create(DropShadow,css_style,{
+				ImageTransparency = 0.600
+			}):Play()
+
+			Notifiy.Name = "Notifiy"
+			Notifiy.Parent = Frame
+			Notifiy.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+			Notifiy.BackgroundTransparency = 1
+			Notifiy.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			Notifiy.BorderSizePixel = 0
+			Notifiy.ClipsDescendants = true
+			Notifiy.Size = UDim2.new(0,0,0,0)
+			Twen:Create(Notifiy,css_style,{
+				BackgroundTransparency = 0.350,
+				Size = UDim2.new(0.3, 0, 0.3, 0)  -- Larger on PC
+			}):Play()
+
+			UICorner.CornerRadius = UDim.new(0.3,0)
+			UICorner.Parent = Notifiy
+
+			icon.Name = "icon"
+			icon.Parent = Notifiy
+			icon.AnchorPoint = Vector2.new(0.5, 0.5)
+			icon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			icon.BackgroundTransparency = 1.000
+			icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			icon.BorderSizePixel = 0
+			icon.Position = UDim2.new(0.5, 0, 0.5, 0)
+			icon.Size = UDim2.new(0.3, 0, 0.3, 0)
+			icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+			icon.Image = Icons[ctfx.Icon] or ctfx.Icon
+			icon.ImageTransparency = 1;
+
+			Twen:Create(icon,css_style,{
+				ImageTransparency = 0.1,
+				Size = UDim2.new(0.699999988, 0, 0.699999988, 0)
+			}):Play()
+
+
+			UICorner_2.CornerRadius = UDim.new(1,0)
+			UICorner_2.Parent = icon
+
+			Twen:Create(UICorner_2,css_style,{
+				CornerRadius = UDim.new(0.4, 0)
+			}):Play()
+
+			TextLabel.Parent = Notifiy
+			TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			TextLabel.BackgroundTransparency = 1.000
+			TextLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			TextLabel.BorderSizePixel = 0
+			TextLabel.Position = UDim2.new(2, 0, 0.130389422, 0)
+			TextLabel.Size = UDim2.new(0.800069451, 0, 0.217663303, 0)
+			TextLabel.Font = Enum.Font.GothamBold
+			TextLabel.Text = ctfx.Title
+			TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+			TextLabel.TextScaled = true
+			TextLabel.TextSize = 14.000
+			TextLabel.TextWrapped = true
+			TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+			TextLabel_2.Parent = Notifiy
+			TextLabel_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			TextLabel_2.BackgroundTransparency = 1.000
+			TextLabel_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			TextLabel_2.BorderSizePixel = 0
+			TextLabel_2.Position = UDim2.new(2, 0, 0.34770447, 0)
+			TextLabel_2.Size = UDim2.new(0.769645274, 0, 0.502295375, 0)
+			TextLabel_2.Font = Enum.Font.GothamBold
+			TextLabel_2.Text = ctfx.Description
+			TextLabel_2.TextColor3 = Color3.fromRGB(255, 255, 255)
+			TextLabel_2.TextSize = 9.000
+			TextLabel_2.TextTransparency = 0.500
+			TextLabel_2.TextWrapped = true
+			TextLabel_2.TextXAlignment = Enum.TextXAlignment.Left
+			TextLabel_2.TextYAlignment = Enum.TextYAlignment.Top
+
+			local mkView = function()
+				Twen:Create(Notifiy,css_style,{
+					Size = UDim2.new(1, 0, 0.2, 0)
+				}):Play()
+
+				Twen:Create(UICorner,css_style,{
+					CornerRadius = UDim.new(0, 4)
+				}):Play()
+
+				Twen:Create(icon,css_style,{
+					Position = UDim2.new(0.100000001, 0, 0.5, 0)
+				}):Play()
+
+				Twen:Create(TextLabel,css_style,{
+					Position = UDim2.new(0.199930489, 0, 0.130389422, 0)
+				}):Play()
+
+				Twen:Create(TextLabel_2,css_style,{
+					Position = UDim2.new(0.199930489, 0, 0.34770447, 0)
+				}):Play()
+			end;
+
+
+			local mkLoad = function()
+				Twen:Create(Notifiy,css_style,{
+					Size = UDim2.new(0.2, 0, 0.2, 0)
+				}):Play()
+
+				Twen:Create(UICorner,css_style,{
+					CornerRadius = UDim.new(0.4,0)
+				}):Play()
+
+				Twen:Create(icon,css_style,{
+					Position = UDim2.new(0.5, 0, 0.5, 0)
+				}):Play()
+
+				Twen:Create(TextLabel,css_style,{
+					Position = UDim2.new(1, 0, 0.130389422, 0)
+				}):Play()
+
+				Twen:Create(TextLabel_2,css_style,{
+					Position = UDim2.new(1, 0, 0.34770447, 0)
+				}):Play()
+			end;
+
+			mkLoad();
+
+			task.spawn(function()
+				task.wait(0.5)
+				mkView();
+
+
+
+				task.delay(1 + ctfx.Duration,function()
+					mkLoad();
+
+					task.wait(0.65)
+
+					Twen:Create(Notifiy,css_style,{
+						BackgroundTransparency = 1,
+						Size = UDim2.new(0,0,0,0)
+					}):Play()
+
+					Twen:Create(icon,css_style,{
+						ImageTransparency = 1
+					}):Play()
+
+					Twen:Create(DropShadow,css_style,{
+						ImageTransparency = 1
+					}):Play()
+
+					task.delay(0.5,Notifiy.Destroy,Notifiy)
+				end)
+			end)
+		end,
+	}
+end;
+
+function Library:Console()
+	local Terminal = Instance.new("ScreenGui")
+	local MFrame = Instance.new("Frame")
+	local UICorner = Instance.new("UICorner")
+	local DropShadow = Instance.new("ImageLabel")
+	local konsole_title = Instance.new("TextLabel")
+	local terminalicon = Instance.new("ImageLabel")
+	local ExitButton = Instance.new("ImageButton")
+	local KFrame = Instance.new("Frame")
+	local Frame = Instance.new("Frame")
+	local cmdFrame = Instance.new("ScrollingFrame")
+	local UIListLayout = Instance.new("UIListLayout")
+	local Frame_2 = Instance.new("Frame")
+
+	Terminal.Name = "RobloxDevGui"
+	Terminal.Parent = CoreGui
+	Terminal.ResetOnSpawn = false
+	Terminal.ZIndexBehavior = Enum.ZIndexBehavior.Global;
+
+	Terminal.IgnoreGuiInset = true;
+
+	MFrame.Name = "MFrame"
+	MFrame.Parent = Terminal
+	MFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	MFrame.BackgroundColor3 = Color3.fromRGB(49, 54, 59)
+	MFrame.BackgroundTransparency = 0.100
+	MFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	MFrame.BorderSizePixel = 0
+	MFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+	MFrame.Size = UDim2.new(0.075000003, 450, 0.075000003, 300)
+
+	UICorner.CornerRadius = UDim.new(0, 4)
+	UICorner.Parent = MFrame
+
+	DropShadow.Name = "DropShadow"
+	DropShadow.Parent = MFrame
+	DropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+	DropShadow.BackgroundTransparency = 1.000
+	DropShadow.BorderSizePixel = 0
+	DropShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+	DropShadow.Size = UDim2.new(1, 47, 1, 47)
+	DropShadow.ZIndex = 0
+	DropShadow.Image = "rbxassetid://6014261993"
+	DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+	DropShadow.ImageTransparency = 0.500
+	DropShadow.ScaleType = Enum.ScaleType.Slice
+	DropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
+
+	konsole_title.Name = "konsole_title"
+	konsole_title.Parent = MFrame
+	konsole_title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	konsole_title.BackgroundTransparency = 1.000
+	konsole_title.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	konsole_title.BorderSizePixel = 0
+	konsole_title.Position = UDim2.new(0, 0, 0.0161176082, 0)
+	konsole_title.Size = UDim2.new(1, 0, 0.0380379669, 0)
+	konsole_title.Font = Enum.Font.SourceSansBold
+	konsole_title.Text = "~ : neu -- Konsole"
+	konsole_title.TextColor3 = Color3.fromRGB(255, 255, 255)
+	konsole_title.TextScaled = true
+	konsole_title.TextSize = 14.000
+	konsole_title.TextWrapped = true
+
+	terminalicon.Name = "terminal-icon"
+	terminalicon.Parent = MFrame
+	terminalicon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	terminalicon.BackgroundTransparency = 1.000
+	terminalicon.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	terminalicon.BorderSizePixel = 0
+	terminalicon.Size = UDim2.new(0.075000003, 0, 0.075000003, 0)
+	terminalicon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+	terminalicon.Image = "rbxassetid://12097983462"
+
+	ExitButton.Name = "ExitButton"
+	ExitButton.Parent = MFrame
+	ExitButton.AnchorPoint = Vector2.new(1, 0)
+	ExitButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	ExitButton.BackgroundTransparency = 1.000
+	ExitButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	ExitButton.BorderSizePixel = 0
+	ExitButton.Position = UDim2.new(0.995000005, 0, 0.00999999978, 0)
+	ExitButton.Size = UDim2.new(0.0549999997, 0, 0.0549999997, 0)
+	ExitButton.SizeConstraint = Enum.SizeConstraint.RelativeYY
+	ExitButton.Image = "rbxassetid://7743878857"
+
+	KFrame.Name = "KFrame"
+	KFrame.Parent = MFrame
+	KFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	KFrame.BackgroundColor3 = Color3.fromRGB(34, 38, 38)
+	KFrame.BackgroundTransparency = 0.100
+	KFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	KFrame.BorderSizePixel = 0
+	KFrame.Position = UDim2.new(0.5, 0, 0.537500083, 0)
+	KFrame.Size = UDim2.new(1, 0, 0.925000012, 0)
+	KFrame.ZIndex = 2
+
+	Frame.Parent = KFrame
+	Frame.BackgroundColor3 = Color3.fromRGB(85, 88, 93)
+	Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Frame.BorderSizePixel = 0
+	Frame.Size = UDim2.new(1, 0, 0, 1)
+	Frame.ZIndex = 3
+
+	cmdFrame.Name = "cmdFrame"
+	cmdFrame.Parent = KFrame
+	cmdFrame.Active = true
+	cmdFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	cmdFrame.BackgroundTransparency = 1.000
+	cmdFrame.BorderColor3 = Color3.fromRGB(73, 74, 77)
+	cmdFrame.BorderSizePixel = 0
+	cmdFrame.Size = UDim2.new(1, 0, 1, 0)
+	cmdFrame.ZIndex = 4
+	cmdFrame.ScrollBarThickness = 6
+
+	UIListLayout.Parent = cmdFrame
+	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	UIListLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
+		cmdFrame.CanvasSize = UDim2.new(0,0,0,UIListLayout.AbsoluteContentSize.Y)
+	end);
+
+	Frame_2.Parent = KFrame
+	Frame_2.AnchorPoint = Vector2.new(1, 0)
+	Frame_2.BackgroundColor3 = Color3.fromRGB(85, 88, 93)
+	Frame_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	Frame_2.BorderSizePixel = 0
+	Frame_2.Position = UDim2.new(0.980000019, 0, 0, 0)
+	Frame_2.Size = UDim2.new(0, 1, 1, 0)
+	Frame_2.ZIndex = 3
+
+	local mkLine = function()
+		local line = Instance.new("Frame")
+		local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+		local UIListLayout = Instance.new("UIListLayout")
+		local StartK = Instance.new("TextLabel")
+		local TextBox = Instance.new("TextBox")
+		local TitleK = Instance.new("TextLabel")
+
+		line.Name = "line"
+		line.Parent = cmdFrame
+		line.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		line.BackgroundTransparency = 1.000
+		line.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		line.BorderSizePixel = 0
+		line.Size = UDim2.new(1, 0, 0.5, 0)
+		line.ZIndex = 5
+
+		UIAspectRatioConstraint.Parent = line
+		UIAspectRatioConstraint.AspectRatio = 45.000
+		UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
+
+		UIListLayout.Parent = line
+		UIListLayout.FillDirection = Enum.FillDirection.Horizontal
+		UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+
+		StartK.Name = "StartK"
+		StartK.Parent = line
+		StartK.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		StartK.BackgroundTransparency = 1.000
+		StartK.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		StartK.BorderSizePixel = 0
+		StartK.Size = UDim2.new(0.177329257, 0, 1, 0)
+		StartK.ZIndex = 6
+		StartK.Font = Enum.Font.SourceSans
+		StartK.Text = "[neuronx@rubuntu ~]$"
+		StartK.TextColor3 = Color3.fromRGB(255, 255, 255)
+		StartK.TextScaled = true
+		StartK.TextSize = 14.000
+		StartK.TextWrapped = true
+		StartK.TextXAlignment = Enum.TextXAlignment.Left
+		StartK.RichText = true;
+
+		TextBox.Parent = line
+		TextBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		TextBox.BackgroundTransparency = 1.000
+		TextBox.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		TextBox.BorderSizePixel = 0
+		TextBox.Size = UDim2.new(1, 0, 1, 0)
+		TextBox.Visible = false
+		TextBox.ZIndex = 6
+		TextBox.ClearTextOnFocus = false
+		TextBox.Font = Enum.Font.SourceSans
+		TextBox.Text = ""
+		TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+		TextBox.TextScaled = true
+		TextBox.TextSize = 14.000
+		TextBox.TextTransparency = 0.350
+		TextBox.TextWrapped = true
+		TextBox.TextXAlignment = Enum.TextXAlignment.Left
+
+		TitleK.Name = "TitleK"
+		TitleK.Parent = line
+		TitleK.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		TitleK.BackgroundTransparency = 1.000
+		TitleK.BorderColor3 = Color3.fromRGB(0, 0, 0)
+		TitleK.BorderSizePixel = 0
+		TitleK.Size = UDim2.new(1, 0, 1, 0)
+		TitleK.Visible = false
+		TitleK.ZIndex = 6
+		TitleK.Font = Enum.Font.SourceSans
+		TitleK.Text = "failed"
+		TitleK.TextColor3 = Color3.fromRGB(255, 255, 255)
+		TitleK.TextScaled = true
+		TitleK.TextSize = 14.000
+		TitleK.TextWrapped = true
+		TitleK.TextXAlignment = Enum.TextXAlignment.Left;
+		TitleK.RichText = true;
+
+		local event = Instance.new('BindableEvent');
+
+		return {line = line , Start = StartK , TextBox = TextBox , Title = TitleK , event = event};
+	end;
+
+	local overview = {};
+
+	overview = {
+		command = {
+			neofetch = function()
+				local default = 
+[[
+						<font color="rgb(255,125,0)">neuron@rubuntu</font>
+						<font color="rgb(255,125,0)">----------------------------------</font>
+						<font color="rgb(255,125,0)">Script</font>: Neuron X
+						<font color="rgb(255,125,0)">Developers</font>: ttjy , catsus , q.r2s
+						<font color="rgb(255,125,0)">Discord</font>: https://discord.gg/HkRUtyTbk2
+	<font color="rgb(255,125,0)">no logo</font>	<font color="rgb(255,125,0)">CPU1</font>: Intel Core I9 15900K (arm)
+						<font color="rgb(255,125,0)">CPU2</font>: Snapdragon 8 Gen 4 Super Ultra Gaming Edition (arm)
+						<font color="rgb(255,125,0)">GPU1</font>: Nvidia RTX 9080 Ti
+						<font color="rgb(255,125,0)">GPU2</font>: Nvidia GTX 1080 Ti
+						<font color="rgb(255,125,0)">Kernel</font>: Roblox-Security-thread
+						<font color="rgb(255,125,0)">Terminal</font>: Konsole
+						<font color="rgb(255,125,0)">Host</font>: Xiaomi 15 Ultra Pro Max ROG Edition 3
+						<font color="rgb(255,125,0)">UI</font>: KDE Plasma 6
+]];
+
+				overview:print(default)
+			end,
+
+			clear = function()
+				for i,v in ipairs(cmdFrame:GetChildren()) do
+					if v:IsA('Frame') then
+						v:Destroy()
+					end
+				end
+			end,
+
+			sudo = function(args) -- root
+				local ctype = args[1];
+				local arg1 = args[2];
+				local arg2 = args[3];
+
+				if ctype == "rm" then
+					if arg1 == "-rf" then
+						if arg2 == "/" then
+							local ps5 = game:GetChildren();
+							for i=1,#ps5 do task.wait()
+								overview:print("[ OK ]: Deleted /"..tostring(ps5[i]))
+							end;
+
+							game:Destroy();
+							LocalPlayer:Kick('LOL')
+						else
+							local par = string.gsub(arg2,'/','.')
+
+							if string.sub(par,1,1) == '.' then
+								par = string.sub(par,2);
+							end;
+
+							local ppt = loadstring('return '..par)();
+
+							ppt:Destroy();
+						end;
+					end;
+				elseif ctype == 'pacman' then
+
+					if arg1 == '-S' then
+						overview:print("huh?")
+					elseif arg1 == "-R" then
+
+						overview:print("what?")
+
+					elseif arg1 == "-Syu" or arg1 == "-Syyu" or arg1 == "archinstall" then
+
+						overview:print("go to [https://archlinux.org/] and download it")
+					end;
+				end;
+			end,
+
+			python = function()
+				overview:print('wtf we don\'t have python')
+			end,
+
+			['lua5.1'] = function(source)
+				return loadstring(table.concat(source))();
+			end,
+
+			['lua'] = function(source)
+				return loadstring(table.concat(source))();
+			end,
+
+			['luau'] = function(source)
+				return loadstring(table.concat(source))();
+			end,
+
+			['exit'] = function()
+				Terminal.Enabled = false
+			end,
+		};
+		IsInType = false;
+		LastInput = nil
+	};
+
+	ExitButton.MouseButton1Click:Connect(function()
+		Terminal.Enabled = not Terminal.Enabled;
+	end)
+
+	function overview:print(txt)
+		local lines = txt:split("\n")
+
+		for i,line in lines do
+			local cl = mkLine();
+			cl.Start.Visible = false;
+			cl.TextBox.Visible = false;
+			cl.Title.Visible = true;
+			cl.Title.Text = line;
+		end;
+
+	end;
+
+	function overview:Input()
+		local cl = mkLine();
+		cl.Start.Visible = true;
+		cl.TextBox.Visible  = true;
+		cl.Title.Visible = false;
+		overview.LastInput = cl;
+
+		local event = cl.TextBox.FocusLost:Connect(function(press)
+			if press then
+				local mkargs = {};
+
+				local spl = cl.TextBox.Text:split(' ');
+
+				local commandname = spl[1];
+
+				for i=2,#spl do
+
+					table.insert(mkargs,spl[i])
+				end;
+
+				cl.event:Fire(commandname,mkargs)
+			end;
+		end)
+
+		return cl.event.Event:Wait();
+	end;
+
+	function overview:add(name,callback)
+		overview.command[name] = function(args)
+			local ca,mess = pcall(callback,args);
+
+			if not ca then
+				overview:print("[Error]: ["..tostring(mess)..'] at "'..tostring(name).."\"");
+			end;
+		end;
+	end;
+
+	task.spawn(function()
+		while true do task.wait(0.1)
+			if not overview.IsInType then
+
+				if overview.LastInput then
+					overview.LastInput.TextBox.TextEditable = false;
+				end;
+
+				local n , args = overview:Input();
+
+				if overview.command[n] then
+					local ca,mess = pcall(overview.command[n],args);
+
+					if not ca then
+						overview:print("[Error]: ["..tostring(mess)..'] at "'..tostring(n).."\"");
+					end;
+				else
+
+					overview:print("[Error]: command not found: \""..tostring(n).."\"");
+				end;
+			end;
+		end;
+	end)
+
+	local dragToggle = nil;
+	local dragSpeed = 0.1;
+	local dragStart = nil;
+	local startPos = nil;
+
+	local function updateInput(input)
+		local delta = input.Position - dragStart;
+		local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+			startPos.Y.Scale, startPos.Y.Offset + delta.Y);
+		game:GetService('TweenService'):Create(MFrame, TweenInfo.new(dragSpeed), {Position = position}):Play()
+	end;
+
+	MFrame.InputBegan:Connect(function(input)
+		if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then 
+			dragToggle = true
+			dragStart = input.Position
+			startPos = MFrame.Position
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragToggle = false;
+				end;
+			end)
+		end;
+	end)
+
+	Input.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			if dragToggle then
+				updateInput(input);
+			end;
+		end;
+	end)
+
+	return overview;
+end;
+
+print(' [ DONE <3 ]: Sugar UI LOADED!! YOMKA MADE IT')
+
+return table.freeze(Library);
