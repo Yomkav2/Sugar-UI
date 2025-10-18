@@ -1,4 +1,4 @@
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua 77 -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua 88 -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -243,14 +243,65 @@ local function GetIconUrl(IconName: string)
     return Icon.Url
 end
 
-local function SetIconProperties(ImageLabel: ImageLabel, cfgIcon: string)
-    local iconData = GetCustomIcon(cfgIcon)
-    if iconData then
-        ImageLabel.Image = iconData.Url
-        ImageLabel.ImageRectOffset = iconData.ImageRectOffset
-        ImageLabel.ImageRectSize = iconData.ImageRectSize
+-- Утилита: применить иконку к ImageLabel (поддерживает спрайтшиты и прямые asset URL)
+local function ApplyIconToImageLabel(imageLabel, iconName)
+    if not imageLabel then return end
+
+    -- попытка распознать кастомный asset (rbxasset, roblox.com, rbxthumb)
+    local function isCustom(s)
+        return typeof(s) == "string" and (s:match("rbxasset") or s:match("roblox%.com/asset/%?id=") or s:match("rbxthumb://type="))
+    end
+
+    local iconObj = nil
+
+    -- 1) если строка — прямой asset/url
+    if isCustom(iconName) then
+        iconObj = { Url = iconName, ImageRectOffset = Vector2.new(0,0), ImageRectSize = Vector2.new(0,0), Custom = true }
     else
-        ImageLabel.Image = cfgIcon
+        -- 2) попробовать получить из модуля (если он доступен)
+        if FetchIcons and type(IconsModule) == "table" and type(IconsModule.GetAsset) == "function" then
+            local ok, res = pcall(IconsModule.GetAsset, IconsModule, iconName)
+            if ok and res then
+                iconObj = res
+            end
+        end
+
+        -- 3) старый вариант: если раньше у вас была таблица Icons (простая), попытаться использовать
+        if not iconObj and type(Icons) == "table" then
+            -- если Icons содержит прямые URL по ключу
+            if typeof(Icons[iconName]) == "string" then
+                iconObj = { Url = Icons[iconName], ImageRectOffset = Vector2.new(0,0), ImageRectSize = Vector2.new(0,0), Custom = true }
+            end
+        end
+    end
+
+    -- Применение: если не нашли объект — просто назначаем имя (может быть уже url)
+    if not iconObj then
+        imageLabel.Image = iconName or ""
+        return
+    end
+
+    -- Установить основной image (Url может быть nil; тогда оставить как есть)
+    if iconObj.Url and iconObj.Url ~= "" then
+        imageLabel.Image = iconObj.Url
+    else
+        -- fallback: если Url отсутствует, попробовать присвоить переданную строку
+        imageLabel.Image = iconName or ""
+    end
+
+    -- Если объект содержит ImageRectOffset/Size — установить их
+    if iconObj.ImageRectOffset and iconObj.ImageRectSize then
+        -- только если ненулевые размеры применяем (роблокс ожидает корректные значения)
+        pcall(function()
+            imageLabel.ImageRectOffset = iconObj.ImageRectOffset
+            imageLabel.ImageRectSize   = iconObj.ImageRectSize
+        end)
+    else
+        -- сбросить на ноль чтобы избежать случайных срезов
+        pcall(function()
+            imageLabel.ImageRectOffset = Vector2.new(0,0)
+            imageLabel.ImageRectSize   = Vector2.new(0,0)
+        end)
     end
 end
 
@@ -1224,8 +1275,8 @@ function Library.new(config)
 		Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 		Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 		Icon.ZIndex = 6
+		ApplyIconToImageLabel(Icon, cfg.Icon)
 		Icon.ImageTransparency = 1
-		SetIconProperties(Icon, cfg.Icon)
 		Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
 		UICorner_2.CornerRadius = UDim.new(0, 3)
@@ -1495,8 +1546,8 @@ function Library.new(config)
 			Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 			Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 			Icon.ZIndex = 6
+			ApplyIconToImageLabel(Icon, c_o_n_f_i_g.Icon)
 			Icon.ImageTransparency = 1
-			SetIconProperties(Icon, c_o_n_f_i_g.Icon)
 			Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
 			UICorner_3.CornerRadius = UDim.new(0, 3)
@@ -2415,7 +2466,7 @@ function Library.new(config)
 					Visible = function(newindx)
 						FunctionDropdown.Visible = newindx
 					end,
-					Refresh = function(newData)
+					Refresh = function(newData,newData)
 						if newData then drop.Data = newData end
 						WindowTable.Dropdown:Close()
 						WindowTable.Dropdown:Open(drop.Data, drop.Default, Updater)
@@ -2719,7 +2770,7 @@ end
 -- Возвращает структуру иконки для произвольной строки.
 -- Если строка распознана как прямой URL/asset, возвращает объект с полями Url, ImageRectOffset, ImageRectSize, Custom = true.
 -- Если нет — пытается получить иконку по имени через GetIcon.
-function Lucide:GetCustomIcon(iconName)
+function Lucide:GetCustomIcon(iconName: string)
     if IsValidCustomIcon(iconName) then
         return {
             Url = iconName,
@@ -2733,7 +2784,7 @@ function Lucide:GetCustomIcon(iconName)
 end
 
 -- Утилита: безопасная попытка получить URL (возвращает строку или nil).
-function Lucide:GetIconUrl(name)
+function Lucide:GetIconUrl(name: string)
     local icon = self:GetIcon(name)
     if not icon then
         return nil
@@ -3172,7 +3223,7 @@ Library.Notification = function()
 			icon.BackgroundTransparency = 1.000
 			icon.Position = UDim2.new(0.05, 0, 0.5, 0)
 			icon.Size = iconSize
-			icon.Image = Icons[ctfx.Icon] or ctfx.Icon
+			ApplyIconToImageLabel(icon, ctfx.Icon)
 			icon.ImageTransparency = 1;
 			Twen:Create(icon,css_style,{
 				ImageTransparency = 0
