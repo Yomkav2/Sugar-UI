@@ -1,6 +1,6 @@
 -- source.lua (Updated Library Source)
 
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKAdwwwwww 2222222222222-
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua Ywww -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -375,11 +375,8 @@ function Library.new(config)
 	WindowTable.SaveConfig = function(name)
 		local cfg = WindowTable:GetConfig()
 		writefile(configFolder .. "/" .. name .. ".json", HttpService:JSONEncode(cfg))
-		Library.Notification().new({
-			Title = "Config Saved",
-			Description = "Config '" .. name .. "' has been saved.",
-			Duration = 3
-		})
+		local notify = Library.Notification()
+		notify.new({Title="Config Saved", Description=name, Duration=3})
 	end
 
 	WindowTable.LoadConfig = function(name)
@@ -387,32 +384,17 @@ function Library.new(config)
 			local data = readfile(configFolder .. "/" .. name .. ".json")
 			local cfg = HttpService:JSONDecode(data)
 			WindowTable:SetConfig(cfg)
-			Library.Notification().new({
-				Title = "Config Loaded",
-				Description = "Config '" .. name .. "' has been loaded.",
-				Duration = 3
-			})
+			local notify = Library.Notification()
+			notify.new({Title="Config Loaded", Description=name, Duration=3})
 		end
 	end
 
 	WindowTable.DeleteConfig = function(name)
 		if isfile(configFolder .. "/" .. name .. ".json") then
 			delfile(configFolder .. "/" .. name .. ".json")
-			Library.Notification().new({
-				Title = "Config Deleted",
-				Description = "Config '" .. name .. "' has been deleted.",
-				Duration = 3
-			})
+			local notify = Library.Notification()
+			notify.new({Title="Config Deleted", Description=name, Duration=3})
 		end
-	end
-
-	WindowTable.RefreshConfigList = function()
-		Library.Notification().new({
-			Title = "Config List Refreshed",
-			Description = "The config list has been refreshed.",
-			Duration = 3
-		})
-		return listConfigs()
 	end
 
 	local ImageButton = Instance.new("ImageButton")
@@ -1179,11 +1161,7 @@ function Library.new(config)
 		local cfg = {}
 		for _, el in ipairs(self:GetAllElements()) do
 			if el.Name then
-				local value = el.Get()
-				if typeof(value) == "EnumItem" and value.EnumType == Enum.KeyCode then
-					value = value.Name
-				end
-				cfg[el.Name] = value
+				cfg[el.Name] = el.Get()
 			end
 		end
 		return cfg
@@ -1192,14 +1170,7 @@ function Library.new(config)
 	function WindowTable:SetConfig(cfg)
 		for _, el in ipairs(self:GetAllElements()) do
 			if el.Name and cfg[el.Name] ~= nil then
-				local value = cfg[el.Name]
-				if typeof(value) == "string" then
-					local keyCode = Enum.KeyCode[value]
-					if keyCode then
-						value = keyCode
-					end
-				end
-				el.Set(value)
+				el.Set(cfg[el.Name])
 			end
 		end
 	end
@@ -2106,7 +2077,7 @@ function Library.new(config)
 				local el = {
 					Name = ctfx.Name,
 					Get = function() return ctfx.Default.Name end,
-					Set = function(v) ctfx.Default = Enum.KeyCode[v]; UpdateUI(Enum.KeyCode[v]); ctfx.Callback(Enum.KeyCode[v]) end,
+					Set = function(v) ctfx.Default = Enum.KeyCode[v]; UpdateUI(ctfx.Default); ctfx.Callback(ctfx.Default) end,
 					Visible = function(newindx)
 						FunctionKeybind.Visible = newindx
 					end,
@@ -2451,11 +2422,8 @@ function Library.new(config)
 						if newData then drop.Data = newData end
 						WindowTable.Dropdown:Close()
 						WindowTable.Dropdown:Open(drop.Data, drop.Default, Updater)
-						Library.Notification().new({
-							Title = "List Refreshed",
-							Description = "The list has been refreshed.",
-							Duration = 3
-						})
+						local notify = Library.Notification()
+						notify.new({Title="List Refreshed", Description="", Duration=3})
 					end,
 					Open = function(value)
 						WindowTable.Dropdown:Setup(MFrame)
@@ -2691,7 +2659,7 @@ function Library.new(config)
 end;
 
 -- LucideIcons.lua
--- Небольшой самодостаточный модуль для получения и использования Lucide-иконок,
+-- Небольшой самодостатственный небольшой модуль для получения и использования Lucide-иконок,
 -- извлечённый и адаптированный из вашего скрипта.
 
 local Lucide = {}
@@ -2901,7 +2869,7 @@ Library.NewAuth = function(conf)
 	Button2.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	Button2.BorderSizePixel = 0
 	Button2.Position = UDim2.new(0.75, 0, 0.649999976, 0)
-	Button2.Size = UDim2.new(0.447547048, 0, 0.155089319, 0)
+	Button2.Size = UDim2.new(0.447547547, 0, 0.155089319, 0)
 	Button2.ZIndex = 3
 	Button2.Font = Enum.Font.GothamBold
 	Button2.Text = "ACTIVATE"
@@ -3487,7 +3455,7 @@ function Library:Console()
 						<font color="rgb(255,125,0)">CPU2</font>: Snapdragon 8 Gen 4 Super Ultra Gaming Edition (arm)
 						<font color="rgb(255,125,0)">GPU1</font>: Nvidia RTX 9080 Ti
 						<font color="rgb(255,125,0)">GPU2</font>: Nvidia GTX 1080 Ti
-						<font color="rgb(255,125,0)">Kernel</font>: Roblox-Security-thread
+						<font color="rgb(255,125,0)">Kernel</font>: Roblox Roblox-Security-thread
 						<font color="rgb(255,125,0)">Terminal</font>: Konsole
 						<font color="rgb(255,125,0)">Host</font>: Xiaomi 15 Ultra Pro Max ROG Edition 3
 						<font color="rgb(255,125,0)">UI</font>: KDE Plasma 6
