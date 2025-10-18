@@ -1,4 +1,4 @@
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua 21 -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua 00 -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -242,114 +242,6 @@ local function GetIconUrl(IconName: string)
     end
     return Icon.Url
 end
-
--- debug + улучшенный GetIcon / ApplyIcon
-local url = "https://raw.githubusercontent.com/latte-soft/lucide-roblox/main/source.lua"
-local ok, mod = pcall(function() return assert(loadstring(game:HttpGet(url)))() end)
-print("FetchIcons:", ok, "IconsModuleType:", type(mod))
-
-if ok and type(mod) == "table" then
-    -- перечислим ключи верхнего уровня (ускоренная диагностика)
-    for k,v in pairs(mod) do
-        print("MOD KEY:", k, "type:", typeof(v))
-        if type(v) == "table" then
-            local subcount = 0
-            for a,b in pairs(v) do subcount = subcount + 1; if subcount<=6 then print("  sub:", a, typeof(b)) end end
-            if subcount>6 then print("  ... total subkeys:", subcount) end
-        end
-    end
-end
-
-local IconsModule = (ok and mod) and mod or nil
-
-local function tryGetAsset(name)
-    if not IconsModule then return nil end
-    if type(IconsModule.GetAsset) == "function" then
-        local s,r = pcall(IconsModule.GetAsset, IconsModule, name)
-        print("GetAsset ok:", s, "result:", r ~= nil and "non-nil" or "nil")
-        if s and r then return r end
-    end
-    return nil
-end
-
-local function searchFallback(name)
-    if not IconsModule then return nil end
-    name = tostring(name):lower()
-    for k,v in pairs(IconsModule) do
-        if type(k) == "string" and k:lower() == name then return v end
-        if type(v) == "table" then
-            if v.IconName and tostring(v.IconName):lower() == name then return v end
-            if v.Id and tostring(v.Id) == name then return v end
-            if v.Url and tostring(v.Url):find(name) then return v end
-        end
-    end
-    return nil
-end
-
-local function GetCustomIcon(iconName)
-    if type(iconName) == "string" and (iconName:match("rbxasset") or iconName:match("roblox%.com/asset/%?id=") or iconName:match("rbxthumb://type=")) then
-        return { Url = iconName, ImageRectOffset = Vector2.new(0,0), ImageRectSize = Vector2.new(0,0), Custom = true }
-    end
-
-    local byGet = tryGetAsset(iconName)
-    if byGet then return byGet end
-
-    local bySearch = searchFallback(iconName)
-    if bySearch then return bySearch end
-
-    return nil
-end
-
-local function ApplyIconToImageLabel(imageLabel, iconName)
-    if not imageLabel then return end
-    local iconObj = GetCustomIcon(iconName)
-    if not iconObj then
-        imageLabel.Image = iconName or ""
-        pcall(function() imageLabel.ImageRectOffset = Vector2.new(0,0); imageLabel.ImageRectSize = Vector2.new(0,0) end)
-        return
-    end
-
-    -- prefer Id -> rbxassetid, else Url
-    if iconObj.Id then
-        imageLabel.Image = "rbxassetid://" .. tostring(iconObj.Id)
-    elseif iconObj.Url and iconObj.Url ~= "" then
-        imageLabel.Image = iconObj.Url
-    else
-        imageLabel.Image = iconName or ""
-    end
-
-    -- sprite-sheet support
-    pcall(function()
-        if iconObj.ImageRectOffset and iconObj.ImageRectSize then
-            imageLabel.ImageRectOffset = iconObj.ImageRectOffset
-            imageLabel.ImageRectSize = iconObj.ImageRectSize
-        else
-            imageLabel.ImageRectOffset = Vector2.new(0,0)
-            imageLabel.ImageRectSize = Vector2.new(0,0)
-        end
-    end)
-end
-
--- Пример использования отладки:
-print("TRY example icon names:")
-local examples = {"search", "menu", "home", "ArrowLeft", "chevron-left"} -- подставьте реальные имена, которые вы ожидаете
-for _,name in ipairs(examples) do
-    local ico = GetCustomIcon(name)
-    print("example:", name, "found:", ico ~= nil and (ico.Id or ico.Url or "table") or "nil")
-end
-
--- Поместите этот ApplyIconToImageLabel в ваш код вместо старой версии.
-
-
-print("FetchIcons:", FetchIcons)
-print("IconsModule:", typeof(IconsModule))
-if FetchIcons and type(IconsModule)=="table" and type(IconsModule.GetAsset)=="function" then
-    local ok, test = pcall(IconsModule.GetAsset, IconsModule, "search") -- любое имя
-    print("GetAsset ok:", ok, "result:", (type(test)=="table" and test.Url) or tostring(test))
-end
-
-
---yomka
 
 function Library.GradientImage(E : Frame , Color)
 	local GLImage = Instance.new("ImageLabel")
@@ -1321,7 +1213,7 @@ function Library.new(config)
 		Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 		Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 		Icon.ZIndex = 6
-		ApplyIconToImageLabel(Icon, cfg.Icon)
+		Icon.Image = GetIconUrl(cfg.Icon) or cfg.Icon
 		Icon.ImageTransparency = 1
 		Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
@@ -1592,7 +1484,7 @@ function Library.new(config)
 			Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 			Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 			Icon.ZIndex = 6
-			ApplyIconToImageLabel(Icon, c_o_n_f_i_g.Icon)
+			Icon.Image = GetIconUrl(c_o_n_f_i_g.Icon) or c_o_n_f_i_g.Icon; 
 			Icon.ImageTransparency = 1
 			Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
@@ -2512,7 +2404,7 @@ function Library.new(config)
 					Visible = function(newindx)
 						FunctionDropdown.Visible = newindx
 					end,
-					Refresh = function(newData,newData)
+					Refresh = function(newData)
 						if newData then drop.Data = newData end
 						WindowTable.Dropdown:Close()
 						WindowTable.Dropdown:Open(drop.Data, drop.Default, Updater)
@@ -2798,7 +2690,7 @@ end
 -- Возвращает nil если модуль недоступен или нет такой иконки.
 -- Ожидаемый формат возвращаемой иконки:
 -- { Url = string, Id = number?, IconName = string, ImageRectOffset = Vector2, ImageRectSize = Vector2, ... }
-function Lucide:GetIcon(name: string)
+function Lucide:GetIcon(name)
     if not FetchIcons or not Icons then
         return nil
     end
@@ -2816,7 +2708,7 @@ end
 -- Возвращает структуру иконки для произвольной строки.
 -- Если строка распознана как прямой URL/asset, возвращает объект с полями Url, ImageRectOffset, ImageRectSize, Custom = true.
 -- Если нет — пытается получить иконку по имени через GetIcon.
-function Lucide:GetCustomIcon(iconName: string)
+function Lucide:GetCustomIcon(iconName)
     if IsValidCustomIcon(iconName) then
         return {
             Url = iconName,
@@ -2830,7 +2722,7 @@ function Lucide:GetCustomIcon(iconName: string)
 end
 
 -- Утилита: безопасная попытка получить URL (возвращает строку или nil).
-function Lucide:GetIconUrl(name: string)
+function Lucide:GetIconUrl(name)
     local icon = self:GetIcon(name)
     if not icon then
         return nil
@@ -2842,7 +2734,129 @@ end
 Lucide._FetchIcons = FetchIcons
 Lucide._Icons = Icons
 
--- Использование в коде: Icon.Image = Lucide:GetIconUrl(cfg.Icon) or cfg.Icon
+-- === Lucide icons fallback и единая точка разрешения URL для Icon.Image ===
+-- Вставлять сразу после секции Lucide (после Lucide._Icons / Lucide._FetchIcons) и перед Library.NewAuth
+
+do
+	-- локальный резолвер: возвращает прямой URL/asset id или nil
+	local function ResolveIconUrl(iconName)
+		if type(iconName) ~= "string" then return nil end
+
+		-- если передали прямой rbxasset/тянейл/http -> используем как есть
+		if iconName:match("rbxasset") or iconName:match("roblox%%.com/asset/%?id=") or iconName:match("rbxthumb://") or iconName:match("^http") then
+			return iconName
+		end
+
+		-- 1) попробовать старый модуль IconsModule (если он загружен ранее в скрипте)
+		local ok, res = pcall(function()
+			if typeof(IconsModule) == "table" and type(IconsModule.GetAsset) == "function" then
+				return IconsModule:GetAsset(iconName)
+			end
+		end)
+		if ok and type(res) == "table" and res.Url then
+			return res.Url
+		end
+
+		-- 2) попробовать метод Lucide (если модуль Lucide доступен)
+		local ok2, url2 = pcall(function()
+			if type(Lucide) == "table" and type(Lucide.GetIconUrl) == "function" then
+				return Lucide:GetIconUrl(iconName)
+			end
+		end)
+		if ok2 and url2 then
+			return url2
+		end
+
+		-- 3) лениво подгрузить резервные remote-источники и попытаться взять иконку
+		local function tryLoadRemotes()
+			local candidates = {
+				"https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua",
+				"https://raw.githubusercontent.com/Footagesus/Icons/main/Main-v2.lua"
+			}
+			for _, url in ipairs(candidates) do
+				local ok3, mod = pcall(function()
+					return loadstring(game:HttpGet(url))()
+				end)
+				if ok3 and type(mod) == "table" then
+					-- если модуль имеет GetAsset, сохраняем для дальнейшего использования
+					if type(mod.GetAsset) == "function" then
+						-- запомним в локальной переменной, чтобы следующий вызов быстрый
+						IconsModule = mod
+						local ok4, it = pcall(function() return mod:GetAsset(iconName) end)
+						if ok4 and type(it) == "table" and it.Url then
+							return it.Url
+						end
+					end
+				end
+			end
+			return nil
+		end
+
+		local okR, resR = pcall(tryLoadRemotes)
+		if okR and resR then
+			return resR
+		end
+
+		-- ничего не нашли
+		return nil
+	end
+
+	-- Переписать/переопределить локальную функцию GetCustomIcon/GetIconUrl (если они уже есть),
+	-- чтобы существующий код (Icon.Image = GetIconUrl(cfg.Icon) or cfg.Icon) начал получать URL.
+	-- Если в вашем скрипте GetIconUrl локальна, эта замена её переопределит.
+	GetCustomIcon = function(iconName)
+		-- если передали прямой asset/url — вернуть структуру как раньше
+		if type(iconName) == "string" and (iconName:match("rbxasset") or iconName:match("roblox%.com/asset/%?id=") or iconName:match("rbxthumb://") or iconName:match("^http")) then
+			return {
+				Url = iconName,
+				ImageRectOffset = Vector2.new(0,0),
+				ImageRectSize = Vector2.new(0,0),
+				Custom = true,
+			}
+		end
+
+		-- попытка через ResolveIconUrl
+		local url = ResolveIconUrl(iconName)
+		if url then
+			return {
+				Url = url,
+				ImageRectOffset = Vector2.new(0,0),
+				ImageRectSize = Vector2.new(0,0),
+				Custom = true,
+			}
+		end
+
+		-- окончательно nil
+		return nil
+	end
+
+	GetIconUrl = function(iconName)
+		local c = GetCustomIcon(iconName)
+		if c and c.Url then return c.Url end
+		return nil
+	end
+
+	-- Тоже обновим Lucide:GetCustomIcon / Lucide:GetIconUrl если модуль Lucide присутствует
+	if type(Lucide) == "table" then
+		function Lucide:GetCustomIcon(iconName)
+			local c = GetCustomIcon(iconName)
+			if c then return c end
+			-- fallback to legacy Lucide:GetIcon if available
+			if type(self.GetIcon) == "function" then
+				local ok, it = pcall(function() return self:GetIcon(iconName) end)
+				if ok and type(it) == "table" and it.Url then return it end
+			end
+			return nil
+		end
+
+		function Lucide:GetIconUrl(iconName)
+			local c = self:GetCustomIcon(iconName)
+			if c and c.Url then return c.Url end
+			return nil
+		end
+	end
+end
+
 
 Library.NewAuth = function(conf)
 	conf = Config(conf,{
@@ -3269,7 +3283,7 @@ Library.Notification = function()
 			icon.BackgroundTransparency = 1.000
 			icon.Position = UDim2.new(0.05, 0, 0.5, 0)
 			icon.Size = iconSize
-			ApplyIconToImageLabel(icon, ctfx.Icon)
+			icon.Image = Icons[ctfx.Icon] or ctfx.Icon
 			icon.ImageTransparency = 1;
 			Twen:Create(icon,css_style,{
 				ImageTransparency = 0
