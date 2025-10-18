@@ -1,6 +1,6 @@
 -- source.lua (Updated Library Source)
 
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua 11 -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua 2 -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -302,7 +302,7 @@ end;
 function Library.new(config)
 	config = Config(config,{
 		Title = "UI Library",
-		Description = "discord.gg/BH6pE7jesa",
+		Description = "discord.gg/BHRUtyTbk2",
 		Keybind = Enum.KeyCode.LeftControl,
 		Logo = "http://www.roblox.com/asset/?id=18810965406",
 		Size = UDim2.new(0.100000001, 445, 0.100000001, 315),
@@ -408,7 +408,7 @@ function Library.new(config)
 	ImageButton.SizeConstraint = Enum.SizeConstraint.RelativeYY
 	ImageButton.ZIndex = 50
 	ImageButton.Image = "rbxassetid://10002398990"
-	ImageButton.ImageTransparency = 0.5
+	ImageButton.ImageTransparency = 1
 	
 	local HomeIcon = Instance.new("ImageLabel")
 	HomeIcon.Parent = ImageButton
@@ -512,7 +512,9 @@ function Library.new(config)
 		task.delay(0.5,WindowTable.ElBlurUI.Update)
 	end;
 
-	Update()
+	Twen:Create(ImageButton,TweenInfo1,{
+		ImageTransparency = 0.5
+	}):Play()
 
 	ImageButton.MouseButton1Click:Connect(function()
 		WindowTable.WindowToggle = not WindowTable.WindowToggle
@@ -536,17 +538,19 @@ function Library.new(config)
 	MainFrame.Parent = ScreenGui
 	MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
 	MainFrame.BackgroundColor3 = Color3.fromRGB(15, 5, 5)  -- Darker red
-	MainFrame.BackgroundTransparency = 0.4
+	MainFrame.BackgroundTransparency = 1
 	MainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	MainFrame.BorderSizePixel = 0
 	MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-	MainFrame.Size = config.Size
+	MainFrame.Size = UDim2.fromOffset(config.Size.X.Offset,config.Size.Y.Offset)
 	MainFrame.Active = true;
 	MainFrame.ClipsDescendants = true;
 	
 	WindowTable.AddEffect = function(color)
 		Library.GradientImage(MainFrame,color or Color3.fromRGB(100, 0, 0))  -- Darker gradient
 	end
+
+	Twen:Create(MainFrame,TweenInfo1,{BackgroundTransparency = 0.4,Size = config.Size}):Play();
 
 	WindowTable.ElBlurUI = ElBlurSource.new(MainFrame);
 
@@ -563,21 +567,24 @@ function Library.new(config)
 	MainDropShadow.ZIndex = 0
 	MainDropShadow.Image = "rbxassetid://6015897843"
 	MainDropShadow.ImageColor3 = Color3.fromRGB(50, 0, 0)  -- Darker red shadow
-	MainDropShadow.ImageTransparency = 0.6
+	MainDropShadow.ImageTransparency = 1
 	MainDropShadow.ScaleType = Enum.ScaleType.Slice
 	MainDropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
 	MainDropShadow.Rotation = 0.0001;
 	
+	Twen:Create(MainDropShadow,TweenInfo2,{ImageTransparency = 0.6}):Play();
+
 	Headers.Name = "Headers"
 	Headers.Parent = MainFrame
 	Headers.BackgroundColor3 = Color3.fromRGB(20, 5, 5)  -- Darker red
-	Headers.BackgroundTransparency = 0.5
+	Headers.BackgroundTransparency = 1
 	Headers.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	Headers.BorderSizePixel = 0
 	Headers.ClipsDescendants = true
 	Headers.Position = UDim2.new(0.0100000743, 0, 0.015, 0)
 	Headers.Size = UDim2.new(0.300000012, 0, 0.178419471, 0)
 	Headers.ZIndex = 3
+	Twen:Create(Headers,TweenInfo2,{BackgroundTransparency = 0.5}):Play();
 
 	Logo.Name = "Logo"
 	Logo.Parent = Headers
@@ -592,10 +599,13 @@ function Library.new(config)
 	Logo.ZIndex = 4
 	Logo.Image = config.Logo;
 	Logo.ScaleType = Enum.ScaleType.Crop
-	Logo.ImageTransparency = 0;
+	Logo.ImageTransparency = 1;
 
-	UICorner_2.CornerRadius = UDim.new(0, 4)
+	Twen:Create(Logo,TweenInfo2,{ImageTransparency = 0}):Play();
+
+	UICorner_2.CornerRadius = UDim.new(0, 15)
 	UICorner_2.Parent = Headers
+	Twen:Create(UICorner_2,TweenInfo2,{CornerRadius = UDim.new(0, 4)}):Play();
 
 	Title.Name = "Title"
 	Title.Parent = MainFrame
@@ -612,7 +622,9 @@ function Library.new(config)
 	Title.TextSize = 14.000
 	Title.TextWrapped = true
 	Title.TextXAlignment = Enum.TextXAlignment.Left
-	Title.TextTransparency = 0;
+	Title.TextTransparency = 1;
+
+	Twen:Create(Title,TweenInfo2,{TextTransparency = 0}):Play();
 
 	Description.Name = "Description"
 	Description.Parent = MainFrame
@@ -627,20 +639,22 @@ function Library.new(config)
 	Description.TextColor3 = Color3.fromRGB(255, 255, 255)
 	Description.TextScaled = true
 	Description.TextSize = 14.000
-	Description.TextTransparency = 0.5
+	Description.TextTransparency = 1
 	Description.TextWrapped = true
 	Description.TextXAlignment = Enum.TextXAlignment.Left
+	Twen:Create(Description,TweenInfo2,{TextTransparency = 0.5}):Play();
 
 	BlockFrame1.Name = "BlockFrame1"
 	BlockFrame1.Parent = MainFrame
 	BlockFrame1.AnchorPoint = Vector2.new(0, 0.5)
 	BlockFrame1.BackgroundColor3 = Color3.fromRGB(150, 0, 0)  -- Darker red
-	BlockFrame1.BackgroundTransparency = 0.8
+	BlockFrame1.BackgroundTransparency = 1
 	BlockFrame1.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	BlockFrame1.BorderSizePixel = 0
 	BlockFrame1.Position = UDim2.new(0.317000002, 0, 0.5, 0)
 	BlockFrame1.Size = UDim2.new(0, 1, 1, 0)
 	BlockFrame1.ZIndex = 3
+	Twen:Create(BlockFrame1,TweenInfo2,{BackgroundTransparency = 0.8}):Play();
 
 	UICorner_3.CornerRadius = UDim.new(0.5, 0)
 	UICorner_3.Parent = BlockFrame1
@@ -653,12 +667,13 @@ function Library.new(config)
 	BlockFrame3.Parent = MainFrame
 	BlockFrame3.AnchorPoint = Vector2.new(0, 0.5)
 	BlockFrame3.BackgroundColor3 = Color3.fromRGB(150, 0, 0)  -- Darker red
-	BlockFrame3.BackgroundTransparency = 0.8
+	BlockFrame3.BackgroundTransparency = 1
 	BlockFrame3.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	BlockFrame3.BorderSizePixel = 0
 	BlockFrame3.Position = UDim2.new(0.317000061, 0, 0.120060779, 0)
 	BlockFrame3.Size = UDim2.new(0.682999969, 0, 0, 1)
 	BlockFrame3.ZIndex = 3
+	Twen:Create(BlockFrame3,TweenInfo2,{BackgroundTransparency = 0.8}):Play();
 
 	UICorner_4.CornerRadius = UDim.new(0.5, 0)
 	UICorner_4.Parent = BlockFrame3
@@ -670,12 +685,13 @@ function Library.new(config)
 	BlockFrame2.Parent = MainFrame
 	BlockFrame2.AnchorPoint = Vector2.new(0, 0.5)
 	BlockFrame2.BackgroundColor3 = Color3.fromRGB(150, 0, 0)  -- Darker red
-	BlockFrame2.BackgroundTransparency = 0.8
+	BlockFrame2.BackgroundTransparency = 1
 	BlockFrame2.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	BlockFrame2.BorderSizePixel = 0
 	BlockFrame2.Position = UDim2.new(-0.00100000005, 0, 0.204999998, 0)
 	BlockFrame2.Size = UDim2.new(0.318471342, 0, 0, 1)
 	BlockFrame2.ZIndex = 3
+	Twen:Create(BlockFrame2,TweenInfo2,{BackgroundTransparency = 0.8}):Play();
 
 	UICorner_5.CornerRadius = UDim.new(0.5, 0)
 	UICorner_5.Parent = BlockFrame2
@@ -688,12 +704,13 @@ function Library.new(config)
 	TabButtonFrame.Parent = MainFrame
 	TabButtonFrame.AnchorPoint = Vector2.new(0.5, 0)
 	TabButtonFrame.BackgroundColor3 = Color3.fromRGB(20, 5, 5)  -- Darker red
-	TabButtonFrame.BackgroundTransparency = 0.5
+	TabButtonFrame.BackgroundTransparency = 1
 	TabButtonFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	TabButtonFrame.BorderSizePixel = 0
 	TabButtonFrame.ClipsDescendants = true
 	TabButtonFrame.Position = UDim2.new(0.159999996, 0, 0.215000004, 0)
 	TabButtonFrame.Size = UDim2.new(0.300000012, 0, 0.774999976, 0)
+	Twen:Create(TabButtonFrame,TweenInfo2,{BackgroundTransparency = 0.5}):Play();
 
 	UICorner_6.CornerRadius = UDim.new(0, 3)
 	UICorner_6.Parent = TabButtonFrame
@@ -722,12 +739,13 @@ function Library.new(config)
 	MainTabFrame.Parent = MainFrame
 	MainTabFrame.AnchorPoint = Vector2.new(0.5, 0)
 	MainTabFrame.BackgroundColor3 = Color3.fromRGB(20, 5, 5)  -- Darker red
-	MainTabFrame.BackgroundTransparency = 0.5
+	MainTabFrame.BackgroundTransparency = 1
 	MainTabFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	MainTabFrame.BorderSizePixel = 0
 	MainTabFrame.ClipsDescendants = true
 	MainTabFrame.Position = UDim2.new(0.657999992, 0, 0.130999997, 0)
 	MainTabFrame.Size = UDim2.new(0.670000017, 0, 0.860000014, 0)
+	Twen:Create(MainTabFrame,TweenInfo2,{BackgroundTransparency = 0.5}):Play();
 
 	UICorner_7.CornerRadius = UDim.new(0, 3)
 	UICorner_7.Parent = MainTabFrame
@@ -1172,12 +1190,13 @@ function Library.new(config)
 		TabButton.Name = "TabButton"
 		TabButton.Parent = TabButtons
 		TabButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-		TabButton.BackgroundTransparency = 0.75
+		TabButton.BackgroundTransparency = 1
 		TabButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		TabButton.BorderSizePixel = 0
 		TabButton.ClipsDescendants = true
 		TabButton.Size = UDim2.new(0.970000029, 0, 0.5, 0)
 		TabButton.ZIndex = 5
+		Twen:Create(TabButton,TweenInfo2,{BackgroundTransparency = 0.750}):Play();
 
 		UIAspectRatioConstraint.Parent = TabButton
 		UIAspectRatioConstraint.AspectRatio = 4.250
@@ -1198,7 +1217,8 @@ function Library.new(config)
 		Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 		Icon.ZIndex = 6
 		Icon.Image = GetIconUrl(cfg.Icon) or cfg.Icon
-		Icon.ImageTransparency = 0.1
+		Icon.ImageTransparency = 1
+		Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
 		UICorner_2.CornerRadius = UDim.new(0, 3)
 		UICorner_2.Parent = Icon
@@ -1223,7 +1243,7 @@ function Library.new(config)
 		Title.TextSize = 14.000
 		Title.TextWrapped = true
 		Title.TextXAlignment = Enum.TextXAlignment.Left
-		Title.TextTransparency = 0
+		Title.TextTransparency = 1;
 
 		UIGradient_2.Rotation = 90
 		UIGradient_2.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
@@ -1243,7 +1263,7 @@ function Library.new(config)
 		Description.TextColor3 = Color3.fromRGB(255, 255, 255)
 		Description.TextScaled = true
 		Description.TextSize = 14.000
-		Description.TextTransparency = 0.5
+		Description.TextTransparency = 1
 		Description.TextWrapped = true
 		Description.TextXAlignment = Enum.TextXAlignment.Left
 
@@ -1254,12 +1274,13 @@ function Library.new(config)
 		Frame.Parent = TabButton
 		Frame.AnchorPoint = Vector2.new(1, 0.5)
 		Frame.BackgroundColor3 = Color3.fromRGB(150, 0, 0)  -- Darker red
-		Frame.BackgroundTransparency = 0.1
+		Frame.BackgroundTransparency = 1
 		Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		Frame.BorderSizePixel = 0
 		Frame.Position = UDim2.new(1.02499998, 0, 0.5, 0)
 		Frame.Size = UDim2.new(0.0549999997, 0, 0.699999988, 0)
 		Frame.ZIndex = 6
+		Twen:Create(Frame,TweenInfo2,{BackgroundTransparency = 0.1}):Play();
 
 		UICorner_3.CornerRadius = UDim.new(0, 3)
 		UICorner_3.Parent = Frame
@@ -1429,11 +1450,12 @@ function Library.new(config)
 			Section.Name = "Section"
 			Section.Parent = (c_o_n_f_i_g.Position == "Left" and LeftFrame) or RightFrame;
 			Section.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-			Section.BackgroundTransparency = 0.75
+			Section.BackgroundTransparency = 1
 			Section.BorderColor3 = Color3.fromRGB(0, 0, 0)
 			Section.BorderSizePixel = 0
 			Section.Size = UDim2.new(0.980000019, 0, 0, 200)
 			Section.ClipsDescendants = true;
+			Twen:Create(Section,TweenInfo1,{BackgroundTransparency = 0.75}):Play();
 
 			UICorner.CornerRadius = UDim.new(0, 3)
 			UICorner.Parent = Section
@@ -1441,10 +1463,11 @@ function Library.new(config)
 			Header.Name = "Header"
 			Header.Parent = Section
 			Header.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-			Header.BackgroundTransparency = 0.9
+			Header.BackgroundTransparency = 0.900
 			Header.BorderColor3 = Color3.fromRGB(0, 0, 0)
 			Header.BorderSizePixel = 0
 			Header.Size = UDim2.new(1, 0, 0.5, 0)
+			Twen:Create(Header,TweenInfo2,{BackgroundTransparency = 0.9}):Play();
 
 			UIAspectRatioConstraint.Parent = Header
 			UIAspectRatioConstraint.AspectRatio = 8.000
@@ -1465,7 +1488,8 @@ function Library.new(config)
 			Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 			Icon.ZIndex = 6
 			Icon.Image = GetIconUrl(c_o_n_f_i_g.Icon) or c_o_n_f_i_g.Icon; 
-			Icon.ImageTransparency = 0.1
+			Icon.ImageTransparency = 1
+			Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
 			UICorner_3.CornerRadius = UDim.new(0, 3)
 			UICorner_3.Parent = Icon
@@ -1478,12 +1502,13 @@ function Library.new(config)
 			BlockFrame.Parent = Header
 			BlockFrame.AnchorPoint = Vector2.new(0.5, 1)
 			BlockFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-			BlockFrame.BackgroundTransparency = 0.8
+			BlockFrame.BackgroundTransparency = 1
 			BlockFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 			BlockFrame.BorderSizePixel = 0
 			BlockFrame.Position = UDim2.new(0.5, 0, 1, 0)
 			BlockFrame.Size = UDim2.new(1, 0, 0, 1)
 			BlockFrame.ZIndex = 3
+			Twen:Create(BlockFrame,TweenInfo2,{BackgroundTransparency = 0.8}):Play();
 
 			UICorner_4.CornerRadius = UDim.new(0.5, 0)
 			UICorner_4.Parent = BlockFrame
@@ -1507,7 +1532,8 @@ function Library.new(config)
 			Title.TextSize = 14.000
 			Title.TextWrapped = true
 			Title.TextXAlignment = Enum.TextXAlignment.Left
-			Title.TextTransparency = 0
+			Title.TextTransparency = 1
+			Twen:Create(Title,TweenInfo2,{TextTransparency = 0}):Play();
 
 			UIGradient_3.Rotation = 90
 			UIGradient_3.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
@@ -1525,9 +1551,10 @@ function Library.new(config)
 				}):Play()
 			end)
 
-			UIStroke.Transparency = 0.9
+			UIStroke.Transparency = 1
 			UIStroke.Color = Color3.fromRGB(255, 255, 255)
 			UIStroke.Parent = Section
+			Twen:Create(UIStroke,TweenInfo1,{Transparency = 0.9}):Play();
 
 			UIGradient_4.Rotation = 90
 			UIGradient_4.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.17, 1.00), NumberSequenceKeypoint.new(0.82, 1.00), NumberSequenceKeypoint.new(1.00, 0.00)}
@@ -1559,11 +1586,12 @@ function Library.new(config)
 				FunctionToggle.Name = "FunctionToggle"
 				FunctionToggle.Parent = Section
 				FunctionToggle.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
-				FunctionToggle.BackgroundTransparency = 0.8
+				FunctionToggle.BackgroundTransparency = 1
 				FunctionToggle.BorderColor3 = Color3.fromRGB(0, 0, 0)
 				FunctionToggle.BorderSizePixel = 0
 				FunctionToggle.Size = UDim2.new(0.949999988, 0, 0.5, 0)
 				FunctionToggle.ZIndex = 17
+				Twen:Create(FunctionToggle,TweenInfo1,{BackgroundTransparency = 0.8}):Play();
 
 				UIAspectRatioConstraint.Parent = FunctionToggle
 				UIAspectRatioConstraint.AspectRatio = 8.000
@@ -1727,9 +1755,10 @@ function Library.new(config)
 				TextInt.TextColor3 = Color3.fromRGB(255, 255, 255)
 				TextInt.TextScaled = true
 				TextInt.TextSize = 14.000
-				TextInt.TextTransparency = 0.25
+				TextInt.TextTransparency = 1
 				TextInt.TextWrapped = true
 				TextInt.TextXAlignment = Enum.TextXAlignment.Left
+				Twen:Create(TextInt,TweenInfo1,{TextTransparency = 0.25}):Play();
 
 				UIGradient.Rotation = 90
 				UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
@@ -1766,15 +1795,23 @@ function Library.new(config)
 				FunctionButton.Name = "FunctionButton"
 				FunctionButton.Parent = Section
 				FunctionButton.BackgroundColor3 = Color3.fromRGB(71, 71, 71)
-				FunctionButton.BackgroundTransparency = 0.750
+				FunctionButton.BackgroundTransparency = 1
 				FunctionButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
 				FunctionButton.BorderSizePixel = 0
 				FunctionButton.Size = UDim2.new(0.949999988, 0, 0.5, 0)
 				FunctionButton.ZIndex = 17
+				Twen:Create(FunctionButton,TweenInfo1,{
+					BackgroundTransparency = 0.750,
+					Size = UDim2.new(0.949999988, 0, 0.5, 0)
+				}):Play();
 
 				UIAspectRatioConstraint.Parent = FunctionButton
-				UIAspectRatioConstraint.AspectRatio = 7.65
+				UIAspectRatioConstraint.AspectRatio = 7.000
 				UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
+
+				Twen:Create(UIAspectRatioConstraint,TweenInfo1,{
+					AspectRatio = 7.65
+				}):Play();
 
 				UICorner.CornerRadius = UDim.new(0, 2)
 				UICorner.Parent = FunctionButton
@@ -2013,7 +2050,7 @@ function Library.new(config)
 
 					UpdateUI('...')
 					local Bind = BindEvent.Event:Wait();
-					ctfx.Default = Bind
+					ctfx.Default = Bind;
 					Twen:Create(TextInt,TweenInfo.new(0.1),{
 						TextTransparency = 0.250
 					}):Play();
@@ -2760,7 +2797,7 @@ Library.NewAuth = function(conf)
 
 	ScreenGui.Parent = CoreGui
 	ScreenGui.IgnoreGuiInset = true
-	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global;
 
 	Auth.Name = "Auth"
 	Auth.Parent = ScreenGui
@@ -2821,7 +2858,7 @@ Library.NewAuth = function(conf)
 	Button2.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	Button2.BorderSizePixel = 0
 	Button2.Position = UDim2.new(0.75, 0, 0.649999976, 0)
-	Button2.Size = UDim2.new(0.447547048, 0, 0.155089319, 0)
+	Button2.Size = UDim2.new(0.447547547, 0, 0.155089319, 0)
 	Button2.ZIndex = 3
 	Button2.Font = Enum.Font.GothamBold
 	Button2.Text = "ACTIVATE"
@@ -2844,10 +2881,13 @@ Library.NewAuth = function(conf)
 	DropShadow.ScaleType = Enum.ScaleType.Slice
 	DropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
 
-	UIStroke.Transparency = 0.900
+	UIStroke.Transparency = 1
 	UIStroke.Color = Color3.fromRGB(255, 255, 255)
 	UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	UIStroke.Parent = Button2
+	Twen:Create(UIStroke,TweenInfo.new(1,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut),{
+		Transparency = 0.900
+	}):Play();
 
 	TextBox.Parent = MainFrame
 	TextBox.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -2883,10 +2923,13 @@ Library.NewAuth = function(conf)
 	DropShadow_2.ScaleType = Enum.ScaleType.Slice
 	DropShadow_2.SliceCenter = Rect.new(49, 49, 450, 450)
 
-	UIStroke_2.Transparency = 0.900
+	UIStroke_2.Transparency = 1
 	UIStroke_2.Color = Color3.fromRGB(255, 255, 255)
 	UIStroke_2.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	UIStroke_2.Parent = TextBox
+	Twen:Create(UIStroke_2,TweenInfo.new(1,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut),{
+		Transparency = 0.900
+	}):Play();
 	Button1.Name = "Button1"
 	Button1.Parent = MainFrame
 	Button1.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -2918,10 +2961,13 @@ Library.NewAuth = function(conf)
 	DropShadow_3.ScaleType = Enum.ScaleType.Slice
 	DropShadow_3.SliceCenter = Rect.new(49, 49, 450, 450)
 
-	UIStroke_3.Transparency = 0.900
+	UIStroke_3.Transparency = 1
 	UIStroke_3.Color = Color3.fromRGB(255, 255, 255)
 	UIStroke_3.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	UIStroke_3.Parent = Button1
+	Twen:Create(UIStroke_3,TweenInfo.new(1,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut),{
+		Transparency = 0.900
+	}):Play();
 	MainDropShadow.Name = "MainDropShadow"
 	MainDropShadow.Parent = MainFrame
 	MainDropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -2933,9 +2979,12 @@ Library.NewAuth = function(conf)
 	MainDropShadow.ZIndex = 0
 	MainDropShadow.Image = "rbxassetid://6015897843"
 	MainDropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
-	MainDropShadow.ImageTransparency = 0.600
+	MainDropShadow.ImageTransparency = 1
 	MainDropShadow.ScaleType = Enum.ScaleType.Slice
 	MainDropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
+	Twen:Create(MainDropShadow,TweenInfo.new(2,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut),{
+		ImageTransparency = 0.600
+	}):Play();
 	Title.Name = "Title"
 	Title.Parent = MainFrame
 	Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -3395,7 +3444,7 @@ function Library:Console()
 						<font color="rgb(255,125,0)">CPU2</font>: Snapdragon 8 Gen 4 Super Ultra Gaming Edition (arm)
 						<font color="rgb(255,125,0)">GPU1</font>: Nvidia RTX 9080 Ti
 						<font color="rgb(255,125,0)">GPU2</font>: Nvidia GTX 1080 Ti
-						<font color="rgb(255,125,0)">Kernel</font>: Roblox-Security-thread
+						<font color="rgb(255,125,0)">Kernel</font>: Roblox Roblox-Security-thread
 						<font color="rgb(255,125,0)">Terminal</font>: Konsole
 						<font color="rgb(255,125,0)">Host</font>: Xiaomi 15 Ultra Pro Max ROG Edition 3
 						<font color="rgb(255,125,0)">UI</font>: KDE Plasma 6
