@@ -243,6 +243,17 @@ local function GetIconUrl(IconName: string)
     return Icon.Url
 end
 
+local function SetIconProperties(ImageLabel: ImageLabel, cfgIcon: string)
+    local iconData = GetCustomIcon(cfgIcon)
+    if iconData then
+        ImageLabel.Image = iconData.Url
+        ImageLabel.ImageRectOffset = iconData.ImageRectOffset
+        ImageLabel.ImageRectSize = iconData.ImageRectSize
+    else
+        ImageLabel.Image = cfgIcon
+    end
+end
+
 function Library.GradientImage(E : Frame , Color)
 	local GLImage = Instance.new("ImageLabel")
 	local upd = tick();
@@ -1213,8 +1224,8 @@ function Library.new(config)
 		Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 		Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 		Icon.ZIndex = 6
-		Icon.Image = GetIconUrl(cfg.Icon) or cfg.Icon
 		Icon.ImageTransparency = 1
+		SetIconProperties(Icon, cfg.Icon)
 		Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
 		UICorner_2.CornerRadius = UDim.new(0, 3)
@@ -1484,8 +1495,8 @@ function Library.new(config)
 			Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 			Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 			Icon.ZIndex = 6
-			Icon.Image = GetIconUrl(c_o_n_f_i_g.Icon) or c_o_n_f_i_g.Icon; 
 			Icon.ImageTransparency = 1
+			SetIconProperties(Icon, c_o_n_f_i_g.Icon)
 			Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
 			UICorner_3.CornerRadius = UDim.new(0, 3)
@@ -2690,7 +2701,7 @@ end
 -- Возвращает nil если модуль недоступен или нет такой иконки.
 -- Ожидаемый формат возвращаемой иконки:
 -- { Url = string, Id = number?, IconName = string, ImageRectOffset = Vector2, ImageRectSize = Vector2, ... }
-function Lucide:GetIcon(name)
+function Lucide:GetIcon(name: string)
     if not FetchIcons or not Icons then
         return nil
     end
