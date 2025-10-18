@@ -1,4 +1,4 @@
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua 99 -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua 10 -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -291,6 +291,13 @@ local function ApplyIconToImageLabel(imageLabel, iconName)
             end)
         end
     end
+end
+
+print("FetchIcons:", FetchIcons)
+print("IconsModule:", typeof(IconsModule))
+if FetchIcons and type(IconsModule)=="table" and type(IconsModule.GetAsset)=="function" then
+    local ok, test = pcall(IconsModule.GetAsset, IconsModule, "search") -- любое имя
+    print("GetAsset ok:", ok, "result:", (type(test)=="table" and test.Url) or tostring(test))
 end
 
 --yomka
