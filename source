@@ -1,6 +1,6 @@
 -- source.lua (Updated Library Source)
 
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKA232323 -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKA23232355555 -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -8,6 +8,89 @@ local TextServ = game:GetService('TextService');
 local LocalPlayer = game:GetService('Players').LocalPlayer;
 local CoreGui = (gethui and gethui()) or game:FindFirstChild('CoreGui') or LocalPlayer.PlayerGui;
 local HttpService = game:GetService("HttpService")
+
+-- Шаблоны дефолтных конфигов для элементов UI
+local Templates = {
+    -- Основные элементы
+    Toggle = {
+        Title = "Toggle",
+        Name = "Toggle",
+        Default = false,
+        Callback = function() end,
+    },
+    Slider = {
+        Title = "Slider",
+        Name = "Slider",
+        Min = 0,
+        Max = 100,
+        Default = 50,
+        Callback = function() end,
+    },
+    Dropdown = {
+        Title = "Dropdown",
+        Name = "Dropdown",
+        Data = {'One','Two','Three','Four'},
+        Default = 'Two',
+        Callback = function(a) end,
+    },
+    Textbox = {
+        Title = "Textbox",
+        Name = "Textbox",
+        Default = '',
+        FileType = "",
+        Callback = function(a) end,
+    },
+    -- Аддоны (Keybind, Button и т.д.)
+    Keybind = {
+        Title = "Keybind",
+        Name = "Keybind",
+        Callback = function() end,
+        Default = Enum.KeyCode.E,
+    },
+    Button = {
+        Title = "Button",
+        Callback = function() end,
+    },
+    -- Окно (Window)
+    Window = {
+        Title = "UI Library",
+        Description = "discord.gg/BH",
+        Keybind = Enum.KeyCode.LeftControl,
+        Logo = "http://www.roblox.com/asset/?id=18810965406",
+        Size = UDim2.new(0.100000001, 445, 0.100000001, 315),
+        ConfigFolder = "SugarConfigs"
+    },
+    -- Базовые UI-элементы (Frame, TextLabel и т.д.)
+    Frame = {
+        BorderSizePixel = 0,
+    },
+    ImageLabel = {
+        BackgroundTransparency = 1,
+        BorderSizePixel = 0,
+    },
+    -- ... (добавьте остальные шаблоны по необходимости)
+}
+
+-- Функция валидации (сливает пользовательские опции с шаблоном)
+local function Validate(Table: { [string]: any }, Template: { [string]: any }): { [string]: any }
+    if typeof(Table) ~= "table" then
+        return Template
+    end
+
+    for k, v in pairs(Template) do
+        if typeof(k) == "number" then
+            continue
+        end
+
+        if typeof(v) == "table" then
+            Table[k] = Validate(Table[k], v)
+        elseif Table[k] == nil then
+            Table[k] = v
+        end
+    end
+
+    return Table
+end
 
 local Lucide = {}
 
@@ -54,7 +137,7 @@ end
 -- Ожидаемый формат возвращаемой иконки:
 -- { Url = string, Id = number?, IconName = string, ImageRectOffset = Vector2, ImageRectSize = Vector2, ... }
 function Lucide:GetIcon(name)
-    if not FetchIcons or not Icons then
+    if not FetchIcons then
         return nil
     end
     if type(Icons.GetAsset) ~= "function" then
@@ -258,16 +341,6 @@ local ElBlurSource = function()
 end;
 
 local ElBlurSource = ElBlurSource();
-local Config = function(data,default)
-	data = data or {};
-
-	for i,v in next,default do
-		data[i] = data[i] or v;
-	end;
-
-	return data;
-end;
-
 local Library = {};
 
 Library['.'] = '1';
@@ -333,14 +406,7 @@ function Library.GradientImage(E : Frame , Color)
 end;
 
 function Library.new(config)
-	config = Config(config,{
-		Title = "UI Library",
-		Description = "discord.gg/BH6pE7jesa",
-		Keybind = Enum.KeyCode.LeftControl,
-		Logo = "http://www.roblox.com/asset/?id=18810965406",
-		Size = UDim2.new(0.100000001, 445, 0.100000001, 315),
-		ConfigFolder = "SugarConfigs"
-	});
+	config = Validate(config, Templates.Window);
 
 	local TweenInfo1 = TweenInfo.new(0.5,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut);
 	local TweenInfo2 = TweenInfo.new(0.3,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut);
@@ -439,7 +505,7 @@ function Library.new(config)
 	HomeIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
 	HomeIcon.Size = UDim2.new(0.7,0,0.7,0)
 	HomeIcon.ZIndex = 49
-	HomeIcon.Image = "rbxassetid://7733993211"
+	HomeIcon.Image = "rbxassetid://7733964640"
 	HomeIcon.ScaleType = Enum.ScaleType.Fit
 	HomeIcon.ImageTransparency = 1;
 	HomeIcon.BackgroundTransparency = 1;
@@ -871,7 +937,7 @@ function Library.new(config)
 		ScrollingFrame.BorderSizePixel = 0
 		ScrollingFrame.Position = UDim2.new(0.5, 0, 0.555985212, 0)
 		ScrollingFrame.Size = UDim2.new(0.949999988, 0, 0.888029099, 0)
-		ScrollingFrame.ZIndex = 102
+		ScrollingFrame.ZIndex = 100
 		ScrollingFrame.BottomImage = ""
 		ScrollingFrame.ScrollBarThickness = 1
 		ScrollingFrame.TopImage = ""
@@ -1026,7 +1092,7 @@ function Library.new(config)
 		local MouseInFrame = false;
 		local MouseInMyFrame = false;
 
-		function WindowTable.Dropdown:Setup(target_frame:Frame)
+		function WindowTable.Dropdown:Setup(target_frame)
 			Locked = target_frame
 		end;
 
@@ -1064,7 +1130,7 @@ function Library.new(config)
 					if v:IsA('Frame') then
 						v:Destroy();
 					end;
-				end;
+				end
 			end;
 
 			local list = {};
@@ -1118,7 +1184,7 @@ function Library.new(config)
 					if v:IsA('Frame') then
 						v:Destroy();
 					end;
-				end;
+				end
 			end;
 		end;
 
@@ -1156,7 +1222,7 @@ function Library.new(config)
 					DropdownFrame.Position = DropdownFrame.Position:Lerp(UDim2.fromOffset(0,0),.1);
 				end;
 
-				if DropdownFrame.Size.Y.Offset == 0 then
+				if DropdownFrame.Size == UDim2.fromOffset(0,0) then
 					DropdownFrame.Visible = false;
 				end;
 			end;
@@ -1166,7 +1232,7 @@ function Library.new(config)
 	function WindowTable:GetAllElements()
 		local all = {}
 		for _, tab in ipairs(self.Tabs) do
-			for _, section in ipairs(tab.Sections or {}) do  -- Assume tabs have Sections
+			for _, section in ipairs(tab.Sections or {}) do
 				for _, el in ipairs(section.Elements or {}) do
 					table.insert(all, el)
 				end
@@ -1194,10 +1260,10 @@ function Library.new(config)
 	end
 
 	function WindowTable:NewTab(cfg)
-		cfg = Config(cfg,{
+		cfg = Validate(cfg, {
 			Title = "Example",
 			Description = "Tab: "..tostring(#WindowTable.Tabs + 1),
-			Icon = "rbxassetid://7733964640"
+			Icon = "rbxassetid://7733963960"
 		});
 
 		local TabTable = {};
@@ -1452,10 +1518,10 @@ function Library.new(config)
 		end)
 
 		function TabTable:NewSection(c_o_n_f_i_g)
-			c_o_n_f_i_g = Config(c_o_n_f_i_g,{
+			c_o_n_f_i_g = Validate(c_o_n_f_i_g, {
 				Position = "Left",
 				Title = "Section",
-				Icon = 'rbxassetid://7733964640'
+				Icon = 'rbxassetid://7733963960'
 			});
 
 			local SectionTable = {};
@@ -1593,12 +1659,7 @@ function Library.new(config)
 			table.insert(TabTable.Sections, SectionTable)
 
 			function SectionTable:NewToggle(toggle)
-				toggle = Config(toggle,{
-					Title = "Toggle",
-					Name = toggle.Title,
-					Default = false,
-					Callback = function() end;
-				});
+				toggle = Validate(toggle, Templates.Toggle);
 
 				local FunctionToggle = Instance.new("Frame")
 				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
@@ -1806,10 +1867,7 @@ function Library.new(config)
 			end;
 
 			function SectionTable:NewButton(cfg)
-				cfg = Config(cfg,{
-					Title = "Button",
-					Callback = function() end;
-				});
+				cfg = Validate(cfg, Templates.Button);
 
 				local FunctionButton = Instance.new("Frame")
 				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
@@ -1830,16 +1888,11 @@ function Library.new(config)
 				FunctionButton.ZIndex = 17
 				Twen:Create(FunctionButton,TweenInfo1,{
 					BackgroundTransparency = 0.750,
-					Size = UDim2.new(0.949999988, 0, 0.5, 0)
 				}):Play();
 
 				UIAspectRatioConstraint.Parent = FunctionButton
 				UIAspectRatioConstraint.AspectRatio = 7.000
 				UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
-
-				Twen:Create(UIAspectRatioConstraint,TweenInfo1,{
-					AspectRatio = 7.65
-				}):Play();
 
 				UICorner.CornerRadius = UDim.new(0, 2)
 				UICorner.Parent = FunctionButton
@@ -1923,22 +1976,19 @@ function Library.new(config)
 					task.spawn(cfg.Callback);
 				end)
 
-				return {
-					Visible = function(newindx)
-						FunctionButton.Visible = newindx
-					end,
+				local el = {
+					Name = cfg.Name,
+					Get = function() return cfg.Title end,
 					Fire = cfg.Callback
 				};
+
+				table.insert(SectionTable.Elements, el)
+
+				return el;
 			end;
 
 			function SectionTable:NewKeybind(ctfx)
-				ctfx = Config(ctfx,{
-					Title = "Keybind",
-					Name = ctfx.Title,
-					Callback = function() end,
-					Default = Enum.KeyCode.E,
-
-				});
+				ctfx = Validate(ctfx, Templates.Keybind);
 
 				local BindEvent = Instance.new('BindableEvent',Section);
 				local FunctionKeybind = Instance.new("Frame")
@@ -2105,16 +2155,7 @@ function Library.new(config)
 			end;
 
 			function SectionTable:NewSlider(slider)
-				slider = Config(slider,{
-					Title = "Slider",
-					Name = slider.Title,
-					Min = 0,
-					Max = 100,
-					Default = 50,
-					Callback = function()
-
-					end,
-				});
+				slider = Validate(slider, Templates.Slider);
 
 				local FunctionSlider = Instance.new("Frame")
 				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
@@ -2281,15 +2322,7 @@ function Library.new(config)
 			end;
 
 			function SectionTable:NewDropdown(drop)
-				drop = Config(drop,{
-					Title = "Dropdown",
-					Name = drop.Title,
-					Data = {'One','Two','Three','Four'},
-					Default = 'Two',
-					Callback = function(a)
-
-					end,
-				});
+				drop = Validate(drop, Templates.Dropdown);
 
 				local FunctionDropdown = Instance.new("Frame")
 				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
@@ -2462,15 +2495,7 @@ function Library.new(config)
 			end;
 
 			function SectionTable:NewTextbox(conf)
-				conf = Config(conf,{
-					Title = "Textbox",
-					Name = conf.Title,
-					Default = '',
-					FileType = "",
-					Callback = function(a)
-
-					end,
-				})
+				conf = Validate(conf, Templates.Textbox);
 
 				local FunctionTextbox = Instance.new("Frame")
 				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
@@ -2672,7 +2697,7 @@ function Library.new(config)
 end;
 
 Library.NewAuth = function(conf)
-	conf = Config(conf,{
+	conf = Validate(conf,{
 		Title = "Sugar $ KEY SYSTEM",
 		GetKey = function() return 'https://example.com' end,
 		Auth = function(key) if key == '1 or 1' then return key; end; end,
@@ -2727,7 +2752,7 @@ Library.NewAuth = function(conf)
 
 	ScreenGui.Parent = CoreGui
 	ScreenGui.IgnoreGuiInset = true
-	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
+	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global;
 
 	Auth.Name = "Auth"
 	Auth.Parent = ScreenGui
@@ -3036,7 +3061,7 @@ Library.Notification = function()
 
 	return {
 		new = function(ctfx)
-			ctfx = Config(ctfx,{
+			ctfx = Validate(ctfx, {
 				Title = "Notification",
 				Description = "Description",
 				Duration = 5,
@@ -3367,10 +3392,10 @@ function Library:Console()
 [[
 						<font color="rgb(255,125,0)">neuron@rubuntu</font>
 						<font color="rgb(255,125,0)">----------------------------------</font>
-						<font color="rgb(255,125,0)">Script</font>: Neuron X
+						<font color="rgb(255,125,0)">Script</font>: Intel Core I9 15900K (arm)
 						<font color="rgb(255,125,0)">Developers</font>: ttjy , catsus , q.r2s
 						<font color="rgb(255,125,0)">Discord</font>: https://discord.gg/HkRUtyTbk2
-	<font color="rgb(255,125,0)">no logo</font>	<font color="rgb(255,125,0)">CPU1</font>: Intel Core I9 15900K (arm)
+	<font color="rgb(255,125,0)">no logo</font>	<font color="rgb(255,125,0)">CPU1</font>: Intel Intel Core I9 15900K (arm)
 						<font color="rgb(255,125,0)">CPU2</font>: Snapdragon 8 Gen 4 Super Ultra Gaming Edition (arm)
 						<font color="rgb(255,125,0)">GPU1</font>: Nvidia RTX 9080 Ti
 						<font color="rgb(255,125,0)">GPU2</font>: Nvidia GTX 1080 Ti
