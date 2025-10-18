@@ -1,6 +1,6 @@
 -- source.lua (Updated Library Source)
 
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKAdwwwwwwцццццццццццццццццц -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKAdwwwwww 2222222222222-
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -375,6 +375,11 @@ function Library.new(config)
 	WindowTable.SaveConfig = function(name)
 		local cfg = WindowTable:GetConfig()
 		writefile(configFolder .. "/" .. name .. ".json", HttpService:JSONEncode(cfg))
+		Library.Notification().new({
+			Title = "Config Saved",
+			Description = "Config '" .. name .. "' has been saved.",
+			Duration = 3
+		})
 	end
 
 	WindowTable.LoadConfig = function(name)
@@ -382,7 +387,32 @@ function Library.new(config)
 			local data = readfile(configFolder .. "/" .. name .. ".json")
 			local cfg = HttpService:JSONDecode(data)
 			WindowTable:SetConfig(cfg)
+			Library.Notification().new({
+				Title = "Config Loaded",
+				Description = "Config '" .. name .. "' has been loaded.",
+				Duration = 3
+			})
 		end
+	end
+
+	WindowTable.DeleteConfig = function(name)
+		if isfile(configFolder .. "/" .. name .. ".json") then
+			delfile(configFolder .. "/" .. name .. ".json")
+			Library.Notification().new({
+				Title = "Config Deleted",
+				Description = "Config '" .. name .. "' has been deleted.",
+				Duration = 3
+			})
+		end
+	end
+
+	WindowTable.RefreshConfigList = function()
+		Library.Notification().new({
+			Title = "Config List Refreshed",
+			Description = "The config list has been refreshed.",
+			Duration = 3
+		})
+		return listConfigs()
 	end
 
 	local ImageButton = Instance.new("ImageButton")
@@ -1149,7 +1179,11 @@ function Library.new(config)
 		local cfg = {}
 		for _, el in ipairs(self:GetAllElements()) do
 			if el.Name then
-				cfg[el.Name] = el.Get()
+				local value = el.Get()
+				if typeof(value) == "EnumItem" and value.EnumType == Enum.KeyCode then
+					value = value.Name
+				end
+				cfg[el.Name] = value
 			end
 		end
 		return cfg
@@ -1158,7 +1192,14 @@ function Library.new(config)
 	function WindowTable:SetConfig(cfg)
 		for _, el in ipairs(self:GetAllElements()) do
 			if el.Name and cfg[el.Name] ~= nil then
-				el.Set(cfg[el.Name])
+				local value = cfg[el.Name]
+				if typeof(value) == "string" then
+					local keyCode = Enum.KeyCode[value]
+					if keyCode then
+						value = keyCode
+					end
+				end
+				el.Set(value)
 			end
 		end
 	end
@@ -2064,8 +2105,8 @@ function Library.new(config)
 
 				local el = {
 					Name = ctfx.Name,
-					Get = function() return ctfx.Default end,
-					Set = function(v) ctfx.Default = v; UpdateUI(v); ctfx.Callback(v) end,
+					Get = function() return ctfx.Default.Name end,
+					Set = function(v) ctfx.Default = Enum.KeyCode[v]; UpdateUI(Enum.KeyCode[v]); ctfx.Callback(Enum.KeyCode[v]) end,
 					Visible = function(newindx)
 						FunctionKeybind.Visible = newindx
 					end,
@@ -2410,6 +2451,11 @@ function Library.new(config)
 						if newData then drop.Data = newData end
 						WindowTable.Dropdown:Close()
 						WindowTable.Dropdown:Open(drop.Data, drop.Default, Updater)
+						Library.Notification().new({
+							Title = "List Refreshed",
+							Description = "The list has been refreshed.",
+							Duration = 3
+						})
 					end,
 					Open = function(value)
 						WindowTable.Dropdown:Setup(MFrame)
@@ -2645,7 +2691,7 @@ function Library.new(config)
 end;
 
 -- LucideIcons.lua
--- Небольшой самодостаточный небольшой модуль для получения и использования Lucide-иконок,
+-- Небольшой самодостаточный модуль для получения и использования Lucide-иконок,
 -- извлечённый и адаптированный из вашего скрипта.
 
 local Lucide = {}
@@ -3157,7 +3203,7 @@ Library.Notification = function()
 			icon.AnchorPoint = Vector2.new(0, 0.5)
 			icon.BackgroundTransparency = 1.000
 			icon.Position = UDim2.new(0.05, 0, 0.5, 0)
-			icon.Size = UDim2.new(0,30,0,30)
+			icon.Size = UDim2.new(0,60,0,60)
 			icon.Image = Icons[ctfx.Icon] or ctfx.Icon
 			icon.ImageTransparency = 1;
 			Twen:Create(icon,css_style,{
