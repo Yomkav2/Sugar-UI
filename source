@@ -1,4 +1,4 @@
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua 10 -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua 1 -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -243,54 +243,87 @@ local function GetIconUrl(IconName: string)
     return Icon.Url
 end
 
--- Заменить существующую ApplyIconToImageLabel на этот код
+local DEFAULT_ICON = "rbxassetid://7733964640" -- запасная иконка
+
 local function ApplyIconToImageLabel(imageLabel, iconName)
     if not imageLabel then return end
+    print("[ICON] requested:", tostring(iconName))
 
     local function isCustom(s)
         return typeof(s) == "string" and (s:match("rbxasset") or s:match("roblox%.com/asset/%?id=") or s:match("rbxthumb://type="))
     end
 
-    local iconObj = nil
+    local iconObj
 
+    -- 1) прямой asset/url
     if isCustom(iconName) then
         iconObj = { Url = iconName, ImageRectOffset = nil, ImageRectSize = nil, Custom = true }
     else
+        -- 2) основной модуль GetAsset
         if FetchIcons and type(IconsModule) == "table" and type(IconsModule.GetAsset) == "function" then
             local ok, res = pcall(IconsModule.GetAsset, IconsModule, iconName)
-            if ok and res then
-                iconObj = res
+            if ok and res then iconObj = res end
+        end
+
+        -- 3) попытки вариантов имени (lower/upper/без пробелов/замена дефисов)
+        if not iconObj and FetchIcons and type(IconsModule) == "table" and type(IconsModule.GetAsset) == "function" then
+            local tries = {
+                tostring(iconName),
+                tostring(iconName):lower(),
+                tostring(iconName):upper(),
+                (tostring(iconName):gsub("%s+", "")),
+                (tostring(iconName):gsub("%-", "_"))
+            }
+            for _,v in ipairs(tries) do
+                local ok,res = pcall(IconsModule.GetAsset, IconsModule, v)
+                if ok and res then iconObj = res; break end
             end
         end
 
+        -- 4) старая таблица Icons (если в ней есть url по ключу)
         if not iconObj and type(Icons) == "table" then
-            if typeof(Icons[iconName]) == "string" then
-                iconObj = { Url = Icons[iconName], ImageRectOffset = nil, ImageRectSize = nil, Custom = true }
+            for k,v in pairs(Icons) do
+                if type(k) == "string" and type(v) == "string" and k:lower() == tostring(iconName):lower() then
+                    iconObj = { Url = v, ImageRectOffset = nil, ImageRectSize = nil, Custom = true }
+                    break
+                end
             end
         end
     end
 
-    -- fallback: если не нашли, просто проставим строку (может это уже URL)
+    -- 5) ничего не найдено -> fallback + лог
     if not iconObj then
-        imageLabel.Image = iconName or ""
+        warn("[ICON] not found for:", tostring(iconName), "-> using default")
+        imageLabel.Image = DEFAULT_ICON
+        pcall(function()
+            imageLabel.ImageRectOffset = Vector2.new(0,0)
+            imageLabel.ImageRectSize = Vector2.new(0,0)
+        end)
         return
     end
 
-    if iconObj.Url and iconObj.Url ~= "" then
-        imageLabel.Image = iconObj.Url
-    else
-        imageLabel.Image = iconName or ""
-    end
+    -- Устанавливаем URL (или саму строку как fallback)
+    local url = (iconObj.Url and iconObj.Url ~= "" and iconObj.Url) or tostring(iconName)
+    imageLabel.Image = url
+    print("[ICON] resolved url:", tostring(url))
 
-    -- Устанавливаем ImageRect только если указаны корректные ненулевые размеры
+    -- Применяем ImageRect только если размеры ненулевые и валидные
     if iconObj.ImageRectSize and typeof(iconObj.ImageRectSize) == "Vector2" then
         if iconObj.ImageRectSize.X > 0 and iconObj.ImageRectSize.Y > 0 then
             pcall(function()
                 imageLabel.ImageRectOffset = iconObj.ImageRectOffset or Vector2.new(0,0)
                 imageLabel.ImageRectSize   = iconObj.ImageRectSize
             end)
+            print("[ICON] applied rect:", tostring(iconObj.ImageRectOffset), tostring(iconObj.ImageRectSize))
+            return
         end
     end
+
+    -- сброс rect (чтобы избежать среза)
+    pcall(function()
+        imageLabel.ImageRectOffset = Vector2.new(0,0)
+        imageLabel.ImageRectSize   = Vector2.new(0,0)
+    end)
 end
 
 print("FetchIcons:", FetchIcons)
@@ -299,6 +332,7 @@ if FetchIcons and type(IconsModule)=="table" and type(IconsModule.GetAsset)=="fu
     local ok, test = pcall(IconsModule.GetAsset, IconsModule, "search") -- любое имя
     print("GetAsset ok:", ok, "result:", (type(test)=="table" and test.Url) or tostring(test))
 end
+
 
 --yomka
 
