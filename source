@@ -1,23 +1,47 @@
 -- source.lua (Updated Library Source)
 
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKA11 -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKA121212 -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
 local TextServ = game:GetService('TextService');
 local LocalPlayer = game:GetService('Players').LocalPlayer;
 local CoreGui = (gethui and gethui()) or game:FindFirstChild('CoreGui') or LocalPlayer.PlayerGui;
-local Icons = (function()
-	local p,c = pcall(function()
-		local Http = game:HttpGetAsync('https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua');
-		local Module = loadstring(Http)();
-		return Module.icons;
-	end);
+local FetchIcons, Icons = pcall(function()
+    return (loadstring(
+        game:HttpGet("https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua")
+    ) :: () -> { GetAsset: (string) -> { Url: string, Id: number, IconName: string, ImageRectOffset: Vector2, ImageRectSize: Vector2 }? })()
+end)
 
-	if p then return c end;
+local function IsValidCustomIcon(Icon: string)
+    return typeof(Icon) == "string"
+        and (Icon:match("rbxasset") or Icon:match("roblox%.com/asset/%?id=") or Icon:match("rbxthumb://type="))
+end
 
-	return nil;
-end)() or {};
+local function GetIcon(IconName: string)
+    if not FetchIcons then
+        return nil
+    end
+
+    local Success, Icon = pcall(Icons.GetAsset, Icons, IconName)
+    if not Success then
+        return nil
+    end
+    return Icon
+end
+
+local function GetCustomIcon(IconName: string)
+    if not IsValidCustomIcon(IconName) then
+        return GetIcon(IconName)
+    else
+        return {
+            Url = IconName,
+            ImageRectOffset = Vector2.zero,
+            ImageRectSize = Vector2.zero,
+            Custom = true,
+        }
+    end
+end
 
 local ElBlurSource = function()
 	local GuiSystem = {}
@@ -194,11 +218,6 @@ local Library = {};
 
 Library['.'] = '1';
 Library['FetchIcon'] = "https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua";
-
-pcall(function()
-	local Module = loadstring(game:HttpGetAsync(Library.FetchIcon))();
-	Library['Icons'] = Module.icons;
-end)
 
 function Library.GradientImage(E : Frame , Color)
 	local GLImage = Instance.new("ImageLabel")
@@ -541,8 +560,13 @@ function Library.new(config)
 	Logo.Position = UDim2.new(0.5, 0, 0.5, 0)
 	Logo.Size = UDim2.new(0.949999988, 0, 0.949999988, 0)
 	Logo.ZIndex = 4
-	Logo.Image = config.Logo;
-	Logo.ScaleType = Enum.ScaleType.Crop
+	local logoData = GetCustomIcon(config.Logo)
+	if logoData then
+		Logo.Image = logoData.Url
+		Logo.ImageRectOffset = logoData.ImageRectOffset
+		Logo.ImageRectSize = logoData.ImageRectSize
+		Logo.ScaleType = logoData.Custom and Enum.ScaleType.Fit or Enum.ScaleType.Crop
+	end
 	Logo.ImageTransparency = 1;
 
 	Twen:Create(Logo,TweenInfo2,{ImageTransparency = 0}):Play();
@@ -1170,7 +1194,13 @@ function Library.new(config)
 		Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 		Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 		Icon.ZIndex = 6
-		Icon.Image = Library['Icons'][cfg.Icon] or cfg.Icon
+		local iconData = GetCustomIcon(cfg.Icon)
+		if iconData then
+			Icon.Image = iconData.Url
+			Icon.ImageRectOffset = iconData.ImageRectOffset
+			Icon.ImageRectSize = iconData.ImageRectSize
+			Icon.ScaleType = iconData.Custom and Enum.ScaleType.Fit or Enum.ScaleType.Crop
+		end
 		Icon.ImageTransparency = 1
 		Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
@@ -1441,7 +1471,13 @@ function Library.new(config)
 			Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 			Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 			Icon.ZIndex = 6
-			Icon.Image = Library['Icons'][c_o_n_f_i_g.Icon] or c_o_n_f_i_g.Icon; 
+			local iconData = GetCustomIcon(c_o_n_f_i_g.Icon)
+			if iconData then
+				Icon.Image = iconData.Url
+				Icon.ImageRectOffset = iconData.ImageRectOffset
+				Icon.ImageRectSize = iconData.ImageRectSize
+				Icon.ScaleType = iconData.Custom and Enum.ScaleType.Fit or Enum.ScaleType.Crop
+			end
 			Icon.ImageTransparency = 1
 			Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
@@ -3047,7 +3083,7 @@ Library.Notification = function()
 	Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	Frame.BorderSizePixel = 0
 	Frame.Position = UDim2.new(0.98, 0, 0.98, 0)
-	Frame.Size = UDim2.new(0.25, 0, 0.5, 0)
+	Frame.Size = UDim2.new(0.3, 0, 0.5, 0)
 
 	UIListLayout.Parent = Frame
 	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -3095,7 +3131,7 @@ Library.Notification = function()
 			Notifiy.BorderColor3 = Color3.fromRGB(0, 0, 0)
 			Notifiy.BorderSizePixel = 0
 			Notifiy.ClipsDescendants = true
-			Notifiy.Size = UDim2.new(1,0,0.15,0)
+			Notifiy.Size = UDim2.new(0.9,0,0.15,0)
 			Notifiy.Position = UDim2.new(1,0,1,0)
 			Twen:Create(Notifiy,css_style,{
 				BackgroundTransparency = 0.350,
@@ -3111,7 +3147,13 @@ Library.Notification = function()
 			icon.BackgroundTransparency = 1.000
 			icon.Position = UDim2.new(0.05, 0, 0.5, 0)
 			icon.Size = UDim2.new(0,30,0,30)
-			icon.Image = Icons[ctfx.Icon] or ctfx.Icon
+			local iconData = GetCustomIcon(ctfx.Icon)
+			if iconData then
+				icon.Image = iconData.Url
+				icon.ImageRectOffset = iconData.ImageRectOffset
+				icon.ImageRectSize = iconData.ImageRectSize
+				icon.ScaleType = iconData.Custom and Enum.ScaleType.Fit or Enum.ScaleType.Crop
+			end
 			icon.ImageTransparency = 1;
 			Twen:Create(icon,css_style,{
 				ImageTransparency = 0
