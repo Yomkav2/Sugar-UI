@@ -1,4 +1,4 @@
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKA0000555 -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKA  ещкере -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -1874,7 +1874,7 @@ function Library.new(config)
 					Callback = function() end;
 				});
 				toggle.__type = "Toggle"
-				WindowTable.RegisterFlag(WindowTable, toggle.Name, toggle)
+				WindowTable:RegisterFlag(toggle.Name, toggle)
 
 				local FunctionToggle = Instance.new("Frame")
 				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
@@ -2221,7 +2221,7 @@ function Library.new(config)
 				});
 				ctfx.__type = "Keybind"
 				ctfx.Value = ctfx.Default
-				WindowTable.RegisterFlag(WindowTable, ctfx.Name, ctfx)
+				WindowTable:RegisterFlag(ctfx.Name, ctfx)
 
 				local BindEvent = Instance.new('BindableEvent',Section);
 				local FunctionKeybind = Instance.new("Frame")
@@ -2402,7 +2402,7 @@ function Library.new(config)
 				});
 				slider.__type = "Slider"
 				slider.Value = slider.Default
-				WindowTable.RegisterFlag(WindowTable, slider.Name, slider)
+				WindowTable:RegisterFlag(slider.Name, slider)
 
 				local FunctionSlider = Instance.new("Frame")
 				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
@@ -2582,7 +2582,7 @@ function Library.new(config)
 				});
 				drop.__type = "Dropdown"
 				drop.Value = drop.Default
-				WindowTable.RegisterFlag(WindowTable, drop.Name, drop)
+				WindowTable:RegisterFlag(drop.Name, drop)
 
 				local FunctionDropdown = Instance.new("Frame")
 				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
@@ -2769,7 +2769,7 @@ function Library.new(config)
 				})
 				conf.__type = "Input"
 				conf.Value = conf.Default
-				WindowTable.RegisterFlag(WindowTable, conf.Name, conf)
+				WindowTable:RegisterFlag(conf.Name, conf)
 
 				local FunctionTextbox = Instance.new("Frame")
 				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
