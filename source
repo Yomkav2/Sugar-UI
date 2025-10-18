@@ -298,6 +298,7 @@ function Library.new(config)
 	WindowTable.WindowToggle = true;
 	WindowTable.Keybind = config.Keybind;
 	WindowTable.ToggleButton = nil
+	WindowTable.HiddenPosition = UDim2.new(0.5, 0,0.05, 0)
 	
 	local ImageButton = Instance.new("ImageButton")
 
@@ -367,7 +368,7 @@ function Library.new(config)
 
 		else
 			Twen:Create(MainFrame,TweenInfo.new(0.5,Enum.EasingStyle.Quint),{BackgroundTransparency = 1,Size = UDim2.new(0.085, 10,0.05, 0)}):Play();
-			Twen:Create(MainFrame,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0,0.05, 0)}):Play();
+			Twen:Create(MainFrame,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{Position = WindowTable.HiddenPosition}):Play();
 			Twen:Create(MainDropShadow,TweenInfo1,{ImageTransparency = 1}):Play();
 			Twen:Create(Headers,TweenInfo1,{BackgroundTransparency = 1}):Play();
 			Twen:Create(Logo,TweenInfo1,{ImageTransparency = 1}):Play();
@@ -2282,6 +2283,10 @@ function Library.new(config)
 					end,
 					Set = function(table)
 						drop.Data = table
+					end,
+					Refresh = function()
+						-- Assuming Updater refreshes the dropdown
+						WindowTable.Dropdown:Open(drop.Data,drop.Default,Updater)
 					end
 				};
 			end;
@@ -2451,6 +2456,9 @@ function Library.new(config)
 		local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
 			startPos.Y.Scale, startPos.Y.Offset + delta.Y);
 		game:GetService('TweenService'):Create(MainFrame, TweenInfo.new(dragSpeed), {Position = position}):Play()
+		if not WindowTable.WindowToggle then
+			WindowTable.HiddenPosition = position
+		end
 	end;
 
 	InputFrame.InputBegan:Connect(function(input)
@@ -2479,7 +2487,7 @@ end;
 
 Library.NewAuth = function(conf)
 	conf = Config(conf,{
-		Title = "Nothing $ KEY SYSTEM",
+		Title = "Sugar $ KEY SYSTEM",
 		GetKey = function() return 'https://example.com' end,
 		Auth = function(key) if key == '1 or 1' then return key; end; end,
 		Freeze = false,
@@ -2850,7 +2858,7 @@ Library.Notification = function()
 				Duration = 5,
 				Icon = "rbxassetid://7733993369"
 			})
-			local css_style = TweenInfo.new(0.5,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut);
+			local css_style = TweenInfo.new(0.3,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut);
 			local Notifiy = Instance.new("Frame")
 			local UICorner = Instance.new("UICorner")
 			local icon = Instance.new("ImageLabel")
@@ -2886,7 +2894,7 @@ Library.Notification = function()
 			Notifiy.Size = UDim2.new(0,0,0,0)
 			Twen:Create(Notifiy,css_style,{
 				BackgroundTransparency = 0.350,
-				Size = UDim2.new(0.2, 0, 0.2, 0)
+				Size = UDim2.new(game:GetService("UserInputService").TouchEnabled and 0.25 or 0.22, 0, game:GetService("UserInputService").TouchEnabled and 0.25 or 0.22, 0)
 			}):Play()
 
 			UICorner.CornerRadius = UDim.new(0.3,0)
@@ -2943,7 +2951,7 @@ Library.Notification = function()
 			TextLabel_2.Font = Enum.Font.GothamBold
 			TextLabel_2.Text = ctfx.Description
 			TextLabel_2.TextColor3 = Color3.fromRGB(255, 255, 255)
-			TextLabel_2.TextSize = 9.000
+			TextLabel_2.TextSize = game:GetService("UserInputService").TouchEnabled and 12 or 9.000
 			TextLabel_2.TextTransparency = 0.500
 			TextLabel_2.TextWrapped = true
 			TextLabel_2.TextXAlignment = Enum.TextXAlignment.Left
@@ -2974,7 +2982,7 @@ Library.Notification = function()
 
 			local mkLoad = function()
 				Twen:Create(Notifiy,css_style,{
-					Size = UDim2.new(0.2, 0, 0.2, 0)
+					Size = UDim2.new(game:GetService("UserInputService").TouchEnabled and 0.25 or 0.22, 0, game:GetService("UserInputService").TouchEnabled and 0.25 or 0.22, 0)
 				}):Play()
 
 				Twen:Create(UICorner,css_style,{
@@ -3453,6 +3461,6 @@ function Library:Console()
 	return overview;
 end;
 
-print('[ OK ]: Sugar UI LOADED!! YOMKA MADE IT')
+print(' [ DONE <3 ]: Sugar UI LOADED!! YOMKA MADE IT')
 
 return table.freeze(Library);
