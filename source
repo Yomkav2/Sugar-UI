@@ -1,4 +1,4 @@
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua 00 -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/main/source.lua 77 -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -7,7 +7,7 @@ local LocalPlayer = game:GetService('Players').LocalPlayer;
 local CoreGui = (gethui and gethui()) or game:FindFirstChild('CoreGui') or LocalPlayer.PlayerGui;
 local Icons = (function()
 	local p,c = pcall(function()
-		local Http = game:HttpGetAsync('https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua');
+		local Http = game:HttpGetAsync('https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/main/source.lua');
 		local Module = loadstring(Http)();
 		return Module.icons;
 	end);
@@ -191,7 +191,7 @@ end;
 local Library = {};
 
 Library['.'] = '1';
-Library['FetchIcon'] = "https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua";
+Library['FetchIcon'] = "https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/main/source.lua";
 
 pcall(function()
 	local Module = loadstring(game:HttpGetAsync(Library.FetchIcon))();
@@ -200,8 +200,9 @@ end)
 
 -- Lucide Icons Adaptation
 local FetchIcons, IconsModule = pcall(function()
+    local url = "https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/main/source.lua"
     return (loadstring(
-        game:HttpGet("https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua")
+        game:HttpGet(url)
     ) :: () -> { GetAsset: (string) -> { Url: string, Id: number, IconName: string, ImageRectOffset: Vector2, ImageRectSize: Vector2 }? })()
 end)
 
@@ -2651,7 +2652,7 @@ local Lucide = {}
 -- Попытка загрузить официальный источник иконок (как в оригинале).
 -- Если загрузка провалится, Icons останется nil и GetIcon вернёт nil.
 local ok, mod = pcall(function()
-    local url = "https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua"
+    local url = "https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/main/source.lua"
     local fn = assert(loadstring(game:HttpGet(url)))
     return fn()
 end)
@@ -2734,129 +2735,7 @@ end
 Lucide._FetchIcons = FetchIcons
 Lucide._Icons = Icons
 
--- === Lucide icons fallback и единая точка разрешения URL для Icon.Image ===
--- Вставлять сразу после секции Lucide (после Lucide._Icons / Lucide._FetchIcons) и перед Library.NewAuth
-
-do
-	-- локальный резолвер: возвращает прямой URL/asset id или nil
-	local function ResolveIconUrl(iconName)
-		if type(iconName) ~= "string" then return nil end
-
-		-- если передали прямой rbxasset/тянейл/http -> используем как есть
-		if iconName:match("rbxasset") or iconName:match("roblox%%.com/asset/%?id=") or iconName:match("rbxthumb://") or iconName:match("^http") then
-			return iconName
-		end
-
-		-- 1) попробовать старый модуль IconsModule (если он загружен ранее в скрипте)
-		local ok, res = pcall(function()
-			if typeof(IconsModule) == "table" and type(IconsModule.GetAsset) == "function" then
-				return IconsModule:GetAsset(iconName)
-			end
-		end)
-		if ok and type(res) == "table" and res.Url then
-			return res.Url
-		end
-
-		-- 2) попробовать метод Lucide (если модуль Lucide доступен)
-		local ok2, url2 = pcall(function()
-			if type(Lucide) == "table" and type(Lucide.GetIconUrl) == "function" then
-				return Lucide:GetIconUrl(iconName)
-			end
-		end)
-		if ok2 and url2 then
-			return url2
-		end
-
-		-- 3) лениво подгрузить резервные remote-источники и попытаться взять иконку
-		local function tryLoadRemotes()
-			local candidates = {
-				"https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua",
-				"https://raw.githubusercontent.com/Footagesus/Icons/main/Main-v2.lua"
-			}
-			for _, url in ipairs(candidates) do
-				local ok3, mod = pcall(function()
-					return loadstring(game:HttpGet(url))()
-				end)
-				if ok3 and type(mod) == "table" then
-					-- если модуль имеет GetAsset, сохраняем для дальнейшего использования
-					if type(mod.GetAsset) == "function" then
-						-- запомним в локальной переменной, чтобы следующий вызов быстрый
-						IconsModule = mod
-						local ok4, it = pcall(function() return mod:GetAsset(iconName) end)
-						if ok4 and type(it) == "table" and it.Url then
-							return it.Url
-						end
-					end
-				end
-			end
-			return nil
-		end
-
-		local okR, resR = pcall(tryLoadRemotes)
-		if okR and resR then
-			return resR
-		end
-
-		-- ничего не нашли
-		return nil
-	end
-
-	-- Переписать/переопределить локальную функцию GetCustomIcon/GetIconUrl (если они уже есть),
-	-- чтобы существующий код (Icon.Image = GetIconUrl(cfg.Icon) or cfg.Icon) начал получать URL.
-	-- Если в вашем скрипте GetIconUrl локальна, эта замена её переопределит.
-	GetCustomIcon = function(iconName)
-		-- если передали прямой asset/url — вернуть структуру как раньше
-		if type(iconName) == "string" and (iconName:match("rbxasset") or iconName:match("roblox%.com/asset/%?id=") or iconName:match("rbxthumb://") or iconName:match("^http")) then
-			return {
-				Url = iconName,
-				ImageRectOffset = Vector2.new(0,0),
-				ImageRectSize = Vector2.new(0,0),
-				Custom = true,
-			}
-		end
-
-		-- попытка через ResolveIconUrl
-		local url = ResolveIconUrl(iconName)
-		if url then
-			return {
-				Url = url,
-				ImageRectOffset = Vector2.new(0,0),
-				ImageRectSize = Vector2.new(0,0),
-				Custom = true,
-			}
-		end
-
-		-- окончательно nil
-		return nil
-	end
-
-	GetIconUrl = function(iconName)
-		local c = GetCustomIcon(iconName)
-		if c and c.Url then return c.Url end
-		return nil
-	end
-
-	-- Тоже обновим Lucide:GetCustomIcon / Lucide:GetIconUrl если модуль Lucide присутствует
-	if type(Lucide) == "table" then
-		function Lucide:GetCustomIcon(iconName)
-			local c = GetCustomIcon(iconName)
-			if c then return c end
-			-- fallback to legacy Lucide:GetIcon if available
-			if type(self.GetIcon) == "function" then
-				local ok, it = pcall(function() return self:GetIcon(iconName) end)
-				if ok and type(it) == "table" and it.Url then return it end
-			end
-			return nil
-		end
-
-		function Lucide:GetIconUrl(iconName)
-			local c = self:GetCustomIcon(iconName)
-			if c and c.Url then return c.Url end
-			return nil
-		end
-	end
-end
-
+-- Использование в коде: Icon.Image = Lucide:GetIconUrl(cfg.Icon) or cfg.Icon
 
 Library.NewAuth = function(conf)
 	conf = Config(conf,{
