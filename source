@@ -1,184 +1,23 @@
 -- source.lua (Updated Library Source)
 
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKA23232355555 -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKA11 -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
 local TextServ = game:GetService('TextService');
 local LocalPlayer = game:GetService('Players').LocalPlayer;
 local CoreGui = (gethui and gethui()) or game:FindFirstChild('CoreGui') or LocalPlayer.PlayerGui;
-local HttpService = game:GetService("HttpService")
+local Icons = (function()
+	local p,c = pcall(function()
+		local Http = game:HttpGetAsync('https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua');
+		local Module = loadstring(Http)();
+		return Module.icons;
+	end);
 
--- Шаблоны дефолтных конфигов для элементов UI
-local Templates = {
-    -- Основные элементы
-    Toggle = {
-        Title = "Toggle",
-        Name = "Toggle",
-        Default = false,
-        Callback = function() end,
-    },
-    Slider = {
-        Title = "Slider",
-        Name = "Slider",
-        Min = 0,
-        Max = 100,
-        Default = 50,
-        Callback = function() end,
-    },
-    Dropdown = {
-        Title = "Dropdown",
-        Name = "Dropdown",
-        Data = {'One','Two','Three','Four'},
-        Default = 'Two',
-        Callback = function(a) end,
-    },
-    Textbox = {
-        Title = "Textbox",
-        Name = "Textbox",
-        Default = '',
-        FileType = "",
-        Callback = function(a) end,
-    },
-    -- Аддоны (Keybind, Button и т.д.)
-    Keybind = {
-        Title = "Keybind",
-        Name = "Keybind",
-        Callback = function() end,
-        Default = Enum.KeyCode.E,
-    },
-    Button = {
-        Title = "Button",
-        Callback = function() end,
-    },
-    -- Окно (Window)
-    Window = {
-        Title = "UI Library",
-        Description = "discord.gg/BH",
-        Keybind = Enum.KeyCode.LeftControl,
-        Logo = "http://www.roblox.com/asset/?id=18810965406",
-        Size = UDim2.new(0.100000001, 445, 0.100000001, 315),
-        ConfigFolder = "SugarConfigs"
-    },
-    -- Базовые UI-элементы (Frame, TextLabel и т.д.)
-    Frame = {
-        BorderSizePixel = 0,
-    },
-    ImageLabel = {
-        BackgroundTransparency = 1,
-        BorderSizePixel = 0,
-    },
-    -- ... (добавьте остальные шаблоны по необходимости)
-}
+	if p then return c end;
 
--- Функция валидации (сливает пользовательские опции с шаблоном)
-local function Validate(Table: { [string]: any }, Template: { [string]: any }): { [string]: any }
-    if typeof(Table) ~= "table" then
-        return Template
-    end
-
-    for k, v in pairs(Template) do
-        if typeof(k) == "number" then
-            continue
-        end
-
-        if typeof(v) == "table" then
-            Table[k] = Validate(Table[k], v)
-        elseif Table[k] == nil then
-            Table[k] = v
-        end
-    end
-
-    return Table
-end
-
-local Lucide = {}
-
--- Попытка загрузить официальный источник иконок (как в оригинале).
--- Если загрузка провалится, Icons останется nil и GetIcon вернёт nil.
-local ok, mod = pcall(function()
-    local url = "https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua"
-    local fn = assert(loadstring(game:HttpGet(url)))
-    return fn()
-end)
-
-local FetchIcons = ok and type(mod) == "table"
-local Icons = FetchIcons and mod or nil
-
--- Устанавливает вручную модуль иконок (если вы хотите подменить или предоставить локальную таблицу).
--- Ожидается таблица с методом GetAsset(name) -> iconTable или nil.
-function Lucide:SetIconModule(moduleTable)
-    if type(moduleTable) ~= "table" then
-        error("SetIconModule expects a table")
-    end
-    Icons = moduleTable
-    FetchIcons = true
-end
-
--- Валидация строки кастомной иконки (rbxasset*, roblox.com/asset/?id=, rbxthumb://type=)
-local function IsValidCustomIcon(icon)
-    if type(icon) ~= "string" then
-        return false
-    end
-    if icon:match("rbxasset") then
-        return true
-    end
-    if icon:match("roblox%.com/asset/%?id=") then
-        return true
-    end
-    if icon:match("rbxthumb://type=") then
-        return true
-    end
-    return false
-end
-
--- Получить иконку по имени через модуль lucide.
--- Возвращает nil если модуль недоступен или нет такой иконки.
--- Ожидаемый формат возвращаемой иконки:
--- { Url = string, Id = number?, IconName = string, ImageRectOffset = Vector2, ImageRectSize = Vector2, ... }
-function Lucide:GetIcon(name)
-    if not FetchIcons then
-        return nil
-    end
-    if type(Icons.GetAsset) ~= "function" then
-        return nil
-    end
-
-    local success, icon = pcall(Icons.GetAsset, Icons, name)
-    if not success then
-        return nil
-    end
-    return icon
-end
-
--- Возвращает структуру иконки для произвольной строки.
--- Если строка распознана как прямой URL/asset, возвращает объект с полями Url, ImageRectOffset, ImageRectSize, Custom = true.
--- Если нет — пытается получить иконку по имени через GetIcon.
-function Lucide:GetCustomIcon(iconName)
-    if IsValidCustomIcon(iconName) then
-        return {
-            Url = iconName,
-            ImageRectOffset = Vector2.new(0, 0),
-            ImageRectSize = Vector2.new(0, 0),
-            Custom = true,
-        }
-    else
-        return self:GetIcon(iconName)
-    end
-end
-
--- Утилита: безопасная попытка получить URL (возвращает строку или nil).
-function Lucide:GetIconUrl(name)
-    local icon = self:GetIcon(name)
-    if not icon then
-        return nil
-    end
-    return icon.Url
-end
-
--- Экспорт переменных для отладки/совместимости
-Lucide._FetchIcons = FetchIcons
-Lucide._Icons = Icons
+	return nil;
+end)() or {};
 
 local ElBlurSource = function()
 	local GuiSystem = {}
@@ -341,6 +180,16 @@ local ElBlurSource = function()
 end;
 
 local ElBlurSource = ElBlurSource();
+local Config = function(data,default)
+	data = data or {};
+
+	for i,v in next,default do
+		data[i] = data[i] or v;
+	end;
+
+	return data;
+end;
+
 local Library = {};
 
 Library['.'] = '1';
@@ -406,7 +255,14 @@ function Library.GradientImage(E : Frame , Color)
 end;
 
 function Library.new(config)
-	config = Validate(config, Templates.Window);
+	config = Config(config,{
+		Title = "UI Library",
+		Description = "discord.gg/BH6pE7jesa",
+		Keybind = Enum.KeyCode.LeftControl,
+		Logo = "http://www.roblox.com/asset/?id=18810965406",
+		Size = UDim2.new(0.100000001, 445, 0.100000001, 315),
+		ConfigFolder = "SugarConfigs"
+	});
 
 	local TweenInfo1 = TweenInfo.new(0.5,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut);
 	local TweenInfo2 = TweenInfo.new(0.3,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut);
@@ -448,6 +304,8 @@ function Library.new(config)
 	WindowTable.ToggleButton = nil
 	WindowTable.LastPosition = UDim2.new(0.5, 0, 0.05, 0)  -- Для запоминания позиции в свернутом виде
 	
+	local HttpService = game:GetService("HttpService")
+
 	-- Config folder setup
 	local configFolder = config.ConfigFolder
 	if not isfolder(configFolder) then
@@ -505,7 +363,7 @@ function Library.new(config)
 	HomeIcon.Position = UDim2.new(0.5, 0, 0.5, 0)
 	HomeIcon.Size = UDim2.new(0.7,0,0.7,0)
 	HomeIcon.ZIndex = 49
-	HomeIcon.Image = "rbxassetid://7733964640"
+	HomeIcon.Image = "rbxassetid://7733993211"
 	HomeIcon.ScaleType = Enum.ScaleType.Fit
 	HomeIcon.ImageTransparency = 1;
 	HomeIcon.BackgroundTransparency = 1;
@@ -937,7 +795,7 @@ function Library.new(config)
 		ScrollingFrame.BorderSizePixel = 0
 		ScrollingFrame.Position = UDim2.new(0.5, 0, 0.555985212, 0)
 		ScrollingFrame.Size = UDim2.new(0.949999988, 0, 0.888029099, 0)
-		ScrollingFrame.ZIndex = 100
+		ScrollingFrame.ZIndex = 102
 		ScrollingFrame.BottomImage = ""
 		ScrollingFrame.ScrollBarThickness = 1
 		ScrollingFrame.TopImage = ""
@@ -1092,7 +950,7 @@ function Library.new(config)
 		local MouseInFrame = false;
 		local MouseInMyFrame = false;
 
-		function WindowTable.Dropdown:Setup(target_frame)
+		function WindowTable.Dropdown:Setup(target_frame:Frame)
 			Locked = target_frame
 		end;
 
@@ -1130,7 +988,7 @@ function Library.new(config)
 					if v:IsA('Frame') then
 						v:Destroy();
 					end;
-				end
+				end;
 			end;
 
 			local list = {};
@@ -1184,7 +1042,7 @@ function Library.new(config)
 					if v:IsA('Frame') then
 						v:Destroy();
 					end;
-				end
+				end;
 			end;
 		end;
 
@@ -1222,7 +1080,7 @@ function Library.new(config)
 					DropdownFrame.Position = DropdownFrame.Position:Lerp(UDim2.fromOffset(0,0),.1);
 				end;
 
-				if DropdownFrame.Size == UDim2.fromOffset(0,0) then
+				if DropdownFrame.Size.Y.Offset == 0 then
 					DropdownFrame.Visible = false;
 				end;
 			end;
@@ -1232,7 +1090,7 @@ function Library.new(config)
 	function WindowTable:GetAllElements()
 		local all = {}
 		for _, tab in ipairs(self.Tabs) do
-			for _, section in ipairs(tab.Sections or {}) do
+			for _, section in ipairs(tab.Sections or {}) do  -- Assume tabs have Sections
 				for _, el in ipairs(section.Elements or {}) do
 					table.insert(all, el)
 				end
@@ -1260,10 +1118,10 @@ function Library.new(config)
 	end
 
 	function WindowTable:NewTab(cfg)
-		cfg = Validate(cfg, {
+		cfg = Config(cfg,{
 			Title = "Example",
 			Description = "Tab: "..tostring(#WindowTable.Tabs + 1),
-			Icon = "rbxassetid://7733963960"
+			Icon = "rbxassetid://7733964640"
 		});
 
 		local TabTable = {};
@@ -1312,7 +1170,7 @@ function Library.new(config)
 		Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 		Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 		Icon.ZIndex = 6
-		Icon.Image = Lucide:GetIconUrl(cfg.Icon) or cfg.Icon
+		Icon.Image = Library['Icons'][cfg.Icon] or cfg.Icon
 		Icon.ImageTransparency = 1
 		Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
@@ -1518,10 +1376,10 @@ function Library.new(config)
 		end)
 
 		function TabTable:NewSection(c_o_n_f_i_g)
-			c_o_n_f_i_g = Validate(c_o_n_f_i_g, {
+			c_o_n_f_i_g = Config(c_o_n_f_i_g,{
 				Position = "Left",
 				Title = "Section",
-				Icon = 'rbxassetid://7733963960'
+				Icon = 'rbxassetid://7733964640'
 			});
 
 			local SectionTable = {};
@@ -1583,7 +1441,7 @@ function Library.new(config)
 			Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 			Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 			Icon.ZIndex = 6
-			Icon.Image = Lucide:GetIconUrl(c_o_n_f_i_g.Icon) or c_o_n_f_i_g.Icon; 
+			Icon.Image = Library['Icons'][c_o_n_f_i_g.Icon] or c_o_n_f_i_g.Icon; 
 			Icon.ImageTransparency = 1
 			Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
@@ -1659,7 +1517,12 @@ function Library.new(config)
 			table.insert(TabTable.Sections, SectionTable)
 
 			function SectionTable:NewToggle(toggle)
-				toggle = Validate(toggle, Templates.Toggle);
+				toggle = Config(toggle,{
+					Title = "Toggle",
+					Name = toggle.Title,
+					Default = false,
+					Callback = function() end;
+				});
 
 				local FunctionToggle = Instance.new("Frame")
 				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
@@ -1847,6 +1710,8 @@ function Library.new(config)
 				TextInt.TextScaled = true
 				TextInt.TextSize = 14.000
 				TextInt.TextTransparency = 1
+				TextInt.TextWrapped = true
+				TextInt.TextXAlignment = Enum.TextXAlignment.Left
 				Twen:Create(TextInt,TweenInfo1,{TextTransparency = 0.25}):Play();
 
 				UIGradient.Rotation = 90
@@ -1867,7 +1732,10 @@ function Library.new(config)
 			end;
 
 			function SectionTable:NewButton(cfg)
-				cfg = Validate(cfg, Templates.Button);
+				cfg = Config(cfg,{
+					Title = "Button",
+					Callback = function() end;
+				});
 
 				local FunctionButton = Instance.new("Frame")
 				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
@@ -1888,11 +1756,16 @@ function Library.new(config)
 				FunctionButton.ZIndex = 17
 				Twen:Create(FunctionButton,TweenInfo1,{
 					BackgroundTransparency = 0.750,
+					Size = UDim2.new(0.949999988, 0, 0.5, 0)
 				}):Play();
 
 				UIAspectRatioConstraint.Parent = FunctionButton
 				UIAspectRatioConstraint.AspectRatio = 7.000
 				UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
+
+				Twen:Create(UIAspectRatioConstraint,TweenInfo1,{
+					AspectRatio = 7.65
+				}):Play();
 
 				UICorner.CornerRadius = UDim.new(0, 2)
 				UICorner.Parent = FunctionButton
@@ -1976,19 +1849,22 @@ function Library.new(config)
 					task.spawn(cfg.Callback);
 				end)
 
-				local el = {
-					Name = cfg.Name,
-					Get = function() return cfg.Title end,
+				return {
+					Visible = function(newindx)
+						FunctionButton.Visible = newindx
+					end,
 					Fire = cfg.Callback
 				};
-
-				table.insert(SectionTable.Elements, el)
-
-				return el;
 			end;
 
 			function SectionTable:NewKeybind(ctfx)
-				ctfx = Validate(ctfx, Templates.Keybind);
+				ctfx = Config(ctfx,{
+					Title = "Keybind",
+					Name = ctfx.Title,
+					Callback = function() end,
+					Default = Enum.KeyCode.E,
+
+				});
 
 				local BindEvent = Instance.new('BindableEvent',Section);
 				local FunctionKeybind = Instance.new("Frame")
@@ -2155,7 +2031,16 @@ function Library.new(config)
 			end;
 
 			function SectionTable:NewSlider(slider)
-				slider = Validate(slider, Templates.Slider);
+				slider = Config(slider,{
+					Title = "Slider",
+					Name = slider.Title,
+					Min = 0,
+					Max = 100,
+					Default = 50,
+					Callback = function()
+
+					end,
+				});
 
 				local FunctionSlider = Instance.new("Frame")
 				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
@@ -2322,7 +2207,15 @@ function Library.new(config)
 			end;
 
 			function SectionTable:NewDropdown(drop)
-				drop = Validate(drop, Templates.Dropdown);
+				drop = Config(drop,{
+					Title = "Dropdown",
+					Name = drop.Title,
+					Data = {'One','Two','Three','Four'},
+					Default = 'Two',
+					Callback = function(a)
+
+					end,
+				});
 
 				local FunctionDropdown = Instance.new("Frame")
 				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
@@ -2495,7 +2388,15 @@ function Library.new(config)
 			end;
 
 			function SectionTable:NewTextbox(conf)
-				conf = Validate(conf, Templates.Textbox);
+				conf = Config(conf,{
+					Title = "Textbox",
+					Name = conf.Title,
+					Default = '',
+					FileType = "",
+					Callback = function(a)
+
+					end,
+				})
 
 				local FunctionTextbox = Instance.new("Frame")
 				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
@@ -2696,8 +2597,102 @@ function Library.new(config)
 	return WindowTable;
 end;
 
+-- LucideIcons.lua
+-- Небольшой самодостаточный модуль для получения и использования Lucide-иконок,
+-- извлечённый и адаптированный из вашего скрипта.
+
+local Lucide = {}
+
+-- Попытка загрузить официальный источник иконок (как в оригинале).
+-- Если загрузка провалится, Icons останется nil и GetIcon вернёт nil.
+local ok, mod = pcall(function()
+    local url = "https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua"
+    local fn = assert(loadstring(game:HttpGet(url)))
+    return fn()
+end)
+
+local FetchIcons = ok and type(mod) == "table"
+local Icons = FetchIcons and mod or nil
+
+-- Устанавливает вручную модуль иконок (если вы хотите подменить или предоставить локальную таблицу).
+-- Ожидается таблица с методом GetAsset(name) -> iconTable или nil.
+function Lucide:SetIconModule(moduleTable)
+    if type(moduleTable) ~= "table" then
+        error("SetIconModule expects a table")
+    end
+    Icons = moduleTable
+    FetchIcons = true
+end
+
+-- Валидация строки кастомной иконки (rbxasset*, roblox.com/asset/?id=, rbxthumb://type=)
+local function IsValidCustomIcon(icon)
+    if type(icon) ~= "string" then
+        return false
+    end
+    if icon:match("rbxasset") then
+        return true
+    end
+    if icon:match("roblox%.com/asset/%?id=") then
+        return true
+    end
+    if icon:match("rbxthumb://type=") then
+        return true
+    end
+    return false
+end
+
+-- Получить иконку по имени через модуль lucide.
+-- Возвращает nil если модуль недоступен или нет такой иконки.
+-- Ожидаемый формат возвращаемой иконки:
+-- { Url = string, Id = number?, IconName = string, ImageRectOffset = Vector2, ImageRectSize = Vector2, ... }
+function Lucide:GetIcon(name)
+    if not FetchIcons or not Icons then
+        return nil
+    end
+    if type(Icons.GetAsset) ~= "function" then
+        return nil
+    end
+
+    local success, icon = pcall(Icons.GetAsset, Icons, name)
+    if not success then
+        return nil
+    end
+    return icon
+end
+
+-- Возвращает структуру иконки для произвольной строки.
+-- Если строка распознана как прямой URL/asset, возвращает объект с полями Url, ImageRectOffset, ImageRectSize, Custom = true.
+-- Если нет — пытается получить иконку по имени через GetIcon.
+function Lucide:GetCustomIcon(iconName)
+    if IsValidCustomIcon(iconName) then
+        return {
+            Url = iconName,
+            ImageRectOffset = Vector2.new(0, 0),
+            ImageRectSize = Vector2.new(0, 0),
+            Custom = true,
+        }
+    else
+        return self:GetIcon(iconName)
+    end
+end
+
+-- Утилита: безопасная попытка получить URL (возвращает строку или nil).
+function Lucide:GetIconUrl(name)
+    local icon = self:GetIcon(name)
+    if not icon then
+        return nil
+    end
+    return icon.Url
+end
+
+-- Экспорт переменных для отладки/совместимости
+Lucide._FetchIcons = FetchIcons
+Lucide._Icons = Icons
+
+-- Использование в коде: Icon.Image = Lucide:GetIconUrl(cfg.Icon) or cfg.Icon
+
 Library.NewAuth = function(conf)
-	conf = Validate(conf,{
+	conf = Config(conf,{
 		Title = "Sugar $ KEY SYSTEM",
 		GetKey = function() return 'https://example.com' end,
 		Auth = function(key) if key == '1 or 1' then return key; end; end,
@@ -2752,7 +2747,7 @@ Library.NewAuth = function(conf)
 
 	ScreenGui.Parent = CoreGui
 	ScreenGui.IgnoreGuiInset = true
-	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global;
+	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
 
 	Auth.Name = "Auth"
 	Auth.Parent = ScreenGui
@@ -3052,7 +3047,7 @@ Library.Notification = function()
 	Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	Frame.BorderSizePixel = 0
 	Frame.Position = UDim2.new(0.98, 0, 0.98, 0)
-	Frame.Size = UDim2.new(0.85, 0, 0.5, 0)
+	Frame.Size = UDim2.new(0.25, 0, 0.5, 0)
 
 	UIListLayout.Parent = Frame
 	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
@@ -3061,7 +3056,7 @@ Library.Notification = function()
 
 	return {
 		new = function(ctfx)
-			ctfx = Validate(ctfx, {
+			ctfx = Config(ctfx,{
 				Title = "Notification",
 				Description = "Description",
 				Duration = 5,
@@ -3100,7 +3095,7 @@ Library.Notification = function()
 			Notifiy.BorderColor3 = Color3.fromRGB(0, 0, 0)
 			Notifiy.BorderSizePixel = 0
 			Notifiy.ClipsDescendants = true
-			Notifiy.Size = UDim2.new(0.8,0,0.15,0)
+			Notifiy.Size = UDim2.new(1,0,0.15,0)
 			Notifiy.Position = UDim2.new(1,0,1,0)
 			Twen:Create(Notifiy,css_style,{
 				BackgroundTransparency = 0.350,
@@ -3116,7 +3111,7 @@ Library.Notification = function()
 			icon.BackgroundTransparency = 1.000
 			icon.Position = UDim2.new(0.05, 0, 0.5, 0)
 			icon.Size = UDim2.new(0,30,0,30)
-			icon.Image = Lucide:GetIconUrl(ctfx.Icon) or ctfx.Icon
+			icon.Image = Icons[ctfx.Icon] or ctfx.Icon
 			icon.ImageTransparency = 1;
 			Twen:Create(icon,css_style,{
 				ImageTransparency = 0
@@ -3392,10 +3387,10 @@ function Library:Console()
 [[
 						<font color="rgb(255,125,0)">neuron@rubuntu</font>
 						<font color="rgb(255,125,0)">----------------------------------</font>
-						<font color="rgb(255,125,0)">Script</font>: Intel Core I9 15900K (arm)
+						<font color="rgb(255,125,0)">Script</font>: Neuron X
 						<font color="rgb(255,125,0)">Developers</font>: ttjy , catsus , q.r2s
 						<font color="rgb(255,125,0)">Discord</font>: https://discord.gg/HkRUtyTbk2
-	<font color="rgb(255,125,0)">no logo</font>	<font color="rgb(255,125,0)">CPU1</font>: Intel Intel Core I9 15900K (arm)
+	<font color="rgb(255,125,0)">no logo</font>	<font color="rgb(255,125,0)">CPU1</font>: Intel Core I9 15900K (arm)
 						<font color="rgb(255,125,0)">CPU2</font>: Snapdragon 8 Gen 4 Super Ultra Gaming Edition (arm)
 						<font color="rgb(255,125,0)">GPU1</font>: Nvidia RTX 9080 Ti
 						<font color="rgb(255,125,0)">GPU2</font>: Nvidia GTX 1080 Ti
