@@ -1,4 +1,4 @@
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua UPPPPPPPPDDDD -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKA -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -107,8 +107,8 @@ local ElBlurSource = function()
 			local corner0 = frame.AbsolutePosition;
 			local corner1 = corner0 + frame.AbsoluteSize;
 
-			local ray0 = CurrentCamera.ScreenPointToRay(CurrentCamera,corner0.X, corner0.Y, 1);
-			local ray1 = CurrentCamera.ScreenPointToRay(CurrentCamera,corner1.X, corner1.Y, 1);
+			local ray0 = CurrentCamera:ScreenPointToRay(corner0.X, corner0.Y, 1);
+			local ray1 = CurrentCamera:ScreenPointToRay(corner1.X, corner1.Y, 1);
 
 			local planeOrigin = CurrentCamera.CFrame.Position + CurrentCamera.CFrame.LookVector * (0.05 - CurrentCamera.NearPlaneZ);
 
@@ -197,98 +197,6 @@ pcall(function()
 	local Module = loadstring(game:HttpGetAsync(Library.FetchIcon))();
 	Library['Icons'] = Module.icons;
 end)
-
--- LucideIcons.lua
--- Небольшой самодостаточный модуль для получения и использования Lucide-иконок,
--- извлечённый и адаптированный из вашего скрипта.
-
-local Lucide = {}
-
--- Попытка загрузить официальный источник иконок (как в оригинале).
--- Если загрузка провалится, Icons останется nil и GetIcon вернёт nil.
-local ok, mod = pcall(function()
-    local url = "https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua"
-    local fn = assert(loadstring(game:HttpGet(url)))
-    return fn()
-end)
-
-local FetchIcons = ok and type(mod) == "table"
-local Icons = FetchIcons and mod or nil
-
--- Устанавливает вручную модуль иконок (если вы хотите подменить или предоставить локальную таблицу).
--- Ожидается таблица с методом GetAsset(name) -> iconTable или nil.
-function Lucide:SetIconModule(moduleTable)
-    if type(moduleTable) ~= "table" then
-        error("SetIconModule expects a table")
-    end
-    Icons = moduleTable
-    FetchIcons = true
-end
-
--- Валидация строки кастомной иконки (rbxasset*, roblox.com/asset/?id=, rbxthumb://type=)
-local function IsValidCustomIcon(icon)
-    if type(icon) ~= "string" then
-        return false
-    end
-    if icon:match("rbxasset") then
-        return true
-    end
-    if icon:match("roblox%.com/asset/%?id=") then
-        return true
-    end
-    if icon:match("rbxthumb://type=") then
-        return true
-    end
-    return false
-end
-
--- Получить иконку по имени через модуль lucide.
--- Возвращает nil если модуль недоступен или нет такой иконки.
--- Ожидаемый формат возвращаемой иконки:
--- { Url = string, Id = number?, IconName = string, ImageRectOffset = Vector2, ImageRectSize = Vector2, ... }
-function Lucide:GetIcon(name)
-    if not FetchIcons or not Icons then
-        return nil
-    end
-    if type(Icons.GetAsset) ~= "function" then
-        return nil
-    end
-
-    local success, icon = pcall(Icons.GetAsset, Icons, name)
-    if not success then
-        return nil
-    end
-    return icon
-end
-
--- Возвращает структуру иконки для произвольной строки.
--- Если строка распознана как прямой URL/asset, возвращает объект с полями Url, ImageRectOffset, ImageRectSize, Custom = true.
--- Если нет — пытается получить иконку по имени через GetIcon.
-function Lucide:GetCustomIcon(iconName)
-    if IsValidCustomIcon(iconName) then
-        return {
-            Url = iconName,
-            ImageRectOffset = Vector2.new(0, 0),
-            ImageRectSize = Vector2.new(0, 0),
-            Custom = true,
-        }
-    else
-        return self:GetIcon(iconName)
-    end
-end
-
--- Утилита: безопасная попытка получить URL (возвращает строку или nil).
-function Lucide:GetIconUrl(name)
-    local icon = self:GetIcon(name)
-    if not icon then
-        return nil
-    end
-    return icon.Url
-end
-
--- Экспорт переменных для отладки/совместимости
-Lucide._FetchIcons = FetchIcons
-Lucide._Icons = Icons
 
 function Library.GradientImage(E : Frame , Color)
 	local GLImage = Instance.new("ImageLabel")
@@ -390,9 +298,7 @@ function Library.new(config)
 	WindowTable.WindowToggle = true;
 	WindowTable.Keybind = config.Keybind;
 	WindowTable.ToggleButton = nil
-	WindowTable.MinimizedPosition = UDim2.new(0.5, 0,0.05, 0)  -- Default minimized position
-	WindowTable.Configs = {}  -- Table to store configs
-	WindowTable.CurrentConfig = nil
+	WindowTable.LastPosition = UDim2.new(0.5, 0, 0.05, 0)  -- Для запоминания позиции в свернутом виде
 	
 	local ImageButton = Instance.new("ImageButton")
 
@@ -461,9 +367,8 @@ function Library.new(config)
 			}):Play()
 
 		else
-			WindowTable.MinimizedPosition = MainFrame.Position  -- Save current position before minimizing
 			Twen:Create(MainFrame,TweenInfo.new(0.5,Enum.EasingStyle.Quint),{BackgroundTransparency = 1,Size = UDim2.new(0.085, 10,0.05, 0)}):Play();
-			Twen:Create(MainFrame,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{Position = WindowTable.MinimizedPosition}):Play();
+			Twen:Create(MainFrame,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{Position = WindowTable.LastPosition}):Play();
 			Twen:Create(MainDropShadow,TweenInfo1,{ImageTransparency = 1}):Play();
 			Twen:Create(Headers,TweenInfo1,{BackgroundTransparency = 1}):Play();
 			Twen:Create(Logo,TweenInfo1,{ImageTransparency = 1}):Play();
@@ -531,7 +436,7 @@ function Library.new(config)
 	MainFrame.Name = "MainFrame"
 	MainFrame.Parent = ScreenGui
 	MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-	MainFrame.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+	MainFrame.BackgroundColor3 = Color3.fromRGB(30, 10, 10)  -- Красно-темный тон
 	MainFrame.BackgroundTransparency = 1
 	MainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	MainFrame.BorderSizePixel = 0
@@ -541,7 +446,7 @@ function Library.new(config)
 	MainFrame.ClipsDescendants = true;
 	
 	WindowTable.AddEffect = function(color)
-		Library.GradientImage(MainFrame,color or Color3.fromRGB(139, 0, 0))  -- Red accents
+		Library.GradientImage(MainFrame,color or Color3.fromRGB(150, 0, 0))  -- Красный градиент
 	end
 
 	Twen:Create(MainFrame,TweenInfo1,{BackgroundTransparency = 0.4,Size = config.Size}):Play();
@@ -560,7 +465,7 @@ function Library.new(config)
 	MainDropShadow.Size = UDim2.new(1, 47, 1, 47)
 	MainDropShadow.ZIndex = 0
 	MainDropShadow.Image = "rbxassetid://6015897843"
-	MainDropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+	MainDropShadow.ImageColor3 = Color3.fromRGB(100, 0, 0)  -- Красный оттенок
 	MainDropShadow.ImageTransparency = 1
 	MainDropShadow.ScaleType = Enum.ScaleType.Slice
 	MainDropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
@@ -570,7 +475,7 @@ function Library.new(config)
 
 	Headers.Name = "Headers"
 	Headers.Parent = MainFrame
-	Headers.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+	Headers.BackgroundColor3 = Color3.fromRGB(40, 10, 10)  -- Красный оттенок
 	Headers.BackgroundTransparency = 1
 	Headers.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	Headers.BorderSizePixel = 0
@@ -584,7 +489,7 @@ function Library.new(config)
 	Logo.Parent = Headers
 	Logo.Active = true
 	Logo.AnchorPoint = Vector2.new(0.5, 0.5)
-	Logo.BackgroundColor3 = Color3.fromRGB(139, 0, 0)  -- Red accent
+	Logo.BackgroundColor3 = Color3.fromRGB(255, 0, 4)
 	Logo.BackgroundTransparency = 1.000
 	Logo.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	Logo.BorderSizePixel = 0
@@ -620,6 +525,7 @@ function Library.new(config)
 
 	Twen:Create(Title,TweenInfo2,{TextTransparency = 0}):Play();
 
+	UIGradient.Color = ColorSequence.new(Color3.fromRGB(255, 0, 0), Color3.fromRGB(255, 255, 255))  -- Красный градиент
 	UIGradient.Rotation = 90
 	UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.75, 0.27), NumberSequenceKeypoint.new(1.00, 1.00)}
 	UIGradient.Parent = Title
@@ -642,6 +548,7 @@ function Library.new(config)
 	Description.TextXAlignment = Enum.TextXAlignment.Left
 	Twen:Create(Description,TweenInfo2,{TextTransparency = 0.5}):Play();
 
+	UIGradient_2.Color = ColorSequence.new(Color3.fromRGB(255, 0, 0), Color3.fromRGB(255, 255, 255))  -- Красный градиент
 	UIGradient_2.Rotation = 90
 	UIGradient_2.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.75, 0.27), NumberSequenceKeypoint.new(1.00, 1.00)}
 	UIGradient_2.Parent = Description
@@ -649,7 +556,7 @@ function Library.new(config)
 	BlockFrame1.Name = "BlockFrame1"
 	BlockFrame1.Parent = MainFrame
 	BlockFrame1.AnchorPoint = Vector2.new(0, 0.5)
-	BlockFrame1.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	BlockFrame1.BackgroundColor3 = Color3.fromRGB(255, 0, 0)  -- Красный
 	BlockFrame1.BackgroundTransparency = 1
 	BlockFrame1.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	BlockFrame1.BorderSizePixel = 0
@@ -668,7 +575,7 @@ function Library.new(config)
 	BlockFrame3.Name = "BlockFrame3"
 	BlockFrame3.Parent = MainFrame
 	BlockFrame3.AnchorPoint = Vector2.new(0, 0.5)
-	BlockFrame3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	BlockFrame3.BackgroundColor3 = Color3.fromRGB(255, 0, 0)  -- Красный
 	BlockFrame3.BackgroundTransparency = 1
 	BlockFrame3.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	BlockFrame3.BorderSizePixel = 0
@@ -686,7 +593,7 @@ function Library.new(config)
 	BlockFrame2.Name = "BlockFrame2"
 	BlockFrame2.Parent = MainFrame
 	BlockFrame2.AnchorPoint = Vector2.new(0, 0.5)
-	BlockFrame2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	BlockFrame2.BackgroundColor3 = Color3.fromRGB(255, 0, 0)  -- Красный
 	BlockFrame2.BackgroundTransparency = 1
 	BlockFrame2.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	BlockFrame2.BorderSizePixel = 0
@@ -705,7 +612,7 @@ function Library.new(config)
 	TabButtonFrame.Name = "TabButtonFrame"
 	TabButtonFrame.Parent = MainFrame
 	TabButtonFrame.AnchorPoint = Vector2.new(0.5, 0)
-	TabButtonFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+	TabButtonFrame.BackgroundColor3 = Color3.fromRGB(40, 10, 10)  -- Красный оттенок
 	TabButtonFrame.BackgroundTransparency = 1
 	TabButtonFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	TabButtonFrame.BorderSizePixel = 0
@@ -740,7 +647,7 @@ function Library.new(config)
 	MainTabFrame.Name = "MainTabFrame"
 	MainTabFrame.Parent = MainFrame
 	MainTabFrame.AnchorPoint = Vector2.new(0.5, 0)
-	MainTabFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+	MainTabFrame.BackgroundColor3 = Color3.fromRGB(40, 10, 10)  -- Красный оттенок
 	MainTabFrame.BackgroundTransparency = 1
 	MainTabFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	MainTabFrame.BorderSizePixel = 0
@@ -759,7 +666,7 @@ function Library.new(config)
 	InputFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	InputFrame.BorderSizePixel = 0
 	InputFrame.Position = UDim2.new(0, 0, 3.86494179e-08, 0)
-	InputFrame.Size = UDim2.new(1, 0, 0.121327251, 0)
+	InputFrame.Size = UDim2.new(1, 0, 1, 0)  -- Расширили для перемещения везде
 	InputFrame.ZIndex = 15;
 
 	task.spawn(function()
@@ -1060,17 +967,6 @@ function Library.new(config)
 			end;
 		end;
 
-		function WindowTable.Dropdown:Refresh(args)
-			for i,v in pairs(ScrollingFrame:GetChildren()) do
-				if v ~= Block then
-					if v:IsA('Frame') then
-						v:Destroy();
-					end;
-				end;
-			end;
-			-- Rebuild selectors with new args
-		end
-
 		function WindowTable.Dropdown:Close(args)
 			Looped = false;
 			Twen:Create(UIStroke,TweenInfo.new(0.3),{
@@ -1198,8 +1094,7 @@ function Library.new(config)
 		Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 		Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 		Icon.ZIndex = 6
-		local lucideIcon = Lucide:GetCustomIcon(cfg.Icon)
-		Icon.Image = lucideIcon and lucideIcon.Url or cfg.Icon
+		Icon.Image = Icons[cfg.Icon] or cfg.Icon
 		Icon.ImageTransparency = 1
 		Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
@@ -1256,7 +1151,7 @@ function Library.new(config)
 
 		Frame.Parent = TabButton
 		Frame.AnchorPoint = Vector2.new(1, 0.5)
-		Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		Frame.BackgroundColor3 = Color3.fromRGB(255, 0, 0)  -- Красный
 		Frame.BackgroundTransparency = 1
 		Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		Frame.BorderSizePixel = 0
@@ -1468,8 +1363,7 @@ function Library.new(config)
 			Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 			Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 			Icon.ZIndex = 6
-			local lucideIcon = Lucide:GetCustomIcon(c_o_n_f_i_g.Icon)
-			Icon.Image = lucideIcon and lucideIcon.Url or c_o_n_f_i_g.Icon; 
+			Icon.Image = Icons[c_o_n_f_i_g.Icon] or c_o_n_f_i_g.Icon; 
 			Icon.ImageTransparency = 1
 			Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
@@ -1733,6 +1627,8 @@ function Library.new(config)
 				TextInt.TextScaled = true
 				TextInt.TextSize = 14.000
 				TextInt.TextTransparency = 1
+				TextInt.TextWrapped = true
+				TextInt.TextXAlignment = Enum.TextXAlignment.Left
 				Twen:Create(TextInt,TweenInfo1,{TextTransparency = 0.25}):Play();
 
 				UIGradient.Rotation = 90
@@ -2350,11 +2246,10 @@ function Library.new(config)
 				Button.Size = UDim2.new(1, 0, 1, 0)
 				Button.ZIndex = 25
 				Button.Font = Enum.Font.SourceSans
-				Button.Text = "";
+				Button.Text = ""
 				Button.TextColor3 = Color3.fromRGB(0, 0, 0)
 				Button.TextSize = 14.000
 				Button.TextTransparency = 1.000
-
 
 				local Updater = function(value)
 					drop.Default = value;
@@ -2390,7 +2285,6 @@ function Library.new(config)
 					end,
 					Set = function(table)
 						drop.Data = table
-						WindowTable.Dropdown:Refresh(drop.Data)
 					end
 				};
 			end;
@@ -2560,6 +2454,9 @@ function Library.new(config)
 		local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
 			startPos.Y.Scale, startPos.Y.Offset + delta.Y);
 		game:GetService('TweenService'):Create(MainFrame, TweenInfo.new(dragSpeed), {Position = position}):Play()
+		if not WindowTable.WindowToggle then
+			WindowTable.LastPosition = position  -- Запоминаем позицию в свернутом виде
+		end
 	end;
 
 	InputFrame.InputBegan:Connect(function(input)
@@ -2583,40 +2480,102 @@ function Library.new(config)
 		end;
 	end)
 
-	-- Drag for minimized state
-	MainFrame.InputBegan:Connect(function(input)
-		if not WindowTable.WindowToggle and (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then 
-			dragToggle = true
-			dragStart = input.Position
-			startPos = MainFrame.Position
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragToggle = false;
-				end;
-			end)
-		end;
-	end)
-
-	-- Config system (simplified, assume using setclipboard or local storage)
-	function WindowTable:SaveConfig(name)
-		local config = {}
-		-- Traverse all elements and save states (toggles, sliders, etc.)
-		WindowTable.Configs[name] = config
-	end
-
-	function WindowTable:LoadConfig(name)
-		local config = WindowTable.Configs[name]
-		if config then
-			-- Apply states to elements
-		end
-	end
-
-	function WindowTable:RefreshConfigs()
-		-- Refresh dropdown with config names
-	end
-
 	return WindowTable;
 end;
+
+-- LucideIcons.lua
+-- Небольшой самодостаточный модуль для получения и использования Lucide-иконок,
+-- извлечённый и адаптированный из вашего скрипта.
+
+local Lucide = {}
+
+-- Попытка загрузить официальный источник иконок (как в оригинале).
+-- Если загрузка провалится, Icons останется nil и GetIcon вернёт nil.
+local ok, mod = pcall(function()
+    local url = "https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua"
+    local fn = assert(loadstring(game:HttpGet(url)))
+    return fn()
+end)
+
+local FetchIcons = ok and type(mod) == "table"
+local Icons = FetchIcons and mod or nil
+
+-- Устанавливает вручную модуль иконок (если вы хотите подменить или предоставить локальную таблицу).
+-- Ожидается таблица с методом GetAsset(name) -> iconTable или nil.
+function Lucide:SetIconModule(moduleTable)
+    if type(moduleTable) ~= "table" then
+        error("SetIconModule expects a table")
+    end
+    Icons = moduleTable
+    FetchIcons = true
+end
+
+-- Валидация строки кастомной иконки (rbxasset*, roblox.com/asset/?id=, rbxthumb://type=)
+local function IsValidCustomIcon(icon)
+    if type(icon) ~= "string" then
+        return false
+    end
+    if icon:match("rbxasset") then
+        return true
+    end
+    if icon:match("roblox%.com/asset/%?id=") then
+        return true
+    end
+    if icon:match("rbxthumb://type=") then
+        return true
+    end
+    return false
+end
+
+-- Получить иконку по имени через модуль lucide.
+-- Возвращает nil если модуль недоступен или нет такой иконки.
+-- Ожидаемый формат возвращаемой иконки:
+-- { Url = string, Id = number?, IconName = string, ImageRectOffset = Vector2, ImageRectSize = Vector2, ... }
+function Lucide:GetIcon(name)
+    if not FetchIcons or not Icons then
+        return nil
+    end
+    if type(Icons.GetAsset) ~= "function" then
+        return nil
+    end
+
+    local success, icon = pcall(Icons.GetAsset, Icons, name)
+    if not success then
+        return nil
+    end
+    return icon
+end
+
+-- Возвращает структуру иконки для произвольной строки.
+-- Если строка распознана как прямой URL/asset, возвращает объект с полями Url, ImageRectOffset, ImageRectSize, Custom = true.
+-- Если нет — пытается получить иконку по имени через GetIcon.
+function Lucide:GetCustomIcon(iconName)
+    if IsValidCustomIcon(iconName) then
+        return {
+            Url = iconName,
+            ImageRectOffset = Vector2.new(0, 0),
+            ImageRectSize = Vector2.new(0, 0),
+            Custom = true,
+        }
+    else
+        return self:GetIcon(iconName)
+    end
+end
+
+-- Утилита: безопасная попытка получить URL (возвращает строку или nil).
+function Lucide:GetIconUrl(name)
+    local icon = self:GetIcon(name)
+    if not icon then
+        return nil
+    end
+    return icon.Url
+end
+
+-- Экспорт переменных для отладки/совместимости
+Lucide._FetchIcons = FetchIcons
+Lucide._Icons = Icons
+
+-- Использование в коде: Icon.Image = Lucide:GetIconUrl(cfg.Icon) or cfg.Icon
 
 Library.NewAuth = function(conf)
 	conf = Config(conf,{
@@ -2634,7 +2593,7 @@ Library.NewAuth = function(conf)
 			end;
 
 			return;
-		end;
+		end
 	end;
 
 	if conf.GetKey then
@@ -2644,7 +2603,7 @@ Library.NewAuth = function(conf)
 			end;
 
 			return;
-		end;
+		end
 	end;
 
 	local ScreenGui = Instance.new("ScreenGui")
@@ -2990,7 +2949,7 @@ Library.Notification = function()
 				Duration = 5,
 				Icon = "rbxassetid://7733993369"
 			})
-			local css_style = TweenInfo.new(0.3,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut);  -- Faster animation
+			local css_style = TweenInfo.new(0.3,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut);  -- Быстрее анимация
 			local Notifiy = Instance.new("Frame")
 			local UICorner = Instance.new("UICorner")
 			local icon = Instance.new("ImageLabel")
@@ -3026,7 +2985,7 @@ Library.Notification = function()
 			Notifiy.Size = UDim2.new(0,0,0,0)
 			Twen:Create(Notifiy,css_style,{
 				BackgroundTransparency = 0.350,
-				Size = UDim2.new(0.3, 0, 0.3, 0)  -- Larger on PC
+				Size = UDim2.new(0.25, 0, 0.25, 0)  -- Больше размер
 			}):Play()
 
 			UICorner.CornerRadius = UDim.new(0.3,0)
@@ -3091,7 +3050,7 @@ Library.Notification = function()
 
 			local mkView = function()
 				Twen:Create(Notifiy,css_style,{
-					Size = UDim2.new(1, 0, 0.2, 0)
+					Size = UDim2.new(1, 0, 0.25, 0)  -- Больше для текста
 				}):Play()
 
 				Twen:Create(UICorner,css_style,{
@@ -3114,7 +3073,7 @@ Library.Notification = function()
 
 			local mkLoad = function()
 				Twen:Create(Notifiy,css_style,{
-					Size = UDim2.new(0.2, 0, 0.2, 0)
+					Size = UDim2.new(0.25, 0, 0.25, 0)
 				}):Play()
 
 				Twen:Create(UICorner,css_style,{
@@ -3137,7 +3096,7 @@ Library.Notification = function()
 			mkLoad();
 
 			task.spawn(function()
-				task.wait(0.5)
+				task.wait(0.3)
 				mkView();
 
 
