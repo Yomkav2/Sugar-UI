@@ -1,4 +1,6 @@
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKA -
+-- source.lua (Updated Library Source)
+
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua yeah -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -294,6 +296,7 @@ function Library.new(config)
 	local InputFrame = Instance.new("Frame")
 
 	WindowTable.Tabs = {};
+	WindowTable.Elements = {};  -- For config system
 	WindowTable.Dropdown = {};
 	WindowTable.WindowToggle = true;
 	WindowTable.Keybind = config.Keybind;
@@ -366,6 +369,9 @@ function Library.new(config)
 				CornerRadius = UDim.new(0, 7)
 			}):Play()
 
+			-- Adjust InputFrame for drag only top
+			InputFrame.Size = UDim2.new(1, 0, 0.12, 0)
+
 		else
 			Twen:Create(MainFrame,TweenInfo.new(0.5,Enum.EasingStyle.Quint),{BackgroundTransparency = 1,Size = UDim2.new(0.085, 10,0.05, 0)}):Play();
 			Twen:Create(MainFrame,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{Position = WindowTable.LastPosition}):Play();
@@ -401,6 +407,9 @@ function Library.new(config)
 			Twen:Create(BlockFrame3,TweenInfo1,{BackgroundTransparency = 1}):Play();
 
 			WindowTable.ElBlurUI.Enabled = false;
+
+			-- Full drag when minimized
+			InputFrame.Size = UDim2.new(1, 0, 1, 0)
 		end;
 
 		WindowTable.Dropdown:Close()
@@ -665,8 +674,8 @@ function Library.new(config)
 	InputFrame.BackgroundTransparency = 1.000
 	InputFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	InputFrame.BorderSizePixel = 0
-	InputFrame.Position = UDim2.new(0, 0, 3.86494179e-08, 0)
-	InputFrame.Size = UDim2.new(1, 0, 1, 0)  -- Расширили для перемещения везде
+	InputFrame.Position = UDim2.new(0, 0, 0, 0)
+	InputFrame.Size = UDim2.new(1, 0, 0.12, 0)  -- Only top for drag
 	InputFrame.ZIndex = 15;
 
 	task.spawn(function()
@@ -1042,6 +1051,36 @@ function Library.new(config)
 		end);
 	end)
 
+	function WindowTable:GetAllElements()
+		local all = {}
+		for _, tab in ipairs(self.Tabs) do
+			for _, section in ipairs(tab.Sections or {}) do  -- Assume tabs have Sections
+				for _, el in ipairs(section.Elements or {}) do
+					table.insert(all, el)
+				end
+			end
+		end
+		return all
+	end
+
+	function WindowTable:GetConfig()
+		local cfg = {}
+		for _, el in ipairs(self:GetAllElements()) do
+			if el.Name then
+				cfg[el.Name] = el.Get()
+			end
+		end
+		return cfg
+	end
+
+	function WindowTable:SetConfig(cfg)
+		for _, el in ipairs(self:GetAllElements()) do
+			if el.Name and cfg[el.Name] ~= nil then
+				el.Set(cfg[el.Name])
+			end
+		end
+	end
+
 	function WindowTable:NewTab(cfg)
 		cfg = Config(cfg,{
 			Title = "Example",
@@ -1050,6 +1089,7 @@ function Library.new(config)
 		});
 
 		local TabTable = {};
+		TabTable.Sections = {}  -- For config
 		local TabButton = Instance.new("Frame")
 		local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
 		local UICorner = Instance.new("UICorner")
@@ -1286,6 +1326,7 @@ function Library.new(config)
 		table.insert(WindowTable.Tabs,{
 			Id = Init,
 			onFunction = onFunction,
+			Sections = TabTable.Sections
 		})
 
 		Button.MouseButton1Click:Connect(function()
@@ -1306,6 +1347,7 @@ function Library.new(config)
 			});
 
 			local SectionTable = {};
+			SectionTable.Elements = {}
 			local Section = Instance.new("Frame")
 			local UICorner = Instance.new("UICorner")
 			local Header = Instance.new("Frame")
@@ -1436,9 +1478,12 @@ function Library.new(config)
 			UIGradient_4.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.17, 1.00), NumberSequenceKeypoint.new(0.82, 1.00), NumberSequenceKeypoint.new(1.00, 0.00)}
 			UIGradient_4.Parent = UIStroke
 
+			table.insert(TabTable.Sections, SectionTable)
+
 			function SectionTable:NewToggle(toggle)
 				toggle = Config(toggle,{
 					Title = "Toggle",
+					Name = toggle.Title,
 					Default = false,
 					Callback = function() end;
 				});
@@ -1568,6 +1613,7 @@ function Library.new(config)
 							TextTransparency = 0.25
 						}):Play()
 					end;
+					task.spawn(toggle.Callback, value)
 				end;
 
 				OnChange(toggle.Default);
@@ -1575,19 +1621,20 @@ function Library.new(config)
 				Button.MouseButton1Click:Connect(function()
 					toggle.Default = not toggle.Default;
 					OnChange(toggle.Default);
-					task.spawn(toggle.Callback,toggle.Default)
 				end)
 
-				return {
-					Value = function(newindex)
-						toggle.Default = newindex;
-						OnChange(toggle.Default);
-						task.spawn(toggle.Callback,toggle.Default)
-					end,
+				local el = {
+					Name = toggle.Name,
+					Get = function() return toggle.Default end,
+					Set = function(v) toggle.Default = v; OnChange(v) end,
 					Visible = function(newindx)
 						FunctionToggle.Visible = newindx
 					end,
 				};
+
+				table.insert(SectionTable.Elements, el)
+
+				return el;
 			end;
 
 			function SectionTable:NewTitle(lrm)
@@ -1777,6 +1824,7 @@ function Library.new(config)
 			function SectionTable:NewKeybind(ctfx)
 				ctfx = Config(ctfx,{
 					Title = "Keybind",
+					Name = ctfx.Title,
 					Callback = function() end,
 					Default = Enum.KeyCode.E,
 
@@ -1932,22 +1980,24 @@ function Library.new(config)
 
 				end)
 
-				return {
+				local el = {
+					Name = ctfx.Name,
+					Get = function() return ctfx.Default end,
+					Set = function(v) ctfx.Default = v; UpdateUI(v); ctfx.Callback(v) end,
 					Visible = function(newindx)
 						FunctionKeybind.Visible = newindx
 					end,
-					Value = function(lrm)
-						UpdateUI(lrm)
-
-
-						ctfx.Callback(lrm);
-					end,
 				};
+
+				table.insert(SectionTable.Elements, el)
+
+				return el;
 			end;
 
 			function SectionTable:NewSlider(slider)
 				slider = Config(slider,{
 					Title = "Slider",
+					Name = slider.Title,
 					Min = 0,
 					Max = 100,
 					Default = 50,
@@ -2106,21 +2156,24 @@ function Library.new(config)
 					end
 				end)
 
-				return {
+				local el = {
+					Name = slider.Name,
+					Get = function() return math.round(((TFrame.Size.X.Scale * slider.Max) - slider.Min) / (slider.Max - slider.Min) * (slider.Max - slider.Min) + slider.Min) end,
+					Set = function(v) local scale = (v - slider.Min) / (slider.Max - slider.Min); TFrame.Size = UDim2.new(scale, 0, 1, 0); ValueText.Text = tostring(v)..'/'..tostring(slider.Max); slider.Callback(v) end,
 					Visible = function(newindx)
 						FunctionSlider.Visible = newindx
 					end,
-					Value = function(lrm)
-						TFrame.Size = UDim2.new((lrm / slider.Max), 0, 1, 0)
-
-						slider.Callback(lrm);
-					end,
 				};
+
+				table.insert(SectionTable.Elements, el)
+
+				return el;
 			end;
 
 			function SectionTable:NewDropdown(drop)
 				drop = Config(drop,{
 					Title = "Dropdown",
+					Name = drop.Title,
 					Data = {'One','Two','Three','Four'},
 					Default = 'Two',
 					Callback = function(a)
@@ -2246,10 +2299,11 @@ function Library.new(config)
 				Button.Size = UDim2.new(1, 0, 1, 0)
 				Button.ZIndex = 25
 				Button.Font = Enum.Font.SourceSans
-				Button.Text = ""
+				Button.Text = "";
 				Button.TextColor3 = Color3.fromRGB(0, 0, 0)
 				Button.TextSize = 14.000
 				Button.TextTransparency = 1.000
+
 
 				local Updater = function(value)
 					drop.Default = value;
@@ -2263,13 +2317,17 @@ function Library.new(config)
 					WindowTable.Dropdown:Open(drop.Data,drop.Default,Updater)
 				end)
 
-				return {
+				local el = {
+					Name = drop.Name,
+					Get = function() return drop.Default end,
+					Set = function(v) Updater(v) end,
 					Visible = function(newindx)
 						FunctionDropdown.Visible = newindx
 					end,
-					Value = function(value)
-						ValueText.Text = tostring(value);
-						drop.Callback(value);
+					Refresh = function(newData)
+						if newData then drop.Data = newData end
+						self:Close()
+						self:Open(drop.Data, drop.Default, Updater)
 					end,
 					Open = function(value)
 						WindowTable.Dropdown:Setup(MFrame)
@@ -2287,6 +2345,10 @@ function Library.new(config)
 						drop.Data = table
 					end
 				};
+
+				table.insert(SectionTable.Elements, el)
+
+				return el;
 			end;
 
 			function SectionTable:NewTextbox(conf)
@@ -2432,9 +2494,24 @@ function Library.new(config)
 				Button.TextTransparency = 1.000
 
 
-				TextBox.FocusLost:Connect(function(press)
-					conf.Callback(TextBox.Text);
+				TextBox.FocusLost:Connect(function(enterPressed)
+					if enterPressed then
+						conf.Callback(TextBox.Text);
+					end
 				end)
+
+				local el = {
+					Name = conf.Name,
+					Get = function() return TextBox.Text end,
+					Set = function(v) TextBox.Text = v end,
+					Visible = function(newindx)
+						FunctionTextbox.Visible = newindx
+					end,
+				};
+
+				table.insert(SectionTable.Elements, el)
+
+				return el;
 			end;
 
 			return SectionTable;
@@ -2947,7 +3024,7 @@ Library.Notification = function()
 				Title = "Notification",
 				Description = "Description",
 				Duration = 5,
-				Icon = "rbxassetid://7733993369"
+				Icon = "rbxassetid://8997385628"
 			})
 			local css_style = TweenInfo.new(0.3,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut);  -- Быстрее анимация
 			local Notifiy = Instance.new("Frame")
