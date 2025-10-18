@@ -1,4 +1,4 @@
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKA and???1111 -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKA0000 -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -271,7 +271,7 @@ local ConfigManager = {
             Save = function(obj)
                 return {
                     __type = obj.__type,
-                    value = obj.Default and (obj.Default:ToHex()) or tostring(obj.Default),
+                    value = obj.Default and (obj.Default:ToHex and obj.Default:ToHex()) or tostring(obj.Default),
                     transparency = obj.Transparency or nil,
                 }
             end,
@@ -678,6 +678,26 @@ function Library.new(config)
 		end
 	end
 
+	local ScreenGui = Instance.new("ScreenGui")
+	ScreenGui.Parent = CoreGui;
+	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global;
+	ScreenGui.ResetOnSpawn = false;
+	ScreenGui.IgnoreGuiInset = true;
+	ScreenGui.Name = "RobloxGameGui";
+
+	local MainFrame = Instance.new("Frame")
+	MainFrame.Name = "MainFrame"
+	MainFrame.Parent = ScreenGui
+	MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+	MainFrame.BackgroundColor3 = Color3.fromRGB(15, 5, 5)  -- Darker red
+	MainFrame.BackgroundTransparency = 1
+	MainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+	MainFrame.BorderSizePixel = 0
+	MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+	MainFrame.Size = UDim2.fromOffset(config.Size.X.Offset,config.Size.Y.Offset)
+	MainFrame.Active = true;
+	MainFrame.ClipsDescendants = true;
+
 	local ImageButton = Instance.new("ImageButton")
 
 	ImageButton.Parent = MainFrame
@@ -811,24 +831,6 @@ function Library.new(config)
 		end
 	end)
 
-	ScreenGui.Parent = CoreGui;
-	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global;
-	ScreenGui.ResetOnSpawn = false;
-	ScreenGui.IgnoreGuiInset = true;
-	ScreenGui.Name = "RobloxGameGui";
-
-	MainFrame.Name = "MainFrame"
-	MainFrame.Parent = ScreenGui
-	MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-	MainFrame.BackgroundColor3 = Color3.fromRGB(15, 5, 5)  -- Darker red
-	MainFrame.BackgroundTransparency = 1
-	MainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
-	MainFrame.BorderSizePixel = 0
-	MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
-	MainFrame.Size = UDim2.fromOffset(config.Size.X.Offset,config.Size.Y.Offset)
-	MainFrame.Active = true;
-	MainFrame.ClipsDescendants = true;
-	
 	WindowTable.AddEffect = function(color)
 		Library.GradientImage(MainFrame,color or Color3.fromRGB(100, 0, 0))  -- Darker gradient
 	end
@@ -837,9 +839,11 @@ function Library.new(config)
 
 	WindowTable.ElBlurUI = ElBlurSource.new(MainFrame);
 
+	local UICorner = Instance.new("UICorner")
 	UICorner.CornerRadius = UDim.new(0, 7)
 	UICorner.Parent = MainFrame
 
+	local MainDropShadow = Instance.new("ImageLabel")
 	MainDropShadow.Name = "MainDropShadow"
 	MainDropShadow.Parent = MainFrame
 	MainDropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -857,6 +861,7 @@ function Library.new(config)
 	
 	Twen:Create(MainDropShadow,TweenInfo2,{ImageTransparency = 0.6}):Play();
 
+	local Headers = Instance.new("Frame")
 	Headers.Name = "Headers"
 	Headers.Parent = MainFrame
 	Headers.BackgroundColor3 = Color3.fromRGB(20, 5, 5)  -- Darker red
@@ -869,6 +874,7 @@ function Library.new(config)
 	Headers.ZIndex = 3
 	Twen:Create(Headers,TweenInfo2,{BackgroundTransparency = 0.5}):Play();
 
+	local Logo = Instance.new("ImageLabel")
 	Logo.Name = "Logo"
 	Logo.Parent = Headers
 	Logo.Active = true
@@ -886,10 +892,12 @@ function Library.new(config)
 
 	Twen:Create(Logo,TweenInfo2,{ImageTransparency = 0}):Play();
 
+	local UICorner_2 = Instance.new("UICorner")
 	UICorner_2.CornerRadius = UDim.new(0, 15)
 	UICorner_2.Parent = Headers
 	Twen:Create(UICorner_2,TweenInfo2,{CornerRadius = UDim.new(0, 4)}):Play();
 
+	local Title = Instance.new("TextLabel")
 	Title.Name = "Title"
 	Title.Parent = MainFrame
 	Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -909,11 +917,13 @@ function Library.new(config)
 
 	Twen:Create(Title,TweenInfo2,{TextTransparency = 0}):Play();
 
+	local UIGradient = Instance.new("UIGradient")
 	UIGradient.Color = ColorSequence.new(Color3.fromRGB(150, 0, 0), Color3.fromRGB(255, 255, 255))  -- Darker red gradient
 	UIGradient.Rotation = 90
 	UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.75, 0.27), NumberSequenceKeypoint.new(1.00, 1.00)}
 	UIGradient.Parent = Title
 
+	local Description = Instance.new("TextLabel")
 	Description.Name = "Description"
 	Description.Parent = MainFrame
 	Description.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -932,11 +942,13 @@ function Library.new(config)
 	Description.TextXAlignment = Enum.TextXAlignment.Left
 	Twen:Create(Description,TweenInfo2,{TextTransparency = 0.5}):Play();
 
+	local UIGradient_2 = Instance.new("UIGradient")
 	UIGradient_2.Color = ColorSequence.new(Color3.fromRGB(150, 0, 0), Color3.fromRGB(255, 255, 255))  -- Darker red gradient
 	UIGradient_2.Rotation = 90
 	UIGradient_2.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.75, 0.27), NumberSequenceKeypoint.new(1.00, 1.00)}
 	UIGradient_2.Parent = Description
 
+	local BlockFrame1 = Instance.new("Frame")
 	BlockFrame1.Name = "BlockFrame1"
 	BlockFrame1.Parent = MainFrame
 	BlockFrame1.AnchorPoint = Vector2.new(0, 0.5)
@@ -949,13 +961,16 @@ function Library.new(config)
 	BlockFrame1.ZIndex = 3
 	Twen:Create(BlockFrame1,TweenInfo2,{BackgroundTransparency = 0.8}):Play();
 
+	local UICorner_3 = Instance.new("UICorner")
 	UICorner_3.CornerRadius = UDim.new(0.5, 0)
 	UICorner_3.Parent = BlockFrame1
 
+	local UIGradient_3 = Instance.new("UIGradient")
 	UIGradient_3.Rotation = 90
 	UIGradient_3.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 1.00), NumberSequenceKeypoint.new(0.05, 0.00), NumberSequenceKeypoint.new(0.96, 0.00), NumberSequenceKeypoint.new(1.00, 1.00)}
 	UIGradient_3.Parent = BlockFrame1
 
+	local BlockFrame3 = Instance.new("Frame")
 	BlockFrame3.Name = "BlockFrame3"
 	BlockFrame3.Parent = MainFrame
 	BlockFrame3.AnchorPoint = Vector2.new(0, 0.5)
@@ -968,12 +983,15 @@ function Library.new(config)
 	BlockFrame3.ZIndex = 3
 	Twen:Create(BlockFrame3,TweenInfo2,{BackgroundTransparency = 0.8}):Play();
 
+	local UICorner_4 = Instance.new("UICorner")
 	UICorner_4.CornerRadius = UDim.new(0.5, 0)
 	UICorner_4.Parent = BlockFrame3
 
+	local UIGradient_4 = Instance.new("UIGradient")
 	UIGradient_4.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.98, 0.00), NumberSequenceKeypoint.new(1.00, 1.00)}
 	UIGradient_4.Parent = BlockFrame3
 
+	local BlockFrame2 = Instance.new("Frame")
 	BlockFrame2.Name = "BlockFrame2"
 	BlockFrame2.Parent = MainFrame
 	BlockFrame2.AnchorPoint = Vector2.new(0, 0.5)
@@ -986,13 +1004,16 @@ function Library.new(config)
 	BlockFrame2.ZIndex = 3
 	Twen:Create(BlockFrame2,TweenInfo2,{BackgroundTransparency = 0.8}):Play();
 
+	local UICorner_5 = Instance.new("UICorner")
 	UICorner_5.CornerRadius = UDim.new(0.5, 0)
 	UICorner_5.Parent = BlockFrame2
 
+	local UIGradient_5 = Instance.new("UIGradient")
 	UIGradient_5.Rotation = -180
 	UIGradient_5.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.98, 0.00), NumberSequenceKeypoint.new(1.00, 1.00)}
 	UIGradient_5.Parent = BlockFrame2
 
+	local TabButtonFrame = Instance.new("Frame")
 	TabButtonFrame.Name = "TabButtonFrame"
 	TabButtonFrame.Parent = MainFrame
 	TabButtonFrame.AnchorPoint = Vector2.new(0.5, 0)
@@ -1005,9 +1026,11 @@ function Library.new(config)
 	TabButtonFrame.Size = UDim2.new(0.300000012, 0, 0.774999976, 0)
 	Twen:Create(TabButtonFrame,TweenInfo2,{BackgroundTransparency = 0.5}):Play();
 
+	local UICorner_6 = Instance.new("UICorner")
 	UICorner_6.CornerRadius = UDim.new(0, 3)
 	UICorner_6.Parent = TabButtonFrame
 
+	local TabButtons = Instance.new("ScrollingFrame")
 	TabButtons.Name = "TabButtons"
 	TabButtons.Parent = TabButtonFrame
 	TabButtons.Active = true
@@ -1020,6 +1043,7 @@ function Library.new(config)
 	TabButtons.Position = UDim2.new(0.5, 0, 0.5, 0)
 	TabButtons.Size = UDim2.new(0.970000029, 0, 0.970000029, 0)
 	TabButtons.ScrollBarThickness = 0
+	local UIListLayout = Instance.new("UIListLayout")
 	UIListLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
 		TabButtons.CanvasSize = UDim2.fromOffset(0,UIListLayout.AbsoluteContentSize.Y)
 	end)
@@ -1028,6 +1052,7 @@ function Library.new(config)
 	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 	UIListLayout.Padding = UDim.new(0, 3)
 
+	local MainTabFrame = Instance.new("Frame")
 	MainTabFrame.Name = "MainTabFrame"
 	MainTabFrame.Parent = MainFrame
 	MainTabFrame.AnchorPoint = Vector2.new(0.5, 0)
@@ -1040,9 +1065,11 @@ function Library.new(config)
 	MainTabFrame.Size = UDim2.new(0.670000017, 0, 0.860000014, 0)
 	Twen:Create(MainTabFrame,TweenInfo2,{BackgroundTransparency = 0.5}):Play();
 
+	local UICorner_7 = Instance.new("UICorner")
 	UICorner_7.CornerRadius = UDim.new(0, 3)
 	UICorner_7.Parent = MainTabFrame
 
+	local InputFrame = Instance.new("Frame")
 	InputFrame.Name = "InputFrame"
 	InputFrame.Parent = MainFrame
 	InputFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
