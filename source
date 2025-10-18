@@ -1,4 +1,4 @@
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKA0000 -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/refs/heads/main/source.lua YOMKA0000555 -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -271,7 +271,7 @@ local ConfigManager = {
             Save = function(obj)
                 return {
                     __type = obj.__type,
-                    value = obj.Default and (obj.Default:ToHex and obj.Default:ToHex()) or tostring(obj.Default),
+                    value = obj.Default and (obj.Default:ToHex()) or tostring(obj.Default),
                     transparency = obj.Transparency or nil,
                 }
             end,
