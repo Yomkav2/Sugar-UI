@@ -1,4 +1,4 @@
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/main/source.lua 77 -
+-- yomka ​​modified this
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -6,16 +6,206 @@ local TextServ = game:GetService('TextService');
 local LocalPlayer = game:GetService('Players').LocalPlayer;
 local CoreGui = (gethui and gethui()) or game:FindFirstChild('CoreGui') or LocalPlayer.PlayerGui;
 local Icons = (function()
-	local p,c = pcall(function()
-		local Http = game:HttpGetAsync('https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/main/source.lua');
-		local Module = loadstring(Http)();
-		return Module.icons;
-	end);
+local IconModule = {
+    IconsType = "lucide",
+    New = nil,
+    IconThemeTag = nil,
+    Icons = {
+        ["lucide"] = (pcall(function() return loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/lucide/dist/Icons.lua"))() end) and loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/lucide/dist/Icons.lua"))()) or { Icons = {}, Spritesheets = {} },
+        ["craft"]  = (pcall(function() return loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/craft/dist/Icons.lua"))() end) and loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/craft/dist/Icons.lua"))()) or { Icons = {}, Spritesheets = {} },
+        ["geist"]  = (pcall(function() return loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/geist/dist/Icons.lua"))() end) and loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/geist/dist/Icons.lua"))()) or { Icons = {}, Spritesheets = {} },
+    },
+}
 
-	if p then return c end;
+local function parseIconString(iconString)
+    if type(iconString) == "string" then
+        local splitIndex = iconString:find(":")
+        if splitIndex then
+            local iconType = iconString:sub(1, splitIndex - 1)
+            local iconName = iconString:sub(splitIndex + 1)
+            return iconType, iconName
+        end
+    end
+    return nil, iconString
+end
 
-	return nil;
-end)() or {};
+function IconModule.AddIcons(packName, iconsData)
+    if type(packName) ~= "string" or type(iconsData) ~= "table" then
+        error("AddIcons: packName must be string, iconsData must be table")
+        return
+    end
+
+    if not IconModule.Icons[packName] then
+        IconModule.Icons[packName] = {
+            Icons = {},
+            Spritesheets = {}
+        }
+    end
+
+    for iconName, iconValue in pairs(iconsData) do
+        if type(iconValue) == "number" or (type(iconValue) == "string" and iconValue:match("^rbxassetid://")) then
+            local imageId = iconValue
+            if type(iconValue) == "number" then
+                imageId = "rbxassetid://" .. tostring(iconValue)
+            end
+
+            IconModule.Icons[packName].Icons[iconName] = {
+                Image = imageId,
+                ImageRectSize = Vector2.new(0, 0),
+                ImageRectPosition = Vector2.new(0, 0),
+                Parts = nil
+            }
+            IconModule.Icons[packName].Spritesheets[imageId] = imageId
+
+        elseif type(iconValue) == "table" then
+            if iconValue.Image and iconValue.ImageRectSize and iconValue.ImageRectPosition then
+                local imageId = iconValue.Image
+                if type(imageId) == "number" then
+                    imageId = "rbxassetid://" .. tostring(imageId)
+                end
+
+                IconModule.Icons[packName].Icons[iconName] = {
+                    Image = imageId,
+                    ImageRectSize = iconValue.ImageRectSize,
+                    ImageRectPosition = iconValue.ImageRectPosition,
+                    Parts = iconValue.Parts
+                }
+
+                if not IconModule.Icons[packName].Spritesheets[imageId] then
+                    IconModule.Icons[packName].Spritesheets[imageId] = imageId
+                end
+            else
+                warn("AddIcons: Invalid spritesheet data format for icon '" .. iconName .. "'")
+            end
+        else
+            warn("AddIcons: Unsupported data type for icon '" .. iconName .. "': " .. type(iconValue))
+        end
+    end
+end
+
+function IconModule.SetIconsType(iconType)
+    IconModule.IconsType = iconType
+end
+
+function IconModule.Init(New, IconThemeTag)
+    IconModule.New = New
+    IconModule.IconThemeTag = IconThemeTag
+    return IconModule
+end
+
+function IconModule.Icon(Icon, Type)
+    local iconType, iconName = parseIconString(Icon)
+    local targetType = iconType or Type or IconModule.IconsType
+    local targetName = iconName
+
+    local iconSet = IconModule.Icons[targetType]
+    if iconSet and iconSet.Icons and iconSet.Icons[targetName] then
+        return {
+            iconSet.Spritesheets[tostring(iconSet.Icons[targetName].Image)],
+            iconSet.Icons[targetName],
+        }
+    end
+    return nil
+end
+
+function IconModule.Image(IconConfig)
+    IconConfig = IconConfig or {}
+    local Icon = {
+        Icon = IconConfig.Icon or nil,
+        Type = IconConfig.Type,
+        Colors = IconConfig.Colors or { ( IconModule.IconThemeTag or Color3.new(1,1,1) ), Color3.new(1,1,1) },
+        Size = IconConfig.Size or UDim2.new(0,24,0,24),
+        IconFrame = nil,
+    }
+
+    local Colors = {}
+    for _, color in next, Icon.Colors do
+        Colors[_] = {
+            ThemeTag = typeof(color) == "string" and color,
+            Color = typeof(color) == "Color3" and color,
+        }
+    end
+
+    local IconLabel = IconModule.Icon(Icon.Icon, Icon.Type)
+    if not IconLabel then
+        -- fallback: if Icon.Icon is rbxassetid or plain image, return simple ImageLabel
+        local fallback = Instance.new("ImageLabel")
+        fallback.Size = Icon.Size
+        fallback.BackgroundTransparency = 1
+        if type(Icon.Icon) == "string" and Icon.Icon:match("^rbxassetid://") then
+            fallback.Image = Icon.Icon
+        else
+            fallback.Image = ""
+        end
+        Icon.IconFrame = fallback
+        return Icon
+    end
+
+    if IconModule.New then
+        local New = IconModule.New
+
+        local IconFrame = New("ImageLabel", {
+            Size = Icon.Size,
+            BackgroundTransparency = 1,
+            ImageColor3 = Colors[1].Color or nil,
+            ThemeTag = Colors[1].ThemeTag and { ImageColor3 = Colors[1].ThemeTag },
+            Image = IconLabel[1],
+            ImageRectSize = IconLabel[2].ImageRectSize,
+            ImageRectOffset = IconLabel[2].ImageRectPosition,
+        })
+
+        if IconLabel[2].Parts then
+            for _, part in next, IconLabel[2].Parts do
+                local IconPartLabel = IconModule.Icon(part, Icon.Type)
+                local IconPart = New("ImageLabel", {
+                    Size = UDim2.new(1,0,1,0),
+                    BackgroundTransparency = 1,
+                    ImageColor3 = Colors[1 + _].Color or nil,
+                    ThemeTag = Colors[1 + _].ThemeTag and { ImageColor3 = Colors[1 + _].ThemeTag },
+                    Image = IconPartLabel[1],
+                    ImageRectSize = IconPartLabel[2].ImageRectSize,
+                    ImageRectOffset = IconPartLabel[2].ImageRectPosition,
+                    Parent = IconFrame,
+                })
+            end
+        end
+
+        Icon.IconFrame = IconFrame
+    else
+        local IconFrame = Instance.new("ImageLabel")
+        IconFrame.Size = Icon.Size
+        IconFrame.BackgroundTransparency = 1
+        IconFrame.ImageColor3 = Colors[1].Color
+        IconFrame.Image = IconLabel[1]
+        IconFrame.ImageRectSize = IconLabel[2].ImageRectSize
+        IconFrame.ImageRectOffset = IconLabel[2].ImageRectPosition
+
+        if IconLabel[2].Parts then
+            for _, part in next, IconLabel[2].Parts do
+                local IconPartLabel = IconModule.Icon(part, Icon.Type)
+                local IconPart = Instance.new("ImageLabel")
+                IconPart.Size = UDim2.new(1,0,1,0)
+                IconPart.BackgroundTransparency = 1
+                IconPart.ImageColor3 = Colors[1 + _].Color
+                IconPart.Image = IconPartLabel[1]
+                IconPart.ImageRectSize = IconPartLabel[2].ImageRectSize
+                IconPart.ImageRectOffset = IconPartLabel[2].ImageRectPosition
+                IconPart.Parent = IconFrame
+            end
+        end
+
+        Icon.IconFrame = IconFrame
+    end
+
+    return Icon
+end
+
+return IconModule
+
+end)()
+
+-- после вставки модуля
+Icons.SetIconsType("lucide")
 
 local ElBlurSource = function()
 	local GuiSystem = {}
@@ -198,52 +388,6 @@ pcall(function()
 	Library['Icons'] = Module.icons;
 end)
 
--- Lucide Icons Adaptation
-local FetchIcons, IconsModule = pcall(function()
-    local url = "https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/main/source.lua"
-    return (loadstring(
-        game:HttpGet(url)
-    ) :: () -> { GetAsset: (string) -> { Url: string, Id: number, IconName: string, ImageRectOffset: Vector2, ImageRectSize: Vector2 }? })()
-end)
-
-local function IsValidCustomIcon(Icon: string)
-    return typeof(Icon) == "string"
-        and (Icon:match("rbxasset") or Icon:match("roblox%.com/asset/%?id=") or Icon:match("rbxthumb://type="))
-end
-
-local function GetIcon(IconName: string)
-    if not FetchIcons then
-        return nil
-    end
-
-    local Success, Icon = pcall(IconsModule.GetAsset, IconsModule, IconName)
-    if not Success then
-        return nil
-    end
-    return Icon
-end
-
-local function GetCustomIcon(IconName: string)
-    if not IsValidCustomIcon(IconName) then
-        return GetIcon(IconName)
-    else
-        return {
-            Url = IconName,
-            ImageRectOffset = Vector2.zero,
-            ImageRectSize = Vector2.zero,
-            Custom = true,
-        }
-    end
-end
-
-local function GetIconUrl(IconName: string)
-    local Icon = GetCustomIcon(IconName)
-    if not Icon then
-        return nil
-    end
-    return Icon.Url
-end
-
 function Library.GradientImage(E : Frame , Color)
 	local GLImage = Instance.new("ImageLabel")
 	local upd = tick();
@@ -257,7 +401,7 @@ function Library.GradientImage(E : Frame , Color)
 	GLImage.Parent = E
 	GLImage.AnchorPoint = Vector2.new(0.5, 0.5)
 	GLImage.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	GLImage.BackgroundTransparency = 1.000
+	GLImage.h = 1.000
 	GLImage.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	GLImage.BorderSizePixel = 0
 	GLImage.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -1214,9 +1358,27 @@ function Library.new(config)
 		Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 		Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 		Icon.ZIndex = 6
-		Icon.Image = GetIconUrl(cfg.Icon) or cfg.Icon
-		Icon.ImageTransparency = 1
-		Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
+		local ok, iconObj = pcall(function()
+    return Icons.Image({ Icon = cfg.Icon, Size = UDim2.new(0.6,0,0.6,0) })
+end)
+
+if ok and iconObj and iconObj.IconFrame then
+    if Icon and Icon.Parent then Icon:Destroy() end
+    local realIcon = iconObj.IconFrame
+    realIcon.Name = "Icon"
+    realIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+    realIcon.Position = UDim2.new(0.100000001, 0, 0.5, 0)
+    realIcon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+    realIcon.ZIndex = 6
+    realIcon.Parent = TabButton
+    Icon = realIcon
+else
+    Icon.Image = cfg.Icon
+    Icon.ImageTransparency = 1
+end
+
+Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
+
 
 		UICorner_2.CornerRadius = UDim.new(0, 3)
 		UICorner_2.Parent = Icon
@@ -1485,9 +1647,27 @@ function Library.new(config)
 			Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 			Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 			Icon.ZIndex = 6
-			Icon.Image = GetIconUrl(c_o_n_f_i_g.Icon) or c_o_n_f_i_g.Icon; 
-			Icon.ImageTransparency = 1
-			Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
+            local ok, iconObj = pcall(function()
+    return Icons.Image({ Icon = c_o_n_f_i_g.Icon, Size = UDim2.new(0.6,0,0.6,0) })
+end)
+
+if ok and iconObj and iconObj.IconFrame then
+    if Icon and Icon.Parent then Icon:Destroy() end
+    local realIcon = iconObj.IconFrame
+    realIcon.Name = "Icon"
+    realIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+    realIcon.Position = UDim2.new(0.0649999976, 0, 0.5, 0)
+    realIcon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+    realIcon.ZIndex = 6
+    realIcon.Parent = Header
+    Icon = realIcon
+else
+    Icon.Image = c_o_n_f_i_g.Icon
+    Icon.ImageTransparency = 1
+end
+
+Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
+
 
 			UICorner_3.CornerRadius = UDim.new(0, 3)
 			UICorner_3.Parent = Icon
@@ -2643,100 +2823,6 @@ function Library.new(config)
 	return WindowTable;
 end;
 
--- LucideIcons.lua
--- Небольшой самодостатственный небольшой модуль для получения и использования Lucide-иконок,
--- извлечённый и адаптированный из вашего скрипта.
-
-local Lucide = {}
-
--- Попытка загрузить официальный источник иконок (как в оригинале).
--- Если загрузка провалится, Icons останется nil и GetIcon вернёт nil.
-local ok, mod = pcall(function()
-    local url = "https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/main/source.lua"
-    local fn = assert(loadstring(game:HttpGet(url)))
-    return fn()
-end)
-
-local FetchIcons = ok and type(mod) == "table"
-local Icons = FetchIcons and mod or nil
-
--- Устанавливает вручную модуль иконок (если вы хотите подменить или предоставить локальную таблицу).
--- Ожидается таблица с методом GetAsset(name) -> iconTable или nil.
-function Lucide:SetIconModule(moduleTable)
-    if type(moduleTable) ~= "table" then
-        error("SetIconModule expects a table")
-    end
-    Icons = moduleTable
-    FetchIcons = true
-end
-
--- Валидация строки кастомной иконки (rbxasset*, roblox.com/asset/?id=, rbxthumb://type=)
-local function IsValidCustomIcon(icon)
-    if type(icon) ~= "string" then
-        return false
-    end
-    if icon:match("rbxasset") then
-        return true
-    end
-    if icon:match("roblox%.com/asset/%?id=") then
-        return true
-    end
-    if icon:match("rbxthumb://type=") then
-        return true
-    end
-    return false
-end
-
--- Получить иконку по имени через модуль lucide.
--- Возвращает nil если модуль недоступен или нет такой иконки.
--- Ожидаемый формат возвращаемой иконки:
--- { Url = string, Id = number?, IconName = string, ImageRectOffset = Vector2, ImageRectSize = Vector2, ... }
-function Lucide:GetIcon(name)
-    if not FetchIcons or not Icons then
-        return nil
-    end
-    if type(Icons.GetAsset) ~= "function" then
-        return nil
-    end
-
-    local success, icon = pcall(Icons.GetAsset, Icons, name)
-    if not success then
-        return nil
-    end
-    return icon
-end
-
--- Возвращает структуру иконки для произвольной строки.
--- Если строка распознана как прямой URL/asset, возвращает объект с полями Url, ImageRectOffset, ImageRectSize, Custom = true.
--- Если нет — пытается получить иконку по имени через GetIcon.
-function Lucide:GetCustomIcon(iconName)
-    if IsValidCustomIcon(iconName) then
-        return {
-            Url = iconName,
-            ImageRectOffset = Vector2.new(0, 0),
-            ImageRectSize = Vector2.new(0, 0),
-            Custom = true,
-        }
-    else
-        return self:GetIcon(iconName)
-    end
-end
-
--- Утилита: безопасная попытка получить URL (возвращает строку или nil).
-function Lucide:GetIconUrl(name)
-    local icon = self:GetIcon(name)
-    if not icon then
-        return nil
-    end
-    return icon.Url
-end
-
--- Экспорт переменных для отладки/совместимости
-Lucide._FetchIcons = FetchIcons
-Lucide._Icons = Icons
-
--- Использование в коде: Icon.Image = Lucide:GetIconUrl(cfg.Icon) or cfg.Icon
-
 Library.NewAuth = function(conf)
 	conf = Config(conf,{
 		Title = "Sugar $ KEY SYSTEM",
@@ -3156,17 +3242,43 @@ Library.Notification = function()
 			UICorner.CornerRadius = UDim.new(0,4)
 			UICorner.Parent = Notifiy
 
-			icon.Name = "icon"
-			icon.Parent = Notifiy
-			icon.AnchorPoint = Vector2.new(0, 0.5)
-			icon.BackgroundTransparency = 1.000
-			icon.Position = UDim2.new(0.05, 0, 0.5, 0)
-			icon.Size = iconSize
-			icon.Image = Icons[ctfx.Icon] or ctfx.Icon
-			icon.ImageTransparency = 1;
-			Twen:Create(icon,css_style,{
-				ImageTransparency = 0
-			}):Play()
+	icon.Name = "icon"
+	icon.Parent = Notifiy
+	icon.AnchorPoint = Vector2.new(0, 0.5)
+	icon.BackgroundTransparency = 1.000
+	icon.Position = UDim2.new(0.05, 0, 0.5, 0)
+	icon.Size = iconSize
+
+	-- try create lucide icon, fallback to plain ImageLabel
+	local ok, iconObj = pcall(function()
+		return Icons.Image({ Icon = ctfx.Icon, Size = iconSize })
+	end)
+
+	if ok and iconObj and iconObj.IconFrame then
+		if icon and icon.Parent then icon:Destroy() end
+
+		local realIcon = iconObj.IconFrame
+		realIcon.Name = "icon"
+		realIcon.AnchorPoint = Vector2.new(0, 0.5)
+		realIcon.Position = UDim2.new(0.05, 0, 0.5, 0)
+		-- ensure size matches notification layout
+		realIcon.Size = iconSize
+		realIcon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+		realIcon.ZIndex = 49
+		realIcon.Parent = Notifiy
+
+		Twen:Create(realIcon,css_style,{
+			ImageTransparency = 0
+		}):Play()
+	else
+		-- fallback: keep simple image label behavior
+		icon.Image = ctfx.Icon
+		icon.ImageTransparency = 1;
+		Twen:Create(icon,css_style,{
+			ImageTransparency = 0
+		}):Play()
+	end
+
 
 			UICorner_2.CornerRadius = UDim.new(0,4)
 			UICorner_2.Parent = icon
