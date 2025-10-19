@@ -1,4 +1,4 @@
--- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/main/source.lua -
+-- ICON: https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/main/source.lua 000 -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -6,18 +6,206 @@ local TextServ = game:GetService('TextService');
 local LocalPlayer = game:GetService('Players').LocalPlayer;
 local CoreGui = (gethui and gethui()) or game:FindFirstChild('CoreGui') or LocalPlayer.PlayerGui;
 local Icons = (function()
-	local p,c = pcall(function()
-		local Http = game:HttpGetAsync('https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/main/source.lua');
+local IconModule = {
+    IconsType = "lucide",
+    New = nil,
+    IconThemeTag = nil,
+    Icons = {
+        ["lucide"] = (pcall(function() return loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/lucide/dist/Icons.lua"))() end) and loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/lucide/dist/Icons.lua"))()) or { Icons = {}, Spritesheets = {} },
+        ["craft"]  = (pcall(function() return loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/craft/dist/Icons.lua"))() end) and loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/craft/dist/Icons.lua"))()) or { Icons = {}, Spritesheets = {} },
+        ["geist"]  = (pcall(function() return loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/geist/dist/Icons.lua"))() end) and loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/geist/dist/Icons.lua"))()) or { Icons = {}, Spritesheets = {} },
+    },
+}
 
-		local Decode = game:GetService('HttpService'):JSONDecode(Http);
+local function parseIconString(iconString)
+    if type(iconString) == "string" then
+        local splitIndex = iconString:find(":")
+        if splitIndex then
+            local iconType = iconString:sub(1, splitIndex - 1)
+            local iconName = iconString:sub(splitIndex + 1)
+            return iconType, iconName
+        end
+    end
+    return nil, iconString
+end
 
-		return Decode['icon'];
-	end);
+function IconModule.AddIcons(packName, iconsData)
+    if type(packName) ~= "string" or type(iconsData) ~= "table" then
+        error("AddIcons: packName must be string, iconsData must be table")
+        return
+    end
 
-	if p then return c end;
+    if not IconModule.Icons[packName] then
+        IconModule.Icons[packName] = {
+            Icons = {},
+            Spritesheets = {}
+        }
+    end
 
-	return nil;
-end)() or {};
+    for iconName, iconValue in pairs(iconsData) do
+        if type(iconValue) == "number" or (type(iconValue) == "string" and iconValue:match("^rbxassetid://")) then
+            local imageId = iconValue
+            if type(iconValue) == "number" then
+                imageId = "rbxassetid://" .. tostring(iconValue)
+            end
+
+            IconModule.Icons[packName].Icons[iconName] = {
+                Image = imageId,
+                ImageRectSize = Vector2.new(0, 0),
+                ImageRectPosition = Vector2.new(0, 0),
+                Parts = nil
+            }
+            IconModule.Icons[packName].Spritesheets[imageId] = imageId
+
+        elseif type(iconValue) == "table" then
+            if iconValue.Image and iconValue.ImageRectSize and iconValue.ImageRectPosition then
+                local imageId = iconValue.Image
+                if type(imageId) == "number" then
+                    imageId = "rbxassetid://" .. tostring(imageId)
+                end
+
+                IconModule.Icons[packName].Icons[iconName] = {
+                    Image = imageId,
+                    ImageRectSize = iconValue.ImageRectSize,
+                    ImageRectPosition = iconValue.ImageRectPosition,
+                    Parts = iconValue.Parts
+                }
+
+                if not IconModule.Icons[packName].Spritesheets[imageId] then
+                    IconModule.Icons[packName].Spritesheets[imageId] = imageId
+                end
+            else
+                warn("AddIcons: Invalid spritesheet data format for icon '" .. iconName .. "'")
+            end
+        else
+            warn("AddIcons: Unsupported data type for icon '" .. iconName .. "': " .. type(iconValue))
+        end
+    end
+end
+
+function IconModule.SetIconsType(iconType)
+    IconModule.IconsType = iconType
+end
+
+function IconModule.Init(New, IconThemeTag)
+    IconModule.New = New
+    IconModule.IconThemeTag = IconThemeTag
+    return IconModule
+end
+
+function IconModule.Icon(Icon, Type)
+    local iconType, iconName = parseIconString(Icon)
+    local targetType = iconType or Type or IconModule.IconsType
+    local targetName = iconName
+
+    local iconSet = IconModule.Icons[targetType]
+    if iconSet and iconSet.Icons and iconSet.Icons[targetName] then
+        return {
+            iconSet.Spritesheets[tostring(iconSet.Icons[targetName].Image)],
+            iconSet.Icons[targetName],
+        }
+    end
+    return nil
+end
+
+function IconModule.Image(IconConfig)
+    IconConfig = IconConfig or {}
+    local Icon = {
+        Icon = IconConfig.Icon or nil,
+        Type = IconConfig.Type,
+        Colors = IconConfig.Colors or { ( IconModule.IconThemeTag or Color3.new(1,1,1) ), Color3.new(1,1,1) },
+        Size = IconConfig.Size or UDim2.new(0,24,0,24),
+        IconFrame = nil,
+    }
+
+    local Colors = {}
+    for _, color in next, Icon.Colors do
+        Colors[_] = {
+            ThemeTag = typeof(color) == "string" and color,
+            Color = typeof(color) == "Color3" and color,
+        }
+    end
+
+    local IconLabel = IconModule.Icon(Icon.Icon, Icon.Type)
+    if not IconLabel then
+        -- fallback: if Icon.Icon is rbxassetid or plain image, return simple ImageLabel
+        local fallback = Instance.new("ImageLabel")
+        fallback.Size = Icon.Size
+        fallback.BackgroundTransparency = 1
+        if type(Icon.Icon) == "string" and Icon.Icon:match("^rbxassetid://") then
+            fallback.Image = Icon.Icon
+        else
+            fallback.Image = ""
+        end
+        Icon.IconFrame = fallback
+        return Icon
+    end
+
+    if IconModule.New then
+        local New = IconModule.New
+
+        local IconFrame = New("ImageLabel", {
+            Size = Icon.Size,
+            BackgroundTransparency = 1,
+            ImageColor3 = Colors[1].Color or nil,
+            ThemeTag = Colors[1].ThemeTag and { ImageColor3 = Colors[1].ThemeTag },
+            Image = IconLabel[1],
+            ImageRectSize = IconLabel[2].ImageRectSize,
+            ImageRectOffset = IconLabel[2].ImageRectPosition,
+        })
+
+        if IconLabel[2].Parts then
+            for _, part in next, IconLabel[2].Parts do
+                local IconPartLabel = IconModule.Icon(part, Icon.Type)
+                local IconPart = New("ImageLabel", {
+                    Size = UDim2.new(1,0,1,0),
+                    BackgroundTransparency = 1,
+                    ImageColor3 = Colors[1 + _].Color or nil,
+                    ThemeTag = Colors[1 + _].ThemeTag and { ImageColor3 = Colors[1 + _].ThemeTag },
+                    Image = IconPartLabel[1],
+                    ImageRectSize = IconPartLabel[2].ImageRectSize,
+                    ImageRectOffset = IconPartLabel[2].ImageRectPosition,
+                    Parent = IconFrame,
+                })
+            end
+        end
+
+        Icon.IconFrame = IconFrame
+    else
+        local IconFrame = Instance.new("ImageLabel")
+        IconFrame.Size = Icon.Size
+        IconFrame.BackgroundTransparency = 1
+        IconFrame.ImageColor3 = Colors[1].Color
+        IconFrame.Image = IconLabel[1]
+        IconFrame.ImageRectSize = IconLabel[2].ImageRectSize
+        IconFrame.ImageRectOffset = IconLabel[2].ImageRectPosition
+
+        if IconLabel[2].Parts then
+            for _, part in next, IconLabel[2].Parts do
+                local IconPartLabel = IconModule.Icon(part, Icon.Type)
+                local IconPart = Instance.new("ImageLabel")
+                IconPart.Size = UDim2.new(1,0,1,0)
+                IconPart.BackgroundTransparency = 1
+                IconPart.ImageColor3 = Colors[1 + _].Color
+                IconPart.Image = IconPartLabel[1]
+                IconPart.ImageRectSize = IconPartLabel[2].ImageRectSize
+                IconPart.ImageRectOffset = IconPartLabel[2].ImageRectPosition
+                IconPart.Parent = IconFrame
+            end
+        end
+
+        Icon.IconFrame = IconFrame
+    end
+
+    return Icon
+end
+
+return IconModule
+
+end)()
+
+-- после вставки модуля
+Icons.SetIconsType("lucide")
 
 local ElBlurSource = function()
 	local GuiSystem = {}
@@ -61,7 +249,7 @@ local ElBlurSource = function()
 		Part.Size = Vector3.new(1, 1, 1) * 0.01;
 		Part.Color = Color3.fromRGB(0,0,0);
 
-		Twen:Create(Part,TweenInfo.new(1,Enum.EasingStyle.Quint,Enum.EasingDirection.In),{
+		Twen:Create(Part,TweenInfo.new(0.5,Enum.EasingStyle.Quint,Enum.EasingDirection.In),{
 			Transparency = 0.8;
 		}):Play()
 
@@ -96,21 +284,21 @@ local ElBlurSource = function()
 
 		local Update = function()
 			if not C4.Enabled then
-				Twen:Create(Part,TweenInfo.new(1,Enum.EasingStyle.Quint),{
+				Twen:Create(Part,TweenInfo.new(0.5,Enum.EasingStyle.Quint),{
 					Transparency = 1;
 				}):Play()
 
 			end;
 
-			Twen:Create(Part,TweenInfo.new(1,Enum.EasingStyle.Quint,Enum.EasingDirection.Out),{
+			Twen:Create(Part,TweenInfo.new(0.5,Enum.EasingStyle.Quint,Enum.EasingDirection.Out),{
 				Transparency = 0.8;
 			}):Play()
 
 			local corner0 = frame.AbsolutePosition;
 			local corner1 = corner0 + frame.AbsoluteSize;
 
-			local ray0 = CurrentCamera.ScreenPointToRay(CurrentCamera,corner0.X, corner0.Y, 1);
-			local ray1 = CurrentCamera.ScreenPointToRay(CurrentCamera,corner1.X, corner1.Y, 1);
+			local ray0 = CurrentCamera:ScreenPointToRay(corner0.X, corner0.Y, 1);
+			local ray1 = CurrentCamera:ScreenPointToRay(corner1.X, corner1.Y, 1);
 
 			local planeOrigin = CurrentCamera.CFrame.Position + CurrentCamera.CFrame.LookVector * (0.05 - CurrentCamera.NearPlaneZ);
 
@@ -136,11 +324,11 @@ local ElBlurSource = function()
 					local qualityLevel = userSettings.SavedQualityLevel.Value
 
 					if qualityLevel < 8 then
-						Twen:Create(frame,TweenInfo.new(1),{
+						Twen:Create(frame,TweenInfo.new(0.5),{
 							BackgroundTransparency = 0
 						}):Play()
 					else
-						Twen:Create(frame,TweenInfo.new(1),{
+						Twen:Create(frame,TweenInfo.new(0.5),{
 							BackgroundTransparency = 0.4
 						}):Play()
 					end;
@@ -165,7 +353,7 @@ local ElBlurSource = function()
 
 			end;
 
-			Twen:Create(Part,TweenInfo.new(1),{
+			Twen:Create(Part,TweenInfo.new(0.5),{
 				Transparency = 1
 			}):Play();
 
@@ -196,7 +384,8 @@ Library['.'] = '1';
 Library['FetchIcon'] = "https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/main/source.lua";
 
 pcall(function()
-	Library['Icons'] = game:GetService('HttpService'):JSONDecode(game:HttpGetAsync(Library.FetchIcon))['icons'];
+	local Module = loadstring(game:HttpGetAsync(Library.FetchIcon))();
+	Library['Icons'] = Module.icons;
 end)
 
 function Library.GradientImage(E : Frame , Color)
@@ -212,7 +401,7 @@ function Library.GradientImage(E : Frame , Color)
 	GLImage.Parent = E
 	GLImage.AnchorPoint = Vector2.new(0.5, 0.5)
 	GLImage.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-	GLImage.BackgroundTransparency = 1.000
+	GLImage.h = 1.000
 	GLImage.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	GLImage.BorderSizePixel = 0
 	GLImage.Position = UDim2.new(0.5, 0, 0.5, 0)
@@ -256,14 +445,15 @@ end;
 function Library.new(config)
 	config = Config(config,{
 		Title = "UI Library",
-		Description = "discord.gg/BH6pE7jesa",
+		Description = "discord.gg/BHRUtyTbk2",
 		Keybind = Enum.KeyCode.LeftControl,
 		Logo = "http://www.roblox.com/asset/?id=18810965406",
-		Size = UDim2.new(0.100000001, 445, 0.100000001, 315)
+		Size = UDim2.new(0.100000001, 445, 0.100000001, 315),
+		ConfigFolder = "SugarConfigs"
 	});
 
-	local TweenInfo1 = TweenInfo.new(1,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut);
-	local TweenInfo2 = TweenInfo.new(0.7,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut);
+	local TweenInfo1 = TweenInfo.new(0.5,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut);
+	local TweenInfo2 = TweenInfo.new(0.3,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut);
 
 	local WindowTable = {};
 	local ScreenGui = Instance.new("ScreenGui")
@@ -274,9 +464,7 @@ function Library.new(config)
 	local Logo = Instance.new("ImageLabel")
 	local UICorner_2 = Instance.new("UICorner")
 	local Title = Instance.new("TextLabel")
-	local UIGradient = Instance.new("UIGradient")
 	local Description = Instance.new("TextLabel")
-	local UIGradient_2 = Instance.new("UIGradient")
 	local BlockFrame1 = Instance.new("Frame")
 	local UICorner_3 = Instance.new("UICorner")
 	local UIGradient_3 = Instance.new("UIGradient")
@@ -295,11 +483,55 @@ function Library.new(config)
 	local InputFrame = Instance.new("Frame")
 
 	WindowTable.Tabs = {};
+	WindowTable.Elements = {};  -- For config system
 	WindowTable.Dropdown = {};
 	WindowTable.WindowToggle = true;
 	WindowTable.Keybind = config.Keybind;
 	WindowTable.ToggleButton = nil
+	WindowTable.LastPosition = UDim2.new(0.5, 0, 0.05, 0)  -- Для запоминания позиции в свернутом виде
+	WindowTable.ConfigFolder = config.ConfigFolder
 	
+	local HttpService = game:GetService("HttpService")
+
+	-- Config folder setup
+	local configFolder = WindowTable.ConfigFolder
+	if not isfolder(configFolder) then
+		makefolder(configFolder)
+	end
+
+	-- Load configs
+	local function listConfigs()
+		local files = listfiles(configFolder) or {}
+		local confNames = {}
+		for _, file in ipairs(files) do
+			if file:match("%.json$") then
+				table.insert(confNames, file:match("([^/\\]+)%.json$"))
+			end
+		end
+		return confNames
+	end
+
+	WindowTable.ListConfigs = listConfigs
+
+	WindowTable.SaveConfig = function(name)
+		local cfg = WindowTable:GetConfig()
+		writefile(configFolder .. "/" .. name .. ".json", HttpService:JSONEncode(cfg))
+	end
+
+	WindowTable.LoadConfig = function(name)
+		if isfile(configFolder .. "/" .. name .. ".json") then
+			local data = readfile(configFolder .. "/" .. name .. ".json")
+			local cfg = HttpService:JSONDecode(data)
+			WindowTable:SetConfig(cfg)
+		end
+	end
+
+	WindowTable.DeleteConfig = function(name)
+		if isfile(configFolder .. "/" .. name .. ".json") then
+			delfile(configFolder .. "/" .. name .. ".json")
+		end
+	end
+
 	local ImageButton = Instance.new("ImageButton")
 
 	ImageButton.Parent = MainFrame
@@ -329,13 +561,18 @@ function Library.new(config)
 	HomeIcon.ImageTransparency = 1;
 	HomeIcon.BackgroundTransparency = 1;
 	
+	local isMobile = Input.TouchEnabled
+	if isMobile then
+		ImageButton.Size = UDim2.new(0.12, 0, 0.12, 0)
+	end
+	
 	local function Update()
 		if WindowTable.WindowToggle then
-			Twen:Create(MainFrame,TweenInfo.new(1.5,Enum.EasingStyle.Quint),{BackgroundTransparency = 0.4,Size = config.Size}):Play();
+			Twen:Create(MainFrame,TweenInfo.new(0.7,Enum.EasingStyle.Quint),{BackgroundTransparency = 0.4,Size = config.Size}):Play();
 			Twen:Create(MainDropShadow,TweenInfo1,{ImageTransparency = 0.6}):Play();
 			Twen:Create(Headers,TweenInfo1,{BackgroundTransparency = 0.5}):Play();
 			Twen:Create(Logo,TweenInfo1,{ImageTransparency = 0}):Play();
-			Twen:Create(MainFrame,TweenInfo.new(0.5,Enum.EasingStyle.Quint),{Position = UDim2.fromScale(0.5,0.5)}):Play();
+			Twen:Create(MainFrame,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{Position = UDim2.fromScale(0.5,0.5)}):Play();
 			WindowTable.ElBlurUI.Enabled = true;
 			
 			Twen:Create(BlockFrame1,TweenInfo1,{BackgroundTransparency = 0.8}):Play();
@@ -349,26 +586,29 @@ function Library.new(config)
 			Twen:Create(Title,TweenInfo1,{Position = UDim2.fromScale(0.328,0.013)}):Play();
 			Twen:Create(Headers,TweenInfo1,{Position = UDim2.fromScale(0.01,0.015)}):Play();
 
-			Twen:Create(ImageButton,TweenInfo.new(0.85,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut),{
+			Twen:Create(ImageButton,TweenInfo.new(0.4,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut),{
 				Position = UDim2.new(0.992500007, 0, 0.00999999978, 0),
 				Size = UDim2.new(0.0850000009, 0, 0.0850000009, 0),
 				ImageTransparency = 0.5,
 				AnchorPoint = Vector2.new(1, 0)
 			}):Play();
 			
-			Twen:Create(HomeIcon,TweenInfo.new(0.5),{
+			Twen:Create(HomeIcon,TweenInfo.new(0.3),{
 				ImageTransparency = 1,
 			}):Play()
 
 			ImageButton.Image = "rbxassetid://10002398990"
 			
-			Twen:Create(UICorner,TweenInfo.new(1),{
+			Twen:Create(UICorner,TweenInfo.new(0.5),{
 				CornerRadius = UDim.new(0, 7)
 			}):Play()
 
+			-- Adjust InputFrame for drag only top
+			InputFrame.Size = UDim2.new(1, 0, 0.12, 0)
+
 		else
-			Twen:Create(MainFrame,TweenInfo.new(1,Enum.EasingStyle.Quint),{BackgroundTransparency = 1,Size = UDim2.new(0.085, 10,0.05, 0)}):Play();
-			Twen:Create(MainFrame,TweenInfo.new(0.5,Enum.EasingStyle.Quint),{Position = UDim2.new(0.5, 0,0.05, 0)}):Play();
+			Twen:Create(MainFrame,TweenInfo.new(0.5,Enum.EasingStyle.Quint),{BackgroundTransparency = 1,Size = UDim2.new(0.085, 10,0.05, 0)}):Play();
+			Twen:Create(MainFrame,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{Position = WindowTable.LastPosition}):Play();
 			Twen:Create(MainDropShadow,TweenInfo1,{ImageTransparency = 1}):Play();
 			Twen:Create(Headers,TweenInfo1,{BackgroundTransparency = 1}):Play();
 			Twen:Create(Logo,TweenInfo1,{ImageTransparency = 1}):Play();
@@ -377,7 +617,7 @@ function Library.new(config)
 			Twen:Create(Description,TweenInfo1,{Position = UDim2.fromScale(1.5,0.071)}):Play();
 			Twen:Create(Headers,TweenInfo1,{Position = UDim2.fromScale(0.01,-0.2)}):Play();
 
-			Twen:Create(UICorner,TweenInfo.new(1),{
+			Twen:Create(UICorner,TweenInfo.new(0.5),{
 				CornerRadius = UDim.new(0.1,0)
 			}):Play()
 			
@@ -388,7 +628,7 @@ function Library.new(config)
 				AnchorPoint = Vector2.new(0.5,0.5)
 			}):Play();
 			
-			Twen:Create(HomeIcon,TweenInfo.new(1),{
+			Twen:Create(HomeIcon,TweenInfo.new(0.5),{
 				ImageTransparency = 0.5,
 			}):Play()
 			
@@ -401,6 +641,9 @@ function Library.new(config)
 			Twen:Create(BlockFrame3,TweenInfo1,{BackgroundTransparency = 1}):Play();
 
 			WindowTable.ElBlurUI.Enabled = false;
+
+			-- Full drag when minimized
+			InputFrame.Size = UDim2.new(1, 0, 1, 0)
 		end;
 
 		WindowTable.Dropdown:Close()
@@ -408,7 +651,7 @@ function Library.new(config)
 			WindowTable.ToggleButton();
 		end;
 
-		task.delay(1,WindowTable.ElBlurUI.Update)
+		task.delay(0.5,WindowTable.ElBlurUI.Update)
 	end;
 
 	Twen:Create(ImageButton,TweenInfo1,{
@@ -436,7 +679,7 @@ function Library.new(config)
 	MainFrame.Name = "MainFrame"
 	MainFrame.Parent = ScreenGui
 	MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-	MainFrame.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+	MainFrame.BackgroundColor3 = Color3.fromRGB(15, 5, 5)  -- Darker red
 	MainFrame.BackgroundTransparency = 1
 	MainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	MainFrame.BorderSizePixel = 0
@@ -446,7 +689,7 @@ function Library.new(config)
 	MainFrame.ClipsDescendants = true;
 	
 	WindowTable.AddEffect = function(color)
-		Library.GradientImage(MainFrame,color)
+		Library.GradientImage(MainFrame,color or Color3.fromRGB(100, 0, 0))  -- Darker gradient
 	end
 
 	Twen:Create(MainFrame,TweenInfo1,{BackgroundTransparency = 0.4,Size = config.Size}):Play();
@@ -465,7 +708,7 @@ function Library.new(config)
 	MainDropShadow.Size = UDim2.new(1, 47, 1, 47)
 	MainDropShadow.ZIndex = 0
 	MainDropShadow.Image = "rbxassetid://6015897843"
-	MainDropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+	MainDropShadow.ImageColor3 = Color3.fromRGB(50, 0, 0)  -- Darker red shadow
 	MainDropShadow.ImageTransparency = 1
 	MainDropShadow.ScaleType = Enum.ScaleType.Slice
 	MainDropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
@@ -475,7 +718,7 @@ function Library.new(config)
 
 	Headers.Name = "Headers"
 	Headers.Parent = MainFrame
-	Headers.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+	Headers.BackgroundColor3 = Color3.fromRGB(20, 5, 5)  -- Darker red
 	Headers.BackgroundTransparency = 1
 	Headers.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	Headers.BorderSizePixel = 0
@@ -525,10 +768,6 @@ function Library.new(config)
 
 	Twen:Create(Title,TweenInfo2,{TextTransparency = 0}):Play();
 
-	UIGradient.Rotation = 90
-	UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.75, 0.27), NumberSequenceKeypoint.new(1.00, 1.00)}
-	UIGradient.Parent = Title
-
 	Description.Name = "Description"
 	Description.Parent = MainFrame
 	Description.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -547,14 +786,10 @@ function Library.new(config)
 	Description.TextXAlignment = Enum.TextXAlignment.Left
 	Twen:Create(Description,TweenInfo2,{TextTransparency = 0.5}):Play();
 
-	UIGradient_2.Rotation = 90
-	UIGradient_2.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.75, 0.27), NumberSequenceKeypoint.new(1.00, 1.00)}
-	UIGradient_2.Parent = Description
-
 	BlockFrame1.Name = "BlockFrame1"
 	BlockFrame1.Parent = MainFrame
 	BlockFrame1.AnchorPoint = Vector2.new(0, 0.5)
-	BlockFrame1.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	BlockFrame1.BackgroundColor3 = Color3.fromRGB(150, 0, 0)  -- Darker red
 	BlockFrame1.BackgroundTransparency = 1
 	BlockFrame1.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	BlockFrame1.BorderSizePixel = 0
@@ -573,7 +808,7 @@ function Library.new(config)
 	BlockFrame3.Name = "BlockFrame3"
 	BlockFrame3.Parent = MainFrame
 	BlockFrame3.AnchorPoint = Vector2.new(0, 0.5)
-	BlockFrame3.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	BlockFrame3.BackgroundColor3 = Color3.fromRGB(150, 0, 0)  -- Darker red
 	BlockFrame3.BackgroundTransparency = 1
 	BlockFrame3.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	BlockFrame3.BorderSizePixel = 0
@@ -591,7 +826,7 @@ function Library.new(config)
 	BlockFrame2.Name = "BlockFrame2"
 	BlockFrame2.Parent = MainFrame
 	BlockFrame2.AnchorPoint = Vector2.new(0, 0.5)
-	BlockFrame2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	BlockFrame2.BackgroundColor3 = Color3.fromRGB(150, 0, 0)  -- Darker red
 	BlockFrame2.BackgroundTransparency = 1
 	BlockFrame2.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	BlockFrame2.BorderSizePixel = 0
@@ -610,7 +845,7 @@ function Library.new(config)
 	TabButtonFrame.Name = "TabButtonFrame"
 	TabButtonFrame.Parent = MainFrame
 	TabButtonFrame.AnchorPoint = Vector2.new(0.5, 0)
-	TabButtonFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+	TabButtonFrame.BackgroundColor3 = Color3.fromRGB(20, 5, 5)  -- Darker red
 	TabButtonFrame.BackgroundTransparency = 1
 	TabButtonFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	TabButtonFrame.BorderSizePixel = 0
@@ -645,7 +880,7 @@ function Library.new(config)
 	MainTabFrame.Name = "MainTabFrame"
 	MainTabFrame.Parent = MainFrame
 	MainTabFrame.AnchorPoint = Vector2.new(0.5, 0)
-	MainTabFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+	MainTabFrame.BackgroundColor3 = Color3.fromRGB(20, 5, 5)  -- Darker red
 	MainTabFrame.BackgroundTransparency = 1
 	MainTabFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	MainTabFrame.BorderSizePixel = 0
@@ -663,8 +898,8 @@ function Library.new(config)
 	InputFrame.BackgroundTransparency = 1.000
 	InputFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	InputFrame.BorderSizePixel = 0
-	InputFrame.Position = UDim2.new(0, 0, 3.86494179e-08, 0)
-	InputFrame.Size = UDim2.new(1, 0, 0.121327251, 0)
+	InputFrame.Position = UDim2.new(0, 0, 0, 0)
+	InputFrame.Size = UDim2.new(1, 0, 0.12, 0)  -- Only top for drag
 	InputFrame.ZIndex = 15;
 
 	task.spawn(function()
@@ -1018,12 +1253,12 @@ function Library.new(config)
 			WindowTable.Dropdown.Value = Looped
 			if Looped then
 				DropdownFrame.Visible = true;
-
-				Twen:Create(DropdownFrame,TweenInfo.new(0.15),{
-					Position = UDim2.fromOffset(Locked.AbsolutePosition.X + 5,Locked.AbsolutePosition.Y + (DropdownFrame.AbsoluteSize.Y / 1.5)),
-					Size = UDim2.fromOffset(Locked.AbsoluteSize.X,150)
-				}):Play()
-
+				if Locked then
+					Twen:Create(DropdownFrame,TweenInfo.new(0.15),{
+						Position = UDim2.fromOffset(Locked.AbsolutePosition.X + 5,Locked.AbsolutePosition.Y + (DropdownFrame.AbsoluteSize.Y / 1.5)),
+						Size = UDim2.fromOffset(Locked.AbsoluteSize.X,150)
+					}):Play()
+				end
 			else
 				if Locked then
 					DropdownFrame.Size = DropdownFrame.Size:Lerp(UDim2.fromOffset(Locked.AbsoluteSize.X,0),.2);
@@ -1040,6 +1275,36 @@ function Library.new(config)
 		end);
 	end)
 
+	function WindowTable:GetAllElements()
+		local all = {}
+		for _, tab in ipairs(self.Tabs) do
+			for _, section in ipairs(tab.Sections or {}) do  -- Assume tabs have Sections
+				for _, el in ipairs(section.Elements or {}) do
+					table.insert(all, el)
+				end
+			end
+		end
+		return all
+	end
+
+	function WindowTable:GetConfig()
+		local cfg = {}
+		for _, el in ipairs(self:GetAllElements()) do
+			if el.Name then
+				cfg[el.Name] = el.Get()
+			end
+		end
+		return cfg
+	end
+
+	function WindowTable:SetConfig(cfg)
+		for _, el in ipairs(self:GetAllElements()) do
+			if el.Name and cfg[el.Name] ~= nil then
+				el.Set(cfg[el.Name])
+			end
+		end
+	end
+
 	function WindowTable:NewTab(cfg)
 		cfg = Config(cfg,{
 			Title = "Example",
@@ -1048,6 +1313,7 @@ function Library.new(config)
 		});
 
 		local TabTable = {};
+		TabTable.Sections = {}  -- For config
 		local TabButton = Instance.new("Frame")
 		local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
 		local UICorner = Instance.new("UICorner")
@@ -1092,9 +1358,27 @@ function Library.new(config)
 		Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 		Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 		Icon.ZIndex = 6
-		Icon.Image = Icons[cfg.Icon] or cfg.Icon
-		Icon.ImageTransparency = 1
-		Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
+		local ok, iconObj = pcall(function()
+    return Icons.Image({ Icon = cfg.Icon, Size = UDim2.new(0.6,0,0.6,0) })
+end)
+
+if ok and iconObj and iconObj.IconFrame then
+    if Icon and Icon.Parent then Icon:Destroy() end
+    local realIcon = iconObj.IconFrame
+    realIcon.Name = "Icon"
+    realIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+    realIcon.Position = UDim2.new(0.100000001, 0, 0.5, 0)
+    realIcon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+    realIcon.ZIndex = 6
+    realIcon.Parent = TabButton
+    Icon = realIcon
+else
+    Icon.Image = cfg.Icon
+    Icon.ImageTransparency = 1
+end
+
+Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
+
 
 		UICorner_2.CornerRadius = UDim.new(0, 3)
 		UICorner_2.Parent = Icon
@@ -1149,7 +1433,7 @@ function Library.new(config)
 
 		Frame.Parent = TabButton
 		Frame.AnchorPoint = Vector2.new(1, 0.5)
-		Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		Frame.BackgroundColor3 = Color3.fromRGB(150, 0, 0)  -- Darker red
 		Frame.BackgroundTransparency = 1
 		Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 		Frame.BorderSizePixel = 0
@@ -1239,37 +1523,37 @@ function Library.new(config)
 			if value then
 				Init.Visible = true;
 
-				Twen:Create(Icon,TweenInfo.new(0.55,Enum.EasingStyle.Quint),{
+				Twen:Create(Icon,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{
 					ImageTransparency = 0.1
 				}):Play();
 
-				Twen:Create(Title,TweenInfo.new(0.5,Enum.EasingStyle.Quint),{
+				Twen:Create(Title,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{
 					TextTransparency = 0
 				}):Play();
 
-				Twen:Create(Description,TweenInfo.new(0.4,Enum.EasingStyle.Quint),{
+				Twen:Create(Description,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{
 					TextTransparency = 0.500
 				}):Play();
 
-				Twen:Create(Frame,TweenInfo.new(0.55,Enum.EasingStyle.Quint),{
+				Twen:Create(Frame,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{
 					Position = UDim2.new(1.02499998, 0, 0.5, 0)
 				}):Play();
 			else
 				Init.Visible = false;
 
-				Twen:Create(Icon,TweenInfo.new(0.55,Enum.EasingStyle.Quint),{
+				Twen:Create(Icon,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{
 					ImageTransparency = 0.25
 				}):Play();
 
-				Twen:Create(Title,TweenInfo.new(0.4,Enum.EasingStyle.Quint),{
+				Twen:Create(Title,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{
 					TextTransparency = 0.25
 				}):Play();
 
-				Twen:Create(Description,TweenInfo.new(0.5,Enum.EasingStyle.Quint),{
+				Twen:Create(Description,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{
 					TextTransparency = 0.65
 				}):Play();
 
-				Twen:Create(Frame,TweenInfo.new(0.55,Enum.EasingStyle.Quint),{
+				Twen:Create(Frame,TweenInfo.new(0.3,Enum.EasingStyle.Quint),{
 					Position = UDim2.new(1.1, 0, 0.4, 0)
 				}):Play();
 			end;
@@ -1284,6 +1568,7 @@ function Library.new(config)
 		table.insert(WindowTable.Tabs,{
 			Id = Init,
 			onFunction = onFunction,
+			Sections = TabTable.Sections
 		})
 
 		Button.MouseButton1Click:Connect(function()
@@ -1304,6 +1589,7 @@ function Library.new(config)
 			});
 
 			local SectionTable = {};
+			SectionTable.Elements = {}
 			local Section = Instance.new("Frame")
 			local UICorner = Instance.new("UICorner")
 			local Header = Instance.new("Frame")
@@ -1361,9 +1647,27 @@ function Library.new(config)
 			Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 			Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 			Icon.ZIndex = 6
-			Icon.Image = Icons[c_o_n_f_i_g.Icon] or c_o_n_f_i_g.Icon; 
-			Icon.ImageTransparency = 1
-			Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
+            local ok, iconObj = pcall(function()
+    return Icons.Image({ Icon = c_o_n_f_i_g.Icon, Size = UDim2.new(0.6,0,0.6,0) })
+end)
+
+if ok and iconObj and iconObj.IconFrame then
+    if Icon and Icon.Parent then Icon:Destroy() end
+    local realIcon = iconObj.IconFrame
+    realIcon.Name = "Icon"
+    realIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+    realIcon.Position = UDim2.new(0.0649999976, 0, 0.5, 0)
+    realIcon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+    realIcon.ZIndex = 6
+    realIcon.Parent = Header
+    Icon = realIcon
+else
+    Icon.Image = c_o_n_f_i_g.Icon
+    Icon.ImageTransparency = 1
+end
+
+Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
+
 
 			UICorner_3.CornerRadius = UDim.new(0, 3)
 			UICorner_3.Parent = Icon
@@ -1434,9 +1738,12 @@ function Library.new(config)
 			UIGradient_4.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.17, 1.00), NumberSequenceKeypoint.new(0.82, 1.00), NumberSequenceKeypoint.new(1.00, 0.00)}
 			UIGradient_4.Parent = UIStroke
 
+			table.insert(TabTable.Sections, SectionTable)
+
 			function SectionTable:NewToggle(toggle)
 				toggle = Config(toggle,{
 					Title = "Toggle",
+					Name = toggle.Title,
 					Default = false,
 					Callback = function() end;
 				});
@@ -1566,6 +1873,7 @@ function Library.new(config)
 							TextTransparency = 0.25
 						}):Play()
 					end;
+					task.spawn(toggle.Callback, value)
 				end;
 
 				OnChange(toggle.Default);
@@ -1573,19 +1881,20 @@ function Library.new(config)
 				Button.MouseButton1Click:Connect(function()
 					toggle.Default = not toggle.Default;
 					OnChange(toggle.Default);
-					task.spawn(toggle.Callback,toggle.Default)
 				end)
 
-				return {
-					Value = function(newindex)
-						toggle.Default = newindex;
-						OnChange(toggle.Default);
-						task.spawn(toggle.Callback,toggle.Default)
-					end,
+				local el = {
+					Name = toggle.Name,
+					Get = function() return toggle.Default end,
+					Set = function(v) toggle.Default = v; OnChange(v) end,
 					Visible = function(newindx)
 						FunctionToggle.Visible = newindx
 					end,
 				};
+
+				table.insert(SectionTable.Elements, el)
+
+				return el;
 			end;
 
 			function SectionTable:NewTitle(lrm)
@@ -1775,6 +2084,7 @@ function Library.new(config)
 			function SectionTable:NewKeybind(ctfx)
 				ctfx = Config(ctfx,{
 					Title = "Keybind",
+					Name = ctfx.Title,
 					Callback = function() end,
 					Default = Enum.KeyCode.E,
 
@@ -1918,6 +2228,7 @@ function Library.new(config)
 
 					UpdateUI('...')
 					local Bind = BindEvent.Event:Wait();
+					ctfx.Default = Bind;
 					Twen:Create(TextInt,TweenInfo.new(0.1),{
 						TextTransparency = 0.250
 					}):Play();
@@ -1930,22 +2241,24 @@ function Library.new(config)
 
 				end)
 
-				return {
+				local el = {
+					Name = ctfx.Name,
+					Get = function() return ctfx.Default.Name end,
+					Set = function(v) ctfx.Default = Enum.KeyCode[v]; UpdateUI(ctfx.Default); ctfx.Callback(ctfx.Default) end,
 					Visible = function(newindx)
 						FunctionKeybind.Visible = newindx
 					end,
-					Value = function(lrm)
-						UpdateUI(lrm)
-
-
-						ctfx.Callback(lrm);
-					end,
 				};
+
+				table.insert(SectionTable.Elements, el)
+
+				return el;
 			end;
 
 			function SectionTable:NewSlider(slider)
 				slider = Config(slider,{
 					Title = "Slider",
+					Name = slider.Title,
 					Min = 0,
 					Max = 100,
 					Default = 50,
@@ -2104,21 +2417,24 @@ function Library.new(config)
 					end
 				end)
 
-				return {
+				local el = {
+					Name = slider.Name,
+					Get = function() return math.round(((TFrame.Size.X.Scale * slider.Max) - slider.Min) / (slider.Max - slider.Min) * (slider.Max - slider.Min) + slider.Min) end,
+					Set = function(v) local scale = (v - slider.Min) / (slider.Max - slider.Min); TFrame.Size = UDim2.new(scale, 0, 1, 0); ValueText.Text = tostring(v)..'/'..tostring(slider.Max); slider.Callback(v) end,
 					Visible = function(newindx)
 						FunctionSlider.Visible = newindx
 					end,
-					Value = function(lrm)
-						TFrame.Size = UDim2.new((lrm / slider.Max), 0, 1, 0)
-
-						slider.Callback(lrm);
-					end,
 				};
+
+				table.insert(SectionTable.Elements, el)
+
+				return el;
 			end;
 
 			function SectionTable:NewDropdown(drop)
 				drop = Config(drop,{
 					Title = "Dropdown",
+					Name = drop.Title,
 					Data = {'One','Two','Three','Four'},
 					Default = 'Two',
 					Callback = function(a)
@@ -2244,10 +2560,11 @@ function Library.new(config)
 				Button.Size = UDim2.new(1, 0, 1, 0)
 				Button.ZIndex = 25
 				Button.Font = Enum.Font.SourceSans
-				Button.Text = ""
+				Button.Text = "";
 				Button.TextColor3 = Color3.fromRGB(0, 0, 0)
 				Button.TextSize = 14.000
 				Button.TextTransparency = 1.000
+
 
 				local Updater = function(value)
 					drop.Default = value;
@@ -2261,13 +2578,17 @@ function Library.new(config)
 					WindowTable.Dropdown:Open(drop.Data,drop.Default,Updater)
 				end)
 
-				return {
+				local el = {
+					Name = drop.Name,
+					Get = function() return drop.Default end,
+					Set = function(v) Updater(v) end,
 					Visible = function(newindx)
 						FunctionDropdown.Visible = newindx
 					end,
-					Value = function(value)
-						ValueText.Text = tostring(value);
-						drop.Callback(value);
+					Refresh = function(newData)
+						if newData then drop.Data = newData end
+						WindowTable.Dropdown:Close()
+						WindowTable.Dropdown:Open(drop.Data, drop.Default, Updater)
 					end,
 					Open = function(value)
 						WindowTable.Dropdown:Setup(MFrame)
@@ -2281,15 +2602,20 @@ function Library.new(config)
 					Clear = function()
 						drop.Data = {}
 					end,
-					Set = function(table)
+					SetOptions = function(table)
 						drop.Data = table
 					end
 				};
+
+				table.insert(SectionTable.Elements, el)
+
+				return el;
 			end;
 
 			function SectionTable:NewTextbox(conf)
 				conf = Config(conf,{
 					Title = "Textbox",
+					Name = conf.Title,
 					Default = '',
 					FileType = "",
 					Callback = function(a)
@@ -2309,6 +2635,7 @@ function Library.new(config)
 				local FileType = Instance.new("TextLabel")
 				local UIGradient_2 = Instance.new("UIGradient")
 				local TextBox = Instance.new("TextBox")
+				local UICorner_3 = Instance.new("UICorner")
 				local Button = Instance.new("TextButton")
 
 				FunctionTextbox.Name = "FunctionTextbox"
@@ -2430,9 +2757,24 @@ function Library.new(config)
 				Button.TextTransparency = 1.000
 
 
-				TextBox.FocusLost:Connect(function(press)
-					conf.Callback(TextBox.Text);
+				TextBox.FocusLost:Connect(function(enterPressed)
+					if enterPressed then
+						conf.Callback(TextBox.Text);
+					end
 				end)
+
+				local el = {
+					Name = conf.Name,
+					Get = function() return TextBox.Text end,
+					Set = function(v) TextBox.Text = v end,
+					Visible = function(newindx)
+						FunctionTextbox.Visible = newindx
+					end,
+				};
+
+				table.insert(SectionTable.Elements, el)
+
+				return el;
 			end;
 
 			return SectionTable;
@@ -2452,6 +2794,9 @@ function Library.new(config)
 		local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
 			startPos.Y.Scale, startPos.Y.Offset + delta.Y);
 		game:GetService('TweenService'):Create(MainFrame, TweenInfo.new(dragSpeed), {Position = position}):Play()
+		if not WindowTable.WindowToggle then
+			WindowTable.LastPosition = position  -- Запоминаем позицию в свернутом виде
+		end
 	end;
 
 	InputFrame.InputBegan:Connect(function(input)
@@ -2480,7 +2825,7 @@ end;
 
 Library.NewAuth = function(conf)
 	conf = Config(conf,{
-		Title = "Nothing $ KEY SYSTEM",
+		Title = "Sugar $ KEY SYSTEM",
 		GetKey = function() return 'https://example.com' end,
 		Auth = function(key) if key == '1 or 1' then return key; end; end,
 		Freeze = false,
@@ -2494,7 +2839,7 @@ Library.NewAuth = function(conf)
 			end;
 
 			return;
-		end;
+		end
 	end;
 
 	if conf.GetKey then
@@ -2504,7 +2849,7 @@ Library.NewAuth = function(conf)
 			end;
 
 			return;
-		end;
+		end
 	end;
 
 	local ScreenGui = Instance.new("ScreenGui")
@@ -2534,8 +2879,7 @@ Library.NewAuth = function(conf)
 
 	ScreenGui.Parent = CoreGui
 	ScreenGui.IgnoreGuiInset = true
-	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global
-	ScreenGui.Name = game:GetService('HttpService'):GenerateGUID(false)..tostring(tick())
+	ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global;
 
 	Auth.Name = "Auth"
 	Auth.Parent = ScreenGui
@@ -2547,7 +2891,7 @@ Library.NewAuth = function(conf)
 	Auth.BorderSizePixel = 0
 	Auth.ClipsDescendants = true
 	Auth.Position = UDim2.new(0.5, 0, 0.5, 0)
-	Auth.Size = UDim2.new(0.100000001, 245, 0.100000001, 115)
+	Auth.Size = UDim2.new(0, 245, 0, 115)
 
 	local BlueEffect = ElBlurSource.new(MainFrame,true);
 	local cose = {Library.GradientImage(MainFrame),
@@ -2596,7 +2940,7 @@ Library.NewAuth = function(conf)
 	Button2.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	Button2.BorderSizePixel = 0
 	Button2.Position = UDim2.new(0.75, 0, 0.649999976, 0)
-	Button2.Size = UDim2.new(0.447547048, 0, 0.155089319, 0)
+	Button2.Size = UDim2.new(0.447547547, 0, 0.155089319, 0)
 	Button2.ZIndex = 3
 	Button2.Font = Enum.Font.GothamBold
 	Button2.Text = "ACTIVATE"
@@ -2824,24 +3168,23 @@ Library.Notification = function()
 	Notification.Name = "Notification"
 	Notification.Parent = CoreGui
 	Notification.ResetOnSpawn = false
-	Notification.ZIndexBehavior = Enum.ZIndexBehavior.Global
+	Notification.ZIndexBehavior = Enum.ZIndexBehavior.Global;
 	Notification.Name = game:GetService('HttpService'):GenerateGUID(false)
 	Notification.IgnoreGuiInset = true
 
 	Frame.Parent = Notification
-	Frame.AnchorPoint = Vector2.new(0.5, 0.5)
+	Frame.AnchorPoint = Vector2.new(1, 1)
 	Frame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 	Frame.BackgroundTransparency = 1.000
 	Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 	Frame.BorderSizePixel = 0
-	Frame.Position = UDim2.new(0.151568726, 0, 0.5, 0)
-	Frame.Size = UDim2.new(0.400000006, 0, 0.400000006, 0)
-	Frame.SizeConstraint = Enum.SizeConstraint.RelativeYY
+	Frame.Position = UDim2.new(0.98, 0, 0.98, 0)
+	Frame.Size = UDim2.new(0.25, 0, 0.5, 0)  -- Slightly smaller width
 
 	UIListLayout.Parent = Frame
 	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 	UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
-	UIListLayout.Padding = UDim.new(0,2);
+	UIListLayout.Padding = UDim.new(0,5);
 
 	return {
 		new = function(ctfx)
@@ -2849,9 +3192,9 @@ Library.Notification = function()
 				Title = "Notification",
 				Description = "Description",
 				Duration = 5,
-				Icon = "rbxassetid://7733993369"
+				Icon = "rbxassetid://8997385628"
 			})
-			local css_style = TweenInfo.new(0.5,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut);
+			local css_style = TweenInfo.new(0.5,Enum.EasingStyle.Quint,Enum.EasingDirection.Out);  -- Smoother animation
 			local Notifiy = Instance.new("Frame")
 			local UICorner = Instance.new("UICorner")
 			local icon = Instance.new("ImageLabel")
@@ -2859,6 +3202,11 @@ Library.Notification = function()
 			local TextLabel = Instance.new("TextLabel")
 			local TextLabel_2 = Instance.new("TextLabel")
 			local DropShadow = Instance.new('ImageLabel')
+
+			local isMobile = Input.TouchEnabled
+			local notifySize = isMobile and UDim2.new(0.8,0,0.2,0) or UDim2.new(1,0,0.15,0)
+			local iconSize = isMobile and UDim2.new(0,30,0,30) or UDim2.new(0,60,0,60)
+			local textPos = isMobile and 0.25 or 0.2
 
 			DropShadow.Name = "DropShadow"
 			DropShadow.Parent = Notifiy
@@ -2884,145 +3232,71 @@ Library.Notification = function()
 			Notifiy.BorderColor3 = Color3.fromRGB(0, 0, 0)
 			Notifiy.BorderSizePixel = 0
 			Notifiy.ClipsDescendants = true
-			Notifiy.Size = UDim2.new(0,0,0,0)
+			Notifiy.Size = notifySize
+			Notifiy.Position = UDim2.new(1,0,1,0)
 			Twen:Create(Notifiy,css_style,{
 				BackgroundTransparency = 0.350,
-				Size = UDim2.new(0.2, 0, 0.2, 0)
+				Position = UDim2.new(0,0,1,0)
 			}):Play()
 
-			UICorner.CornerRadius = UDim.new(0.3,0)
+			UICorner.CornerRadius = UDim.new(0,4)
 			UICorner.Parent = Notifiy
 
 			icon.Name = "icon"
 			icon.Parent = Notifiy
-			icon.AnchorPoint = Vector2.new(0.5, 0.5)
-			icon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+			icon.AnchorPoint = Vector2.new(0, 0.5)
 			icon.BackgroundTransparency = 1.000
-			icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
-			icon.BorderSizePixel = 0
-			icon.Position = UDim2.new(0.5, 0, 0.5, 0)
-			icon.Size = UDim2.new(0.3, 0, 0.3, 0)
-			icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
-			icon.Image = Icons[ctfx.Icon] or ctfx.Icon
+			icon.Position = UDim2.new(0.05, 0, 0.5, 0)
+			icon.Size = iconSize
+			icon.Image = ctfx.Icon
 			icon.ImageTransparency = 1;
-
 			Twen:Create(icon,css_style,{
-				ImageTransparency = 0.1,
-				Size = UDim2.new(0.699999988, 0, 0.699999988, 0)
+				ImageTransparency = 0
 			}):Play()
 
-
-			UICorner_2.CornerRadius = UDim.new(1,0)
+			UICorner_2.CornerRadius = UDim.new(0,4)
 			UICorner_2.Parent = icon
 
-			Twen:Create(UICorner_2,css_style,{
-				CornerRadius = UDim.new(0.4, 0)
-			}):Play()
-
 			TextLabel.Parent = Notifiy
-			TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 			TextLabel.BackgroundTransparency = 1.000
-			TextLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
-			TextLabel.BorderSizePixel = 0
-			TextLabel.Position = UDim2.new(2, 0, 0.130389422, 0)
-			TextLabel.Size = UDim2.new(0.800069451, 0, 0.217663303, 0)
+			TextLabel.Position = UDim2.new(textPos, 0, 0.1, 0)
+			TextLabel.Size = UDim2.new(0.8, 0, 0.3, 0)
 			TextLabel.Font = Enum.Font.GothamBold
 			TextLabel.Text = ctfx.Title
 			TextLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
 			TextLabel.TextScaled = true
-			TextLabel.TextSize = 14.000
-			TextLabel.TextWrapped = true
 			TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+			TextLabel.TextTransparency = 1
+			Twen:Create(TextLabel,css_style,{
+				TextTransparency = 0
+			}):Play()
 
 			TextLabel_2.Parent = Notifiy
-			TextLabel_2.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
 			TextLabel_2.BackgroundTransparency = 1.000
-			TextLabel_2.BorderColor3 = Color3.fromRGB(0, 0, 0)
-			TextLabel_2.BorderSizePixel = 0
-			TextLabel_2.Position = UDim2.new(2, 0, 0.34770447, 0)
-			TextLabel_2.Size = UDim2.new(0.769645274, 0, 0.502295375, 0)
+			TextLabel_2.Position = UDim2.new(textPos, 0, 0.4, 0)
+			TextLabel_2.Size = UDim2.new(0.8, 0, 0.5, 0)
 			TextLabel_2.Font = Enum.Font.GothamBold
 			TextLabel_2.Text = ctfx.Description
-			TextLabel_2.TextColor3 = Color3.fromRGB(255, 255, 255)
-			TextLabel_2.TextSize = 9.000
-			TextLabel_2.TextTransparency = 0.500
+			TextLabel_2.TextColor3 = Color3.fromRGB(200, 200, 200)
+			TextLabel_2.TextSize = 12.000
 			TextLabel_2.TextWrapped = true
 			TextLabel_2.TextXAlignment = Enum.TextXAlignment.Left
 			TextLabel_2.TextYAlignment = Enum.TextYAlignment.Top
+			TextLabel_2.TextTransparency = 1
+			Twen:Create(TextLabel_2,css_style,{
+				TextTransparency = 0
+			}):Play()
 
-			local mkView = function()
+			task.delay(ctfx.Duration, function()
 				Twen:Create(Notifiy,css_style,{
-					Size = UDim2.new(1, 0, 0.2, 0)
+					Position = UDim2.new(1,0,1,0),
+					BackgroundTransparency = 1
 				}):Play()
-
-				Twen:Create(UICorner,css_style,{
-					CornerRadius = UDim.new(0, 4)
-				}):Play()
-
-				Twen:Create(icon,css_style,{
-					Position = UDim2.new(0.100000001, 0, 0.5, 0)
-				}):Play()
-
-				Twen:Create(TextLabel,css_style,{
-					Position = UDim2.new(0.199930489, 0, 0.130389422, 0)
-				}):Play()
-
-				Twen:Create(TextLabel_2,css_style,{
-					Position = UDim2.new(0.199930489, 0, 0.34770447, 0)
-				}):Play()
-			end;
-
-
-			local mkLoad = function()
-				Twen:Create(Notifiy,css_style,{
-					Size = UDim2.new(0.2, 0, 0.2, 0)
-				}):Play()
-
-				Twen:Create(UICorner,css_style,{
-					CornerRadius = UDim.new(0.4,0)
-				}):Play()
-
-				Twen:Create(icon,css_style,{
-					Position = UDim2.new(0.5, 0, 0.5, 0)
-				}):Play()
-
-				Twen:Create(TextLabel,css_style,{
-					Position = UDim2.new(1, 0, 0.130389422, 0)
-				}):Play()
-
-				Twen:Create(TextLabel_2,css_style,{
-					Position = UDim2.new(1, 0, 0.34770447, 0)
-				}):Play()
-			end;
-
-			mkLoad();
-
-			task.spawn(function()
-				task.wait(0.5)
-				mkView();
-
-
-
-				task.delay(1 + ctfx.Duration,function()
-					mkLoad();
-
-					task.wait(0.65)
-
-					Twen:Create(Notifiy,css_style,{
-						BackgroundTransparency = 1,
-						Size = UDim2.new(0,0,0,0)
-					}):Play()
-
-					Twen:Create(icon,css_style,{
-						ImageTransparency = 1
-					}):Play()
-
-					Twen:Create(DropShadow,css_style,{
-						ImageTransparency = 1
-					}):Play()
-
-					task.delay(0.5,Notifiy.Destroy,Notifiy)
-				end)
+				Twen:Create(icon,css_style,{ImageTransparency=1}):Play()
+				Twen:Create(TextLabel,css_style,{TextTransparency=1}):Play()
+				Twen:Create(TextLabel_2,css_style,{TextTransparency=1}):Play()
+				Twen:Create(DropShadow,css_style,{ImageTransparency=1}):Play()
+				task.delay(0.6, Notifiy.Destroy, Notifiy)
 			end)
 		end,
 	}
@@ -3257,7 +3531,7 @@ function Library:Console()
 						<font color="rgb(255,125,0)">CPU2</font>: Snapdragon 8 Gen 4 Super Ultra Gaming Edition (arm)
 						<font color="rgb(255,125,0)">GPU1</font>: Nvidia RTX 9080 Ti
 						<font color="rgb(255,125,0)">GPU2</font>: Nvidia GTX 1080 Ti
-						<font color="rgb(255,125,0)">Kernel</font>: Roblox-Security-thread
+						<font color="rgb(255,125,0)">Kernel</font>: Roblox Roblox-Security-thread
 						<font color="rgb(255,125,0)">Terminal</font>: Konsole
 						<font color="rgb(255,125,0)">Host</font>: Xiaomi 15 Ultra Pro Max ROG Edition 3
 						<font color="rgb(255,125,0)">UI</font>: KDE Plasma 6
@@ -3418,42 +3692,9 @@ function Library:Console()
 		end;
 	end)
 
-	local dragToggle = nil;
-	local dragSpeed = 0.1;
-	local dragStart = nil;
-	local startPos = nil;
-
-	local function updateInput(input)
-		local delta = input.Position - dragStart;
-		local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
-			startPos.Y.Scale, startPos.Y.Offset + delta.Y);
-		game:GetService('TweenService'):Create(MFrame, TweenInfo.new(dragSpeed), {Position = position}):Play()
-	end;
-
-	MFrame.InputBegan:Connect(function(input)
-		if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then 
-			dragToggle = true
-			dragStart = input.Position
-			startPos = MFrame.Position
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragToggle = false;
-				end;
-			end)
-		end;
-	end)
-
-	Input.InputChanged:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-			if dragToggle then
-				updateInput(input);
-			end;
-		end;
-	end)
-
 	return overview;
 end;
 
-print('[ OK ]')
+print(' [ DONE <3 ]: Sugar UI LOADED!! YOMKA MADE IT')
 
 return table.freeze(Library);
