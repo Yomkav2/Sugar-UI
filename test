@@ -1,4 +1,4 @@
--- yomka ​​modified this -
+-- yomka ​​modified thi2s -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -3225,23 +3225,6 @@ Library.Notification = function()
 				ImageTransparency = 0.600
 			}):Play()
 
-			Notifiy.Name = "Notifiy"
-			Notifiy.Parent = Frame
-			Notifiy.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-			Notifiy.BackgroundTransparency = 1
-			Notifiy.BorderColor3 = Color3.fromRGB(0, 0, 0)
-			Notifiy.BorderSizePixel = 0
-			Notifiy.ClipsDescendants = true
-			Notifiy.Size = notifySize
-			Notifiy.Position = UDim2.new(1,0,1,0)
-			Twen:Create(Notifiy,css_style,{
-				BackgroundTransparency = 0.350,
-				Position = UDim2.new(0,0,1,0)
-			}):Play()
-
-			UICorner.CornerRadius = UDim.new(0,4)
-			UICorner.Parent = Notifiy
-
 	icon.Name = "icon"
 	icon.Parent = Notifiy
 	icon.AnchorPoint = Vector2.new(0, 0.5)
@@ -3318,7 +3301,22 @@ Library.Notification = function()
 		}):Play()
 	end
 
+			Notifiy.Name = "Notifiy"
+			Notifiy.Parent = Frame
+			Notifiy.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+			Notifiy.BackgroundTransparency = 1
+			Notifiy.BorderColor3 = Color3.fromRGB(0, 0, 0)
+			Notifiy.BorderSizePixel = 0
+			Notifiy.ClipsDescendants = true
+			Notifiy.Size = notifySize
+			Notifiy.Position = UDim2.new(1,0,1,0)
+			Twen:Create(Notifiy,css_style,{
+				BackgroundTransparency = 0.350,
+				Position = UDim2.new(0,0,1,0)
+			}):Play()
 
+			UICorner.CornerRadius = UDim.new(0,4)
+			UICorner.Parent = Notifiy
 
 			UICorner_2.CornerRadius = UDim.new(0,4)
 			UICorner_2.Parent = icon
