@@ -1,33 +1,30 @@
-## Nothing UI but BETTER (yeah open source yay)
+## Nothing UI Library, but BETTER (yeah open source yay)
 
 ### **Features**
 
-The example script showcases a fully functional user interface with two main tabs: **Example** and **Configs**.
+Smooth
+Not Laggy
+Better then Nothing Library
 
 #### **Example Tab**
 
-  * **Toggles:** Includes simple toggles like **"Toggle"** and **"Auto Farm"**.
-  * **Buttons:** Action buttons like **"Kill All"** and **"Teleport"**, with the "Kill All" button triggering a notification.
-  * **Sliders:** Demonstrates a generic **"Slider"** and a specific **"WalkSpeed"** slider.
-  * **Keybinds:** Custom keybinds for **"Keybind"** and **"Auto Combo"**.
-  * **Dropdown:** A dropdown menu for selecting a **"Method"** (Teleport, Locker, Auto).
-  * **Information Section:** Simple titles and a button to print the Discord link.
+  * **Toggles:**
+  * **Buttons:**
+  * **Sliders:**
+  * **Keybinds:**
+  * **Dropdown:**
 
 #### **Configs Tab**
-
-This tab provides a complete system for managing user settings, which is a core feature of the Sugar UI library.
 
   * **Dropdown:** Lists all existing saved configurations.
   * **Textbox:** Used to input the name for a new configuration.
   * **Buttons:**
-      * **"Create Config"**: Saves the current settings under the name entered in the textbox.
+      * **"Create Config"**: Saves the current settings.
       * **"Load Config"**: Applies the settings from the selected configuration.
       * **"Delete Config"**: Removes the selected configuration file.
       * **"Refresh Configs"**: Updates the list of available configurations.
 
-### **Core Script Structure**
-
-Here the Example Script
+###Here the Example Script
 
 ```lua
 -- Loads the Sugar UI library
