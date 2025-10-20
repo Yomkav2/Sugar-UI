@@ -6,7 +6,7 @@ Smooth
 Not Laggy
 Better then Nothing Library
 
-#### **Example Tab**
+#### **Components**
 
   * **Toggles:**
   * **Buttons:**
@@ -24,7 +24,7 @@ Better then Nothing Library
       * **"Delete Config"**: Removes the selected configuration file.
       * **"Refresh Configs"**: Updates the list of available configurations.
 
-###Here the Example Script
+### Here the Example Script
 
 ```lua
 -- Loads the Sugar UI library
