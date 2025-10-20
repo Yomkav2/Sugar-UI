@@ -1,4 +1,5 @@
-## Nothing UI Library, but BETTER (yeah open source yay)
+## Nothing UI Library, but BETTER 
+#### (yeah open source yay)
 
 ### **Features**
 
@@ -24,6 +25,107 @@
       * **"Delete Config"**: Removes the selected configuration file.
       * **"Refresh Configs"**: Updates the list of available configurations.
 
+# Require Library
+```lua
+local SugarLibrary = loadstring(game:HttpGetAsync('https://raw.githubusercontent.com/Yomkav2/Sugar-UI/refs/heads/main/main'))();
+local Windows = SugarLibrary.new({
+    Title = "My UI",
+    Description = "Custom UI Description",
+    Keybind = Enum.KeyCode.LeftControl,  -- Key to toggle visibility
+    Logo = 'rbxassetid://1234567890',  -- Roblox asset ID for logo
+    ConfigFolder = "MyConfigs"  -- Folder for saving configs
+});
+```
+# Tab
+```lua
+local TabFrame = Windows:NewTab({
+	Title = "Example",
+	Description = "example tab",
+	Icon = "house"
+})
+```
+# Section
+```lua
+local Section = TabFrame:NewSection({
+	Title = "Section",
+	Icon = "list",
+	Position = "Left"
+})
+```
+# Toggle
+```lua
+Section:NewToggle({
+	Title = "Toggle",
+	Name = "Toggle1",
+	Default = false,
+	Callback = function(tr)
+		print(tr)
+	end,
+})
+```
+# Button
+```lua
+Section:NewButton({
+	Title = "Kill All",
+	Callback = function()
+		Notification.new({
+			Title = "Killed",
+			Description = "10",
+			Duration = 5,
+			Icon = "sword"
+		})
+		print('killed')
+	end,
+})
+```
+# Slider
+```lua
+Section:NewSlider({
+	Title = "Slider",
+	Name = "Slider1",
+	Min = 10,
+	Max = 50,
+	Default = 25,
+	Callback = function(a)
+		print(a)
+	end,
+})
+```
+# KeyBind
+```lua
+Section:NewKeybind({
+	Title = "Keybind",
+	Name = "Keybind1",
+	Default = Enum.KeyCode.RightAlt,
+	Callback = function(a)
+		print(a)
+	end,
+})
+```
+# Dropdown
+```lua
+Section:NewDropdown({
+	Title = "Method",
+	Name = "Method",
+	Data = {'Teleport','Locker','Auto'},
+	Default = 'Auto',
+	Callback = function(a)
+		print(a)
+	end,
+})
+```
+# End (aka Tittle)
+```lua
+InfoSection:NewTitle('UI by CATSUS')
+InfoSection:NewTitle('Modified by Yomka')
+InfoSection:NewButton({
+
+	Title = "Discord",
+	Callback = function()
+		print('https://discord.gg/PKdh229jqg')
+	end,
+})
+```
 ### Here the Example Script
 
 ```lua
