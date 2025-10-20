@@ -28,9 +28,9 @@ local SugarLibrary = loadstring(game:HttpGetAsync('https://raw.githubusercontent
 local Windows = SugarLibrary.new({
     Title = "My UI",
     Description = "Custom UI Description",
-    Keybind = Enum.KeyCode.LeftControl,  -- Key to toggle visibility
-    Logo = 'rbxassetid://1234567890',  -- Roblox asset ID for logo
-    ConfigFolder = "MyConfigs"  -- Folder for saving configs
+    Keybind = Enum.KeyCode.LeftControl,
+    Logo = 'rbxassetid://1234567890',
+    ConfigFolder = "MyConfigs"  -- Custom folder name
 });
 ```
 # Tab
