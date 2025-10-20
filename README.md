@@ -15,15 +15,12 @@
   * **Keybinds:**
   * **Dropdown:**
 
-#### **Configs Tab**
+#### **Config**
 
-  * **Dropdown:** Lists all existing saved configurations.
-  * **Textbox:** Used to input the name for a new configuration.
-  * **Buttons:**
-      * **"Create Config"**: Saves the current settings.
-      * **"Load Config"**: Applies the settings from the selected configuration.
-      * **"Delete Config"**: Removes the selected configuration file.
-      * **"Refresh Configs"**: Updates the list of available configurations.
+* **"Create Config"**
+* **"Load Config"**
+* **"Delete Config"**
+* **"Refresh Configs"**
 
 # Require Library
 ```lua
@@ -126,7 +123,7 @@ InfoSection:NewButton({
 	end,
 })
 ```
-### Here the Example Script
+# Here the Example Script
 
 ```lua
 local SugarLibrary = loadstring(game:HttpGetAsync('https://raw.githubusercontent.com/Yomkav2/Sugar-UI/refs/heads/main/main'))();
