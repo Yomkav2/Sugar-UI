@@ -1,4 +1,6 @@
-# Nothing UI Library, but BETTER 
+# SUGAR UI
+
+### Nothing UI Library, but BETTER 
 #### (yeah open source yay)
 
 ## **Features**
