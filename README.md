@@ -1,27 +1,39 @@
-# Sugar UI (Yomka modified)
+## Nothing UI but BETTER (yeah open source yay)
 
-A lightweight Roblox UI library.  
-Provides windowing, tabs, sections, controls, notifications and simple config management.
+### **Features**
 
-## Features
-- Window creation with tabs and sections.
-- Common UI elements: Toggle, Button, Slider, Keybind, Dropdown, Textbox.
-- Notifications.
-- Config save/load in JSON files.
-- Icon support (lucide, craft, geist) with fallback.
+The example script showcases a fully functional user interface with two main tabs: **Example** and **Configs**.
 
-## Quick start
+#### **Example Tab**
+
+  * **Toggles:** Includes simple toggles like **"Toggle"** and **"Auto Farm"**.
+  * **Buttons:** Action buttons like **"Kill All"** and **"Teleport"**, with the "Kill All" button triggering a notification.
+  * **Sliders:** Demonstrates a generic **"Slider"** and a specific **"WalkSpeed"** slider.
+  * **Keybinds:** Custom keybinds for **"Keybind"** and **"Auto Combo"**.
+  * **Dropdown:** A dropdown menu for selecting a **"Method"** (Teleport, Locker, Auto).
+  * **Information Section:** Simple titles and a button to print the Discord link.
+
+#### **Configs Tab**
+
+This tab provides a complete system for managing user settings, which is a core feature of the Sugar UI library.
+
+  * **Dropdown:** Lists all existing saved configurations.
+  * **Textbox:** Used to input the name for a new configuration.
+  * **Buttons:**
+      * **"Create Config"**: Saves the current settings under the name entered in the textbox.
+      * **"Load Config"**: Applies the settings from the selected configuration.
+      * **"Delete Config"**: Removes the selected configuration file.
+      * **"Refresh Configs"**: Updates the list of available configurations.
+
+### **Core Script Structure**
+
+Here the Example Script
+
 ```lua
+-- Loads the Sugar UI library
 local SugarLibrary = loadstring(game:HttpGetAsync('https://raw.githubusercontent.com/Yomkav2/Sugar-UI/refs/heads/main/main'))();
-local Notification = SugarLibrary.Notification();
 
-Notification.new({
-    Title = "Notification",
-    Description = "test xD",
-    Duration = 5,
-    Icon = "bell-ring"
-})
-
+-- Initialize the main window, set the title, keybind (LeftControl), and config folder
 local Windows = SugarLibrary.new({
     Title = "SUGAR",
     Description = "Sugar UI Library",
@@ -30,29 +42,19 @@ local Windows = SugarLibrary.new({
     ConfigFolder = "ExampleConfigs"
 })
 
-local TabFrame = Windows:NewTab({Title = "Example", Description = "example tab", Icon = "house"})
-local Section = TabFrame:NewSection({Title = "Section", Icon = "list", Position = "Left"})
+-- Create tabs (Example, Configs)
+local TabFrame = Windows:NewTab({...})
+local ConfigTab = Windows:NewTab({...})
 
-Section:NewToggle({
-    Title = "Toggle",
-    Name = "Toggle1",
-    Default = false,
-    Callback = function(tr) print(tr) end,
-})
+-- Create sections within the tabs (e.g., Left/Right position)
+local Section = TabFrame:NewSection({...})
+
+-- Add UI elements to sections (Toggle, Button, Slider, etc.)
+Section:NewToggle({...})
+Section:NewButton({...})
+-- ... and so on
 ```
 
-## Config API
-- `Windows.ListConfigs()` -> returns list of saved config names.
-- `Windows.SaveConfig(name)` -> saves current UI state as `name.json` in the `ConfigFolder`.
-- `Windows.LoadConfig(name)` -> loads config `name.json`.
-- `Windows.DeleteConfig(name)` -> deletes config file.
+-----
 
-## Notifications
-Use `SugarLibrary.Notification().new({ Title, Description, Duration, Icon })`.
-
-## Notes
-- Icons may use pack names like `"lucide:house"` or short names like `"house"`. The library falls back to plain images when icons are unavailable.
-- Requires exploit functions such as `isfolder`, `makefolder`, `writefile`, `readfile`, and HTTP get to load remote modules.
-
-## License
-MIT
+Let me know if you'd like any specific sections or details added to the `README.md`\!
