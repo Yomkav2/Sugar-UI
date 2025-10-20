@@ -1,13 +1,13 @@
-## Nothing UI Library, but BETTER 
+# Nothing UI Library, but BETTER 
 #### (yeah open source yay)
 
-### **Features**
+## **Features**
 
 * **Smooth**
 * **Not Laggy**
 * **Better then Nothing Library**
 
-#### **Components**
+## **Components**
 
   * **Toggles:**
   * **Buttons:**
@@ -15,7 +15,7 @@
   * **Keybinds:**
   * **Dropdown:**
 
-#### **Config**
+## **Config**
 
 * **"Create Config"**
 * **"Load Config"**
