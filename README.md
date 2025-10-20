@@ -33,6 +33,17 @@ local Windows = SugarLibrary.new({
     ConfigFolder = "MyConfigs"  -- Custom folder name
 });
 ```
+# Notification
+```lua
+local Notification = SugarLibrary.Notification();
+
+Notification.new({
+    Title = "Notification Title",
+    Description = "This is a description",
+    Duration = 5,
+    Icon = "bell-ring"
+});
+```
 # Tab
 ```lua
 local TabFrame = Windows:NewTab({
@@ -111,7 +122,7 @@ Section:NewDropdown({
 	end,
 })
 ```
-# End (aka Tittle)
+# End (aka Title)
 ```lua
 InfoSection:NewTitle('UI by CATSUS')
 InfoSection:NewTitle('Modified by Yomka')
@@ -123,7 +134,7 @@ InfoSection:NewButton({
 	end,
 })
 ```
-# Here the Example Script
+# Example Script
 
 ```lua
 local SugarLibrary = loadstring(game:HttpGetAsync('https://raw.githubusercontent.com/Yomkav2/Sugar-UI/refs/heads/main/main'))();
@@ -339,3 +350,6 @@ InfoSection:NewButton({
 	end,
 })
 ```
+# Credits
+* **Original UI by CATSUS**
+* **Modified by Yomka (me)**
