@@ -139,7 +139,7 @@ InfoSection:NewButton({
 # Example Script
 
 ```lua
-local SugarLibrary = loadstring(game:HttpGetAsync('https://raw.githubusercontent.com/Yomkav2/Sugar-UI/refs/heads/main/main'))();
+local SugarLibrary = loadstring(game:HttpGetAsync('https://raw.githubusercontent.com/Yomkav2/Sugar-UI/refs/heads/main/Source'))();
 local Notification = SugarLibrary.Notification();
 
 Notification.new({
