@@ -26,7 +26,7 @@
 
 # Require Library
 ```lua
-local SugarLibrary = loadstring(game:HttpGetAsync('https://raw.githubusercontent.com/Yomkav2/Sugar-UI/refs/heads/main/main'))();
+local SugarLibrary = loadstring(game:HttpGetAsync('https://raw.githubusercontent.com/Yomkav2/Sugar-UI/refs/heads/main/Source'))();
 local Windows = SugarLibrary.new({
     Title = "My UI",
     Description = "Custom UI Description",
