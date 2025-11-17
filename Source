@@ -1,5 +1,3 @@
--- yomka modified it (open source btw)
-
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
 local TextServ = game:GetService('TextService');
@@ -11,12 +9,11 @@ local IconModule = {
     New = nil,
     IconThemeTag = nil,
     Icons = {
-        ["lucide"] = (pcall(function() return loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/lucide/dist/Icons.lua"))() end) and loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/lucide/dist/Icons.lua"))()) or { Icons = {}, Spritesheets = {} },
-        ["craft"]  = (pcall(function() return loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/craft/dist/Icons.lua"))() end) and loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/craft/dist/Icons.lua"))()) or { Icons = {}, Spritesheets = {} },
-        ["geist"]  = (pcall(function() return loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/geist/dist/Icons.lua"))() end) and loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/geist/dist/Icons.lua"))()) or { Icons = {}, Spritesheets = {} },
+        ["lucide"] = { Icons = {}, Spritesheets = {} },
+        ["craft"] = { Icons = {}, Spritesheets = {} },
+        ["geist"] = { Icons = {}, Spritesheets = {} },
     },
 }
-
 local function parseIconString(iconString)
     if type(iconString) == "string" then
         local splitIndex = iconString:find(":")
@@ -28,27 +25,23 @@ local function parseIconString(iconString)
     end
     return nil, iconString
 end
-
 function IconModule.AddIcons(packName, iconsData)
     if type(packName) ~= "string" or type(iconsData) ~= "table" then
         error("AddIcons: packName must be string, iconsData must be table")
         return
     end
-
     if not IconModule.Icons[packName] then
         IconModule.Icons[packName] = {
             Icons = {},
             Spritesheets = {}
         }
     end
-
     for iconName, iconValue in pairs(iconsData) do
         if type(iconValue) == "number" or (type(iconValue) == "string" and iconValue:match("^rbxassetid://")) then
             local imageId = iconValue
             if type(iconValue) == "number" then
                 imageId = "rbxassetid://" .. tostring(iconValue)
             end
-
             IconModule.Icons[packName].Icons[iconName] = {
                 Image = imageId,
                 ImageRectSize = Vector2.new(0, 0),
@@ -56,24 +49,19 @@ function IconModule.AddIcons(packName, iconsData)
                 Parts = nil
             }
             IconModule.Icons[packName].Spritesheets[imageId] = imageId
-
         elseif type(iconValue) == "table" then
             if iconValue.Image and iconValue.ImageRectSize and iconValue.ImageRectPosition then
                 local imageId = iconValue.Image
-                if type(imageId) == "number" then
-                    imageId = "rbxassetid://" .. tostring(imageId)
+                if type(image) == "number" then
+                    image = "rbxassetid://" .. tostring(image)
                 end
-
                 IconModule.Icons[packName].Icons[iconName] = {
-                    Image = imageId,
+                    Image = image,
                     ImageRectSize = iconValue.ImageRectSize,
                     ImageRectPosition = iconValue.ImageRectPosition,
                     Parts = iconValue.Parts
                 }
-
-                if not IconModule.Icons[packName].Spritesheets[imageId] then
-                    IconModule.Icons[packName].Spritesheets[imageId] = imageId
-                end
+                IconModule.Icons[packName].Spritesheets[image] = image
             else
                 warn("AddIcons: Invalid spritesheet data format for icon '" .. iconName .. "'")
             end
@@ -82,22 +70,18 @@ function IconModule.AddIcons(packName, iconsData)
         end
     end
 end
-
 function IconModule.SetIconsType(iconType)
     IconModule.IconsType = iconType
 end
-
 function IconModule.Init(New, IconThemeTag)
     IconModule.New = New
     IconModule.IconThemeTag = IconThemeTag
     return IconModule
 end
-
 function IconModule.Icon(Icon, Type)
     local iconType, iconName = parseIconString(Icon)
     local targetType = iconType or Type or IconModule.IconsType
-    local targetName = iconName
-
+    local targetName = iconName or Icon
     local iconSet = IconModule.Icons[targetType]
     if iconSet and iconSet.Icons and iconSet.Icons[targetName] then
         return {
@@ -107,7 +91,6 @@ function IconModule.Icon(Icon, Type)
     end
     return nil
 end
-
 function IconModule.Image(IconConfig)
     IconConfig = IconConfig or {}
     local Icon = {
@@ -117,7 +100,6 @@ function IconModule.Image(IconConfig)
         Size = IconConfig.Size or UDim2.new(0,24,0,24),
         IconFrame = nil,
     }
-
     local Colors = {}
     for _, color in next, Icon.Colors do
         Colors[_] = {
@@ -125,7 +107,6 @@ function IconModule.Image(IconConfig)
             Color = typeof(color) == "Color3" and color,
         }
     end
-
     local IconLabel = IconModule.Icon(Icon.Icon, Icon.Type)
     if not IconLabel then
         local fallback = Instance.new("ImageLabel")
@@ -139,10 +120,8 @@ function IconModule.Image(IconConfig)
         Icon.IconFrame = fallback
         return Icon
     end
-
     if IconModule.New then
         local New = IconModule.New
-
         local IconFrame = New("ImageLabel", {
             Size = Icon.Size,
             BackgroundTransparency = 1,
@@ -152,7 +131,6 @@ function IconModule.Image(IconConfig)
             ImageRectSize = IconLabel[2].ImageRectSize,
             ImageRectOffset = IconLabel[2].ImageRectPosition,
         })
-
         if IconLabel[2].Parts then
             for _, part in next, IconLabel[2].Parts do
                 local IconPartLabel = IconModule.Icon(part, Icon.Type)
@@ -168,7 +146,6 @@ function IconModule.Image(IconConfig)
                 })
             end
         end
-
         Icon.IconFrame = IconFrame
     else
         local IconFrame = Instance.new("ImageLabel")
@@ -178,7 +155,6 @@ function IconModule.Image(IconConfig)
         IconFrame.Image = IconLabel[1]
         IconFrame.ImageRectSize = IconLabel[2].ImageRectSize
         IconFrame.ImageRectOffset = IconLabel[2].ImageRectPosition
-
         if IconLabel[2].Parts then
             for _, part in next, IconLabel[2].Parts do
                 local IconPartLabel = IconModule.Icon(part, Icon.Type)
@@ -192,18 +168,33 @@ function IconModule.Image(IconConfig)
                 IconPart.Parent = IconFrame
             end
         end
-
         Icon.IconFrame = IconFrame
     end
-
     return Icon
 end
-
 return IconModule
-
 end)()
-
 Icons.SetIconsType("lucide")
+-- Остальной код без изменений до Library...
+local Config = function(data,default)
+data = data or {};
+for i,v in next,default do
+data[i] = data[i] or v;
+end;
+return data;
+end;
+local Library = {};
+Library['.'] = '1';
+Library['FetchIcon'] = "https://raw.githubusercontent.com/deividcomsono/lucide-roblox-direct/main/source.lua";
+pcall(function()
+local Module = loadstring(game:HttpGetAsync(Library.FetchIcon))();
+Library['Icons'] = Module.icons;
+end)
+
+-- Фикс Lucide иконок (старый репозиторий умер)
+if Library.Icons then
+    Icons.AddIcons("lucide", Library.Icons)
+end
 
 local ElBlurSource = function()
 	local GuiSystem = {}
