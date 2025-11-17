@@ -1,8 +1,16 @@
+-- yomka
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
 local TextServ = game:GetService('TextService');
 local LocalPlayer = game:GetService('Players').LocalPlayer;
 local CoreGui = (gethui and gethui()) or game:FindFirstChild('CoreGui') or LocalPlayer.PlayerGui;
+
+local function safeHttpGet(url)
+    if type(url) ~= "string" then return nil end
+    local ok, res = pcall(function() return game:HttpGetAsync(url) end)
+    if not ok then return nil end
+    return res
+end
 
 local function safeLoadModuleFromUrl(url)
     if type(url) ~= "string" then
@@ -10,7 +18,7 @@ local function safeLoadModuleFromUrl(url)
     end
 
     local ok, result = pcall(function()
-        local code = game:HttpGetAsync(url)
+        local code = safeHttpGet(url)
         if not code or type(code) ~= "string" then
             error("HttpGetAsync did not return string")
         end
@@ -45,6 +53,7 @@ local Icons = (function()
         geist  = "https://raw.githubusercontent.com/Footagesus/Icons/main/geist/dist/Icons.lua",
     }
 
+    -- Загружаем парты
     for packName, url in pairs(urls) do
         local loaded = safeLoadModuleFromUrl(url)
         IconModule.Icons[packName] = {
@@ -387,8 +396,10 @@ local ElBlurSource = function()
 
 		C4.Destroy = function()
 			C4.Signal:Disconnect();
-			if C4.Signal2 then pcall(function() C4.Signal2:Disconnect() end) end
-			C4.Update = function() end;
+			C4.Signal2:Disconnect();
+			C4.Update = function()
+
+			end;
 
 			Twen:Create(Part,TweenInfo.new(0.5),{
 				Transparency = 1
@@ -422,8 +433,10 @@ Library['FetchIcon'] = "https://raw.githubusercontent.com/deividcomsono/lucide-r
 
 pcall(function()
 	local ok, module = pcall(function()
-		local code = game:HttpGetAsync(Library.FetchIcon)
+		local code = safeHttpGet(Library.FetchIcon)
+		if not code then return {} end
 		local fn = loadstring(code)
+		if not fn then return {} end
 		return fn()
 	end)
 
