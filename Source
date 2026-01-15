@@ -1,4 +1,4 @@
--- yomka ​​modified this -
+-- yomka ​​modified this --------------------
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -2819,29 +2819,33 @@ function SectionTable:NewStatus(conf)
     UIAspectRatioConstraint.AspectRatio = 8.0
     UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
 
-    Title.Name = "Title"
-    Title.Parent = FunctionStatus
-    Title.BackgroundTransparency = 1
-    Title.Position = UDim2.new(0.02, 0, 0.15, 0)
-    Title.Size = UDim2.new(0.6, 0, 0.3, 0)
-    Title.Font = Enum.Font.GothamBold
-    Title.Text = conf.Title
-    Title.TextColor3 = Color3.fromRGB(255,255,255)
-    Title.TextScaled = true
-    Title.TextTransparency = 0.25
-    Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Name = "Title"
+Title.Parent = FunctionStatus
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0.02, 0, 0.15, 0)
+Title.Size = UDim2.new(0.6, 0, 0.3, 0)
+Title.Font = Enum.Font.GothamBold
+Title.Text = conf.Title
+Title.TextColor3 = Color3.fromRGB(255,255,255)
+Title.TextScaled = true
+Title.TextSize = 14
+Title.TextTransparency = 0.25
+Title.TextXAlignment = Enum.TextXAlignment.Left
 
-    StatusLabel.Name = "StatusLabel"
-    StatusLabel.Parent = FunctionStatus
-    StatusLabel.BackgroundTransparency = 1
-    StatusLabel.Position = UDim2.new(0.02, 0, 0.5, 0)
-    StatusLabel.Size = UDim2.new(0.96, 0, 0.45, 0)
-    StatusLabel.Font = Enum.Font.GothamBold
-    StatusLabel.Text = tostring(conf.Default)
-    StatusLabel.TextColor3 = Color3.fromRGB(255,255,255)
-    StatusLabel.TextScaled = true
-    StatusLabel.TextTransparency = 0.25
-    StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+StatusLabel.Name = "StatusLabel"
+StatusLabel.Parent = FunctionStatus
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Position = UDim2.new(0.02, 0, 0.5, 0)
+StatusLabel.Size = UDim2.new(0.96, 0, 0.45, 0)
+StatusLabel.Font = Enum.Font.GothamBold
+StatusLabel.Text = tostring(conf.Default)
+StatusLabel.TextColor3 = Color3.fromRGB(255,255,255)
+StatusLabel.TextScaled = true
+StatusLabel.TextSize = 14
+StatusLabel.TextTransparency = 0.25
+StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+
 
     UICorner.CornerRadius = UDim.new(0,2)
     UICorner.Parent = FunctionStatus
@@ -2885,17 +2889,19 @@ function SectionTable:NewImage(conf)
     UICorner.CornerRadius = UDim.new(0,2)
     UICorner.Parent = ImgFrame
 
-    Title.Name = "Title"
-    Title.Parent = ImgFrame
-    Title.BackgroundTransparency = 1
-    Title.Position = UDim2.new(0.02,0,0.02,0)
-    Title.Size = UDim2.new(0.96,0,0.25,0)
-    Title.Font = Enum.Font.GothamBold
-    Title.Text = conf.Title
-    Title.TextColor3 = Color3.fromRGB(255,255,255)
-    Title.TextScaled = true
-    Title.TextTransparency = 0.25
-    Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Name = "Title"
+Title.Parent = ImgFrame
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0.02,0,0.02,0)
+Title.Size = UDim2.new(0.96,0,0.25,0)
+Title.Font = Enum.Font.GothamBold
+Title.Text = conf.Title
+Title.TextColor3 = Color3.fromRGB(255,255,255)
+Title.TextScaled = true
+Title.TextSize = 14
+Title.TextTransparency = 0.25
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
 
     Img.Name = "Img"
     Img.Parent = ImgFrame
@@ -2948,17 +2954,19 @@ function SectionTable:NewCollapsible(conf)
     Header.Size = UDim2.new(1,0,0,40)
     Header.ZIndex = 18
 
-    Title.Name = "Title"
-    Title.Parent = Header
-    Title.BackgroundTransparency = 1
-    Title.Position = UDim2.new(0.02,0,0,0)
-    Title.Size = UDim2.new(0.78,0,1,0)
-    Title.Font = Enum.Font.GothamBold
-    Title.Text = conf.Title
-    Title.TextColor3 = Color3.fromRGB(255,255,255)
-    Title.TextScaled = true                         
-    Title.TextTransparency = 0.25
-    Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Name = "Title"
+Title.Parent = Header
+Title.BackgroundTransparency = 1
+Title.Position = UDim2.new(0.02,0,0,0)
+Title.Size = UDim2.new(0.78,0,1,0)
+Title.Font = Enum.Font.GothamBold
+Title.Text = conf.Title
+Title.TextColor3 = Color3.fromRGB(255,255,255)
+Title.TextScaled = true
+Title.TextSize = 14
+Title.TextTransparency = 0.25
+Title.TextXAlignment = Enum.TextXAlignment.Left
+
 
     ToggleContainer.Name = "ToggleContainer"
     ToggleContainer.Parent = Header
