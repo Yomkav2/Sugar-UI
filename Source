@@ -1,4 +1,4 @@
--- yomka ​​modified this -----
+-- yomka ​​modified this -
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
 local TextServ = game:GetService('TextService');
@@ -1494,7 +1494,6 @@ CollapsibleTable.Elements = {}
 local Collapsible = Instance.new("Frame")
 local UICorner = Instance.new("UICorner")
 local Header = Instance.new("Frame")
-local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
 local UICorner_2 = Instance.new("UICorner")
 local Icon = Instance.new("ImageLabel")
 local UICorner_3 = Instance.new("UICorner")
@@ -1526,10 +1525,7 @@ Header.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 Header.BackgroundTransparency = 0.900
 Header.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Header.BorderSizePixel = 0
-Header.Size = UDim2.new(1, 0, 0.5, 0)
-UIAspectRatioConstraint.Parent = Header
-UIAspectRatioConstraint.AspectRatio = 8.000
-UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
+Header.Size = UDim2.new(1, 0, 0, 30)
 UICorner_2.CornerRadius = UDim.new(0, 3)
 UICorner_2.Parent = Header
 Icon.Name = "Icon"
@@ -1628,8 +1624,8 @@ ToggleButton.TextSize = 14.000
 Content.Name = "Content"
 Content.Parent = Collapsible
 Content.BackgroundTransparency = 1.000
-Content.Position = UDim2.new(0, 0, 0.15, 0)
-Content.Size = UDim2.new(1, 0, 0.85, 0)
+Content.Position = UDim2.new(0, 0, 0, 30)
+Content.Size = UDim2.new(1, 0, 1, -30)
 Content.ClipsDescendants = true
 SectionAutoUI.Name = "SectionAutoUI"
 SectionAutoUI.Parent = Content
@@ -1638,7 +1634,7 @@ SectionAutoUI.SortOrder = Enum.SortOrder.LayoutOrder
 SectionAutoUI.Padding = UDim.new(0, 3)
 SectionAutoUI:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
 Twen:Create(Collapsible,TweenInfo.new(0.1),{
-Size = UDim2.new(0.98,0,0,math.max(SectionAutoUI.AbsoluteContentSize.Y + Header.AbsoluteSize.Y,50) + (SectionAutoUI.Padding.Offset * 1.12));
+Size = UDim2.new(0.98,0,0,30 + SectionAutoUI.AbsoluteContentSize.Y + SectionAutoUI.Padding.Offset)
 }):Play()
 end)
 UIStroke.Transparency = 0.9
@@ -1652,7 +1648,7 @@ local function toggleContent()
 isOpen = not isOpen
 if isOpen then
 Content.Visible = true
-Twen:Create(Content, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {Size = UDim2.new(1, 0, 0.85, 0)}):Play()
+Twen:Create(Content, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {Size = UDim2.new(1, 0, 1, -30)}):Play()
 local arrowUp = Icons.Image({ Icon = "chevron-up", Size = UDim2.new(0.6,0,0.6,0) })
 if arrowUp and arrowUp.IconFrame then
     ArrowIcon:Destroy()
@@ -1679,9 +1675,9 @@ end
 end
 end
 ToggleButton.MouseButton1Click:Connect(toggleContent)
-if not isOpen then 
-Content.Visible = false; 
-Content.Size = UDim2.new(1, 0, 0, 0) 
+if not isOpen then
+Content.Visible = false;
+Content.Size = UDim2.new(1, 0, 0, 0)
 local arrowDown = Icons.Image({ Icon = "chevron-down", Size = UDim2.new(0.6,0,0.6,0) })
 if arrowDown and arrowDown.IconFrame then
     ArrowIcon:Destroy()
@@ -2636,7 +2632,7 @@ end;
 function CollapsibleTable:NewImage(cfg)
 cfg = Config(cfg,{
 ImageId = "rbxassetid://0",
-Size = UDim2.new(0.949999988, 0, 0.5, 0)
+Size = UDim2.new(0.98, 0, 0.5, 0)
 });
 local FunctionImage = Instance.new("Frame")
 local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
@@ -2652,7 +2648,7 @@ FunctionImage.BorderSizePixel = 0
 FunctionImage.Size = cfg.Size
 FunctionImage.ZIndex = 17
 UIAspectRatioConstraint.Parent = FunctionImage
-UIAspectRatioConstraint.AspectRatio = 3.000
+UIAspectRatioConstraint.AspectRatio = 2.000
 UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
 ImageLabel.Name = "ImageLabel"
 ImageLabel.Parent = FunctionImage
