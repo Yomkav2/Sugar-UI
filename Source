@@ -1,4 +1,4 @@
--- yomka ​​modified this ------
+-- yomka ​​modified this -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -2838,8 +2838,9 @@ function SectionTable:NewStatus(conf)
     StatusLabel.Size = UDim2.new(0.96, 0, 0.45, 0)
     StatusLabel.Font = Enum.Font.GothamBold
     StatusLabel.Text = tostring(conf.Default)
-    StatusLabel.TextColor3 = Color3.fromRGB(200,200,200)
+    StatusLabel.TextColor3 = Color3.fromRGB(255,255,255)
     StatusLabel.TextScaled = true
+    StatusLabel.TextTransparency = 0.25
     StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
 
     UICorner.CornerRadius = UDim.new(0,2)
@@ -2859,6 +2860,7 @@ function SectionTable:NewStatus(conf)
     table.insert(SectionTable.Elements, el)
     return el;
 end;
+
 
 function SectionTable:NewImage(conf)
     conf = Config(conf,{
@@ -2886,12 +2888,13 @@ function SectionTable:NewImage(conf)
     Title.Name = "Title"
     Title.Parent = ImgFrame
     Title.BackgroundTransparency = 1
-    Title.Position = UDim2.new(0.02,0,0.05,0)
+    Title.Position = UDim2.new(0.02,0,0.02,0)
     Title.Size = UDim2.new(0.96,0,0.25,0)
     Title.Font = Enum.Font.GothamBold
     Title.Text = conf.Title
     Title.TextColor3 = Color3.fromRGB(255,255,255)
     Title.TextScaled = true
+    Title.TextTransparency = 0.25
     Title.TextXAlignment = Enum.TextXAlignment.Left
 
     Img.Name = "Img"
@@ -2909,11 +2912,13 @@ function SectionTable:NewImage(conf)
         Get = function() return Img.Image end,
         Set = function(v) Img.Image = v end,
         Visible = function(v) ImgFrame.Visible = v end,
+        Raw = ImgFrame,
     };
 
     table.insert(SectionTable.Elements, el)
     return el;
 end;
+
 
 function SectionTable:NewCollapsible(conf)
     conf = Config(conf, {
@@ -2925,7 +2930,7 @@ function SectionTable:NewCollapsible(conf)
     local Wrapper = Instance.new("Frame")
     local Header = Instance.new("Frame")
     local Title = Instance.new("TextLabel")
-    local ToggleBtn = Instance.new("TextButton")
+    local ToggleContainer = Instance.new("Frame")
     local Content = Instance.new("Frame")
     local UICorner = Instance.new("UICorner")
     local UIList = Instance.new("UIListLayout")
@@ -2947,21 +2952,20 @@ function SectionTable:NewCollapsible(conf)
     Title.Parent = Header
     Title.BackgroundTransparency = 1
     Title.Position = UDim2.new(0.02,0,0,0)
-    Title.Size = UDim2.new(0.8,0,1,0)
+    Title.Size = UDim2.new(0.78,0,1,0)
     Title.Font = Enum.Font.GothamBold
     Title.Text = conf.Title
     Title.TextColor3 = Color3.fromRGB(255,255,255)
-    Title.TextScaled = true
+    Title.TextScaled = true                         
+    Title.TextTransparency = 0.25
     Title.TextXAlignment = Enum.TextXAlignment.Left
 
-    ToggleBtn.Name = "Toggle"
-    ToggleBtn.Parent = Header
-    ToggleBtn.Size = UDim2.new(0.18,0,1,0)
-    ToggleBtn.Position = UDim2.new(0.82,0,0,0)
-    ToggleBtn.Text = conf.DefaultOpen and "-" or "+"
-    ToggleBtn.Font = Enum.Font.GothamBold
-    ToggleBtn.TextColor3 = Color3.fromRGB(255,255,255)
-    ToggleBtn.BackgroundTransparency = 1
+    ToggleContainer.Name = "ToggleContainer"
+    ToggleContainer.Parent = Header
+    ToggleContainer.BackgroundTransparency = 1
+    ToggleContainer.Size = UDim2.new(0.18,0,1,0)
+    ToggleContainer.Position = UDim2.new(0.82,0,0,0)
+    ToggleContainer.ClipsDescendants = true
 
     Content.Name = "Content"
     Content.Parent = Wrapper
@@ -2978,26 +2982,88 @@ function SectionTable:NewCollapsible(conf)
     UICorner.Parent = Header
     UICorner.CornerRadius = UDim.new(0,2)
 
+    local downIcon, upIcon = nil, nil
+    do
+        local okD, objD = pcall(function() return Icons.Image({ Icon = "lucide:chevron-down", Size = UDim2.new(0,18,0,18) }) end)
+        local okU, objU = pcall(function() return Icons.Image({ Icon = "lucide:chevron-up",   Size = UDim2.new(0,18,0,18) }) end)
+        if okD and objD and objD.IconFrame then
+            downIcon = objD.IconFrame
+            downIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+            downIcon.Position = UDim2.new(0.5,0,0.5,0)
+            downIcon.Size = UDim2.new(0,18,0,18)
+            downIcon.ZIndex = 19
+        end
+        if okU and objU and objU.IconFrame then
+            upIcon = objU.IconFrame
+            upIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+            upIcon.Position = UDim2.new(0.5,0,0.5,0)
+            upIcon.Size = UDim2.new(0,18,0,18)
+            upIcon.ZIndex = 19
+        end
+    end
+
+    local fallbackDown = nil
+    local fallbackUp = nil
+    if not downIcon then
+        fallbackDown = Instance.new("TextLabel")
+        fallbackDown.BackgroundTransparency = 1
+        fallbackDown.Font = Enum.Font.GothamBold
+        fallbackDown.Text = "˅"
+        fallbackDown.TextScaled = true
+        fallbackDown.Size = UDim2.new(1,0,1,0)
+        fallbackDown.TextColor3 = Color3.fromRGB(255,255,255)
+    end
+    if not upIcon then
+        fallbackUp = Instance.new("TextLabel")
+        fallbackUp.BackgroundTransparency = 1
+        fallbackUp.Font = Enum.Font.GothamBold
+        fallbackUp.Text = "˄"
+        fallbackUp.TextScaled = true
+        fallbackUp.Size = UDim2.new(1,0,1,0)
+        fallbackUp.TextColor3 = Color3.fromRGB(255,255,255)
+    end
+
     local open = conf.DefaultOpen
+    local function showIcon(isOpen)
+        for _,v in pairs(ToggleContainer:GetChildren()) do v:Destroy() end
+        if isOpen then
+            if downIcon then
+                local clone = downIcon:Clone()
+                clone.Parent = ToggleContainer
+            else
+                fallbackDown.Parent = ToggleContainer
+            end
+        else
+            if upIcon then
+                local clone = upIcon:Clone()
+                clone.Parent = ToggleContainer
+            else
+                fallbackUp.Parent = ToggleContainer
+            end
+        end
+    end
+
+    showIcon(open)
+
     local function updateSize()
-        -- let SectionAutoUI resize it automatically by adjusting Wrapper size
         local contentHeight = 0
         for _,v in ipairs(Content:GetChildren()) do
-            if v:IsA('Frame') or v:IsA('ImageLabel') or v:IsA('TextLabel') then
-                contentHeight = contentHeight + (v.AbsoluteSize.Y or 50)
+            if v:IsA('GuiObject') and v.Visible then
+                contentHeight = contentHeight + (v.AbsoluteSize.Y or 30)
             end
         end
         Wrapper.Size = UDim2.new(0.95,0,0, 40 + (open and math.max(contentHeight,50) or 0))
     end
 
-    ToggleBtn.MouseButton1Click:Connect(function()
-        open = not open
-        Content.Visible = open
-        ToggleBtn.Text = open and "-" or "+"
-        updateSize()
+    Header.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            open = not open
+            Content.Visible = open
+            showIcon(open)
+            updateSize()
+        end
     end)
 
-    -- API: добавление сырых элементов в content
     local obj = {
         Name = conf.Name,
         AddRaw = function(child)
@@ -3007,17 +3073,18 @@ function SectionTable:NewCollapsible(conf)
         SetOpen = function(v)
             open = v
             Content.Visible = v
-            ToggleBtn.Text = v and "-" or "+"
+            showIcon(v)
             updateSize()
         end,
         GetOpen = function() return open end,
         Visible = function(v) Wrapper.Visible = v end,
     }
 
-    table.insert(SectionTable.Elements, obj)
     task.delay(0.05, updateSize)
+    table.insert(SectionTable.Elements, obj)
     return obj;
 end;
+
 
 
 			return SectionTable;
