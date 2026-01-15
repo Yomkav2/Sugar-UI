@@ -153,7 +153,7 @@ InfoSection:NewTitle('UI by CATSUS') -- Or NewLabel for info text; update with .
 # Image
 ```lua
 InfoSection:NewImage({
-ImageId = "rbxassetid://1234567890" -- update with .SetImage("newId") for normal size, set image so to 4392x1600
+ImageId = "rbxassetid://1234567890" -- update with .SetImage("newId"), for normal size set image size to 4392x1600
 })
 ```
 
