@@ -1,4 +1,4 @@
--- yomka ​​modified this -
+-- yomka ​​modified this ------
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -489,8 +489,16 @@ function Library.new(config)
 	WindowTable.Dropdown = {};
 	WindowTable.WindowToggle = true;
 	WindowTable.Keybind = config.Keybind;
+function WindowTable.SetToggleKey(self, key)
+    if typeof(key) == "EnumItem" and key.EnumType == Enum.KeyCode then
+        self.Keybind = key
+    elseif type(key) == "string" then
+        local ok, c = pcall(function() return Enum.KeyCode[key] end)
+        if ok and c then self.Keybind = c end
+    end
+end
 	WindowTable.ToggleButton = nil
-	WindowTable.LastPosition = UDim2.new(0.5, 0, 0.05, 0)  -- Для запоминания позиции в свернутом виде
+	WindowTable.LastPosition = UDim2.new(0.5, 0, 0.05, 0)
 	WindowTable.ConfigFolder = config.ConfigFolder
 	
 	local HttpService = game:GetService("HttpService")
@@ -1719,98 +1727,6 @@ Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 			UIGradient_3.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
 			UIGradient_3.Parent = Title
 
-local CollapseBtn = Instance.new("TextButton")
-local CollapseIcon = Instance.new("TextLabel")
-CollapseBtn.Name = "CollapseBtn"
-CollapseBtn.Parent = Header
-CollapseBtn.AnchorPoint = Vector2.new(1,0.5)
-CollapseBtn.BackgroundTransparency = 1
-CollapseBtn.BorderSizePixel = 0
-CollapseBtn.Position = UDim2.new(1, -8, 0.5, 0)
-CollapseBtn.Size = UDim2.new(0, 24, 0, 24)
-CollapseBtn.ZIndex = 20
-CollapseBtn.Text = ""
-CollapseBtn.AutoButtonColor = true
-
-CollapseIcon.Name = "CollapseIcon"
-CollapseIcon.Parent = CollapseBtn
-CollapseIcon.AnchorPoint = Vector2.new(0.5,0.5)
-CollapseIcon.BackgroundTransparency = 1
-CollapseIcon.Size = UDim2.new(1,0,1,0)
-CollapseIcon.Font = Enum.Font.GothamBold
-CollapseIcon.Text = "-"
-CollapseIcon.TextColor3 = Color3.new(1,1,1)
-CollapseIcon.TextScaled = true
-CollapseIcon.ZIndex = 21
-
-local collapsed = false
-
-local function getExpandedHeight()
-    local contentHeight = 0
-    pcall(function()
-        if SectionAutoUI and SectionAutoUI.AbsoluteContentSize then
-            contentHeight = math.max(SectionAutoUI.AbsoluteContentSize.Y, 50)
-        end
-    end)
-    local paddingOffset = 0
-    pcall(function()
-        paddingOffset = SectionAutoUI and SectionAutoUI.Padding and SectionAutoUI.Padding.Offset or 0
-    end)
-    return math.floor(contentHeight + (paddingOffset * 1.12))
-end
-
-local savedHeight = getExpandedHeight()
-
-local function safeSetVisible(obj, state)
-    pcall(function()
-        obj.Visible = state
-    end)
-end
-
-local function collapse()
-    if collapsed then return end
-    collapsed = true
-    CollapseIcon.Text = "+"
-    for _, child in ipairs(Section:GetChildren()) do
-        if child ~= Header and child ~= CollapseBtn then
-            safeSetVisible(child, false)
-        end
-    end
-    local targetH = pcall(function() return Header.AbsoluteSize.Y end) and Header.AbsoluteSize.Y or 30
-    Twen:Create(Section, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-        Size = UDim2.new(Section.Size.X.Scale, Section.Size.X.Offset, 0, targetH)
-    }):Play()
-end
-
-local function expand()
-    if not collapsed then return end
-    collapsed = false
-    CollapseIcon.Text = "-"
-    for _, child in ipairs(Section:GetChildren()) do
-        if child ~= Header and child ~= CollapseBtn then
-            safeSetVisible(child, true)
-        end
-    end
-    local expandH = getExpandedHeight()
-    if expandH == 0 then
-        expandH = (savedHeight > 0) and savedHeight or (Header.AbsoluteSize.Y * 3)
-    end
-    Twen:Create(Section, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-        Size = UDim2.new(Section.Size.X.Scale, Section.Size.X.Offset, 0, expandH)
-    }):Play()
-end
-
-CollapseBtn.MouseButton1Click:Connect(function()
-    if collapsed then expand() else collapse() end
-end)
-
-function SectionTable:Collapse()
-    collapse()
-end
-function SectionTable:Expand()
-    expand()
-end
-
 			SectionAutoUI.Name = "SectionAutoUI"
 			SectionAutoUI.Parent = Section
 			SectionAutoUI.HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -1823,109 +1739,11 @@ end
 				}):Play()
 			end)
 
-function SectionTable:NewStatus(conf)
-    conf = Config(conf,{
-        Title = "Status",
-        Name = conf and conf.Title or "Status",
-        Default = "offline",
-        Font = Enum.Font.GothamBold,
-        TextSize = 14,
-        Callback = function() end,
-    })
-    local Frame = Instance.new("Frame")
-    local Label = Instance.new("TextLabel")
-    local UICorner = Instance.new("UICorner")
-
-    Frame.Name = "FunctionStatus"
-    Frame.Parent = Section
-    Frame.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
-    Frame.BackgroundTransparency = 0.8
-    Frame.BorderSizePixel = 0
-    Frame.Size = UDim2.new(0.95,0,0.5,0)
-    Frame.ZIndex = 17
-
-    Label.Name = "StatusLabel"
-    Label.Parent = Frame
-    Label.AnchorPoint = Vector2.new(0.5,0.5)
-    Label.BackgroundTransparency = 1
-    Label.Position = UDim2.new(0.5,0,0.5,0)
-    Label.Size = UDim2.new(0.95,0,0.8,0)
-    Label.Font = conf.Font
-    Label.Text = tostring(conf.Default)
-    Label.TextColor3 = Color3.fromRGB(255,255,255)
-    Label.TextScaled = true
-    Label.TextSize = conf.TextSize
-    Label.TextWrapped = true
-    Label.TextXAlignment = Enum.TextXAlignment.Left
-
-    UICorner.CornerRadius = UDim.new(0,2)
-    UICorner.Parent = Frame
-
-    local function setText(new)
-        Label.Text = tostring(new)
-        pcall(conf.Callback, new)
-    end
-
-    local el = {
-        Name = conf.Name,
-        Get = function() return Label.Text end,
-        Set = function(v) setText(v) end,
-        Visible = function(v) Frame.Visible = v end,
-    }
-    table.insert(SectionTable.Elements, el)
-    return el
-end
-
-function SectionTable:NewImage(conf)
-    conf = Config(conf, {
-        Title = "Image",
-        Name = conf and conf.Title or "Image",
-        Image = "",
-        Size = UDim2.new(0.9,0,0.5,0),
-        ScaleType = Enum.ScaleType.Fit,
-    })
-    local Frame = Instance.new("Frame")
-    local Img = Instance.new("ImageLabel")
-    local UICorner = Instance.new("UICorner")
-
-    Frame.Name = "FunctionImage"
-    Frame.Parent = Section
-    Frame.BackgroundTransparency = 1
-    Frame.Size = UDim2.new(0.95,0,0.5,0)
-    Frame.ZIndex = 17
-
-    Img.Name = "Image"
-    Img.Parent = Frame
-    Img.AnchorPoint = Vector2.new(0.5,0.5)
-    Img.BackgroundTransparency = 1
-    Img.Position = UDim2.new(0.5,0,0.5,0)
-    Img.Size = conf.Size
-    Img.ScaleType = conf.ScaleType
-    Img.ZIndex = 18
-
-    local function applyImage(imgInput)
-        if type(imgInput) == "number" then
-            Img.Image = "rbxassetid://"..tostring(imgInput)
-        elseif type(imgInput) == "string" and imgInput:match("^%d+$") then
-            Img.Image = "rbxassetid://"..imgInput
-        else
-            Img.Image = tostring(imgInput or "")
-        end
-    end
-
-    applyImage(conf.Image)
-
-    UICorner.CornerRadius = UDim.new(0,2)
-    UICorner.Parent = Frame
-
-    local el = {
-        Name = conf.Name,
-        Get = function() return Img.Image end,
-        Set = function(v) applyImage(v) end,
-        Visible = function(v) Frame.Visible = v end,
-    }
-    table.insert(SectionTable.Elements, el)
-    return el
+local function ForceSectionUpdate()
+    task.spawn(function()
+        task.wait(0.05)
+        Section.Size = UDim2.new(0.98,0,0, math.max(SectionAutoUI.AbsoluteContentSize.Y,50) + (SectionAutoUI.Padding.Offset * 1.12));
+    end)
 end
 
 			UIStroke.Transparency = 1
@@ -2976,6 +2794,232 @@ end
 				return el;
 			end;
 
+function SectionTable:NewStatus(conf)
+    conf = Config(conf, {
+        Title = "Status",
+        Name = conf and conf.Title or "Status",
+        Default = "",
+    });
+
+    local FunctionStatus = Instance.new("Frame")
+    local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+    local Title = Instance.new("TextLabel")
+    local StatusLabel = Instance.new("TextLabel")
+    local UICorner = Instance.new("UICorner")
+
+    FunctionStatus.Name = "FunctionStatus"
+    FunctionStatus.Parent = Section
+    FunctionStatus.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+    FunctionStatus.BackgroundTransparency = 0.8
+    FunctionStatus.BorderSizePixel = 0
+    FunctionStatus.Size = UDim2.new(0.95, 0, 0.5, 0)
+    FunctionStatus.ZIndex = 17
+
+    UIAspectRatioConstraint.Parent = FunctionStatus
+    UIAspectRatioConstraint.AspectRatio = 8.0
+    UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
+
+    Title.Name = "Title"
+    Title.Parent = FunctionStatus
+    Title.BackgroundTransparency = 1
+    Title.Position = UDim2.new(0.02, 0, 0.15, 0)
+    Title.Size = UDim2.new(0.6, 0, 0.3, 0)
+    Title.Font = Enum.Font.GothamBold
+    Title.Text = conf.Title
+    Title.TextColor3 = Color3.fromRGB(255,255,255)
+    Title.TextScaled = true
+    Title.TextTransparency = 0.25
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+
+    StatusLabel.Name = "StatusLabel"
+    StatusLabel.Parent = FunctionStatus
+    StatusLabel.BackgroundTransparency = 1
+    StatusLabel.Position = UDim2.new(0.02, 0, 0.5, 0)
+    StatusLabel.Size = UDim2.new(0.96, 0, 0.45, 0)
+    StatusLabel.Font = Enum.Font.GothamBold
+    StatusLabel.Text = tostring(conf.Default)
+    StatusLabel.TextColor3 = Color3.fromRGB(200,200,200)
+    StatusLabel.TextScaled = true
+    StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    UICorner.CornerRadius = UDim.new(0,2)
+    UICorner.Parent = FunctionStatus
+
+    local el = {
+        Name = conf.Name,
+        Get = function() return StatusLabel.Text end,
+        Set = function(v)
+            StatusLabel.Text = tostring(v)
+        end,
+        Visible = function(v)
+            FunctionStatus.Visible = v
+        end
+    };
+
+    table.insert(SectionTable.Elements, el)
+    return el;
+end;
+
+function SectionTable:NewImage(conf)
+    conf = Config(conf,{
+        Title = "Image",
+        Name = conf and conf.Title or "Image",
+        Image = "rbxassetid://7733964640",
+        Size = UDim2.new(0,100,0,100),
+    });
+
+    local ImgFrame = Instance.new("Frame")
+    local UICorner = Instance.new("UICorner")
+    local Img = Instance.new("ImageLabel")
+    local Title = Instance.new("TextLabel")
+
+    ImgFrame.Name = "FunctionImage"
+    ImgFrame.Parent = Section
+    ImgFrame.BackgroundColor3 = Color3.fromRGB(17,17,17)
+    ImgFrame.BackgroundTransparency = 0.8
+    ImgFrame.Size = UDim2.new(0.95,0,0.5,0)
+    ImgFrame.ZIndex = 17
+
+    UICorner.CornerRadius = UDim.new(0,2)
+    UICorner.Parent = ImgFrame
+
+    Title.Name = "Title"
+    Title.Parent = ImgFrame
+    Title.BackgroundTransparency = 1
+    Title.Position = UDim2.new(0.02,0,0.05,0)
+    Title.Size = UDim2.new(0.96,0,0.25,0)
+    Title.Font = Enum.Font.GothamBold
+    Title.Text = conf.Title
+    Title.TextColor3 = Color3.fromRGB(255,255,255)
+    Title.TextScaled = true
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+
+    Img.Name = "Img"
+    Img.Parent = ImgFrame
+    Img.AnchorPoint = Vector2.new(0.5,0)
+    Img.Position = UDim2.new(0.5,0,0.35,0)
+    Img.Size = conf.Size
+    Img.BackgroundTransparency = 1
+    Img.Image = conf.Image
+    Img.SizeConstraint = Enum.SizeConstraint.RelativeYY
+    Img.ZIndex = 18
+
+    local el = {
+        Name = conf.Name,
+        Get = function() return Img.Image end,
+        Set = function(v) Img.Image = v end,
+        Visible = function(v) ImgFrame.Visible = v end,
+    };
+
+    table.insert(SectionTable.Elements, el)
+    return el;
+end;
+
+function SectionTable:NewCollapsible(conf)
+    conf = Config(conf, {
+        Title = "Collapsible",
+        DefaultOpen = true,
+        Name = conf and conf.Title or "Collapsible"
+    });
+
+    local Wrapper = Instance.new("Frame")
+    local Header = Instance.new("Frame")
+    local Title = Instance.new("TextLabel")
+    local ToggleBtn = Instance.new("TextButton")
+    local Content = Instance.new("Frame")
+    local UICorner = Instance.new("UICorner")
+    local UIList = Instance.new("UIListLayout")
+
+    Wrapper.Name = "CollapsibleWrapper"
+    Wrapper.Parent = Section
+    Wrapper.BackgroundTransparency = 1
+    Wrapper.Size = UDim2.new(0.95,0,0,50)
+    Wrapper.ZIndex = 17
+
+    Header.Name = "Header"
+    Header.Parent = Wrapper
+    Header.BackgroundColor3 = Color3.fromRGB(17,17,17)
+    Header.BackgroundTransparency = 0.85
+    Header.Size = UDim2.new(1,0,0,40)
+    Header.ZIndex = 18
+
+    Title.Name = "Title"
+    Title.Parent = Header
+    Title.BackgroundTransparency = 1
+    Title.Position = UDim2.new(0.02,0,0,0)
+    Title.Size = UDim2.new(0.8,0,1,0)
+    Title.Font = Enum.Font.GothamBold
+    Title.Text = conf.Title
+    Title.TextColor3 = Color3.fromRGB(255,255,255)
+    Title.TextScaled = true
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+
+    ToggleBtn.Name = "Toggle"
+    ToggleBtn.Parent = Header
+    ToggleBtn.Size = UDim2.new(0.18,0,1,0)
+    ToggleBtn.Position = UDim2.new(0.82,0,0,0)
+    ToggleBtn.Text = conf.DefaultOpen and "-" or "+"
+    ToggleBtn.Font = Enum.Font.GothamBold
+    ToggleBtn.TextColor3 = Color3.fromRGB(255,255,255)
+    ToggleBtn.BackgroundTransparency = 1
+
+    Content.Name = "Content"
+    Content.Parent = Wrapper
+    Content.Position = UDim2.new(0,0,1,0)
+    Content.Size = UDim2.new(1,0,0,0)
+    Content.BackgroundTransparency = 1
+    Content.ClipsDescendants = true
+    Content.Visible = conf.DefaultOpen
+
+    UIList.Parent = Content
+    UIList.SortOrder = Enum.SortOrder.LayoutOrder
+    UIList.Padding = UDim.new(0,3)
+
+    UICorner.Parent = Header
+    UICorner.CornerRadius = UDim.new(0,2)
+
+    local open = conf.DefaultOpen
+    local function updateSize()
+        -- let SectionAutoUI resize it automatically by adjusting Wrapper size
+        local contentHeight = 0
+        for _,v in ipairs(Content:GetChildren()) do
+            if v:IsA('Frame') or v:IsA('ImageLabel') or v:IsA('TextLabel') then
+                contentHeight = contentHeight + (v.AbsoluteSize.Y or 50)
+            end
+        end
+        Wrapper.Size = UDim2.new(0.95,0,0, 40 + (open and math.max(contentHeight,50) or 0))
+    end
+
+    ToggleBtn.MouseButton1Click:Connect(function()
+        open = not open
+        Content.Visible = open
+        ToggleBtn.Text = open and "-" or "+"
+        updateSize()
+    end)
+
+    -- API: добавление сырых элементов в content
+    local obj = {
+        Name = conf.Name,
+        AddRaw = function(child)
+            child.Parent = Content
+            task.delay(0.05, updateSize)
+        end,
+        SetOpen = function(v)
+            open = v
+            Content.Visible = v
+            ToggleBtn.Text = v and "-" or "+"
+            updateSize()
+        end,
+        GetOpen = function() return open end,
+        Visible = function(v) Wrapper.Visible = v end,
+    }
+
+    table.insert(SectionTable.Elements, obj)
+    task.delay(0.05, updateSize)
+    return obj;
+end;
+
+
 			return SectionTable;
 		end;
 
@@ -3018,21 +3062,6 @@ end
 			end;
 		end;
 	end)
-
-function WindowTable:SetKeybind(newKey)
-    if typeof(newKey) == "EnumItem" then
-        self.Keybind = newKey
-    elseif type(newKey) == "string" then
-        local ok, key = pcall(function() return Enum.KeyCode[newKey] end)
-        if ok and key then
-            self.Keybind = key
-        end
-    end
-    if self.ToggleButton then
-        pcall(self.ToggleButton)
-    end
-end
-
 
 	return WindowTable;
 end;
