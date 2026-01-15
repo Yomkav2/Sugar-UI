@@ -1,4 +1,4 @@
--- yomka ​​modified this -
+-- yomka ​​modified this -------
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
 local TextServ = game:GetService('TextService');
@@ -2417,17 +2417,19 @@ function SectionTable:NewStatus(conf)
     Title.TextScaled = true
     Title.TextTransparency = 0.25
     Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.TextSize = 14
     StatusLabel.Name = "StatusLabel"
     StatusLabel.Parent = FunctionStatus
     StatusLabel.BackgroundTransparency = 1
     StatusLabel.Position = UDim2.new(0.02, 0, 0.5, 0)
-    StatusLabel.Size = UDim2.new(0.671064615, 0, 0.0518743545, 0)
+    StatusLabel.Size = UDim2.new(0.96, 0, 0.45, 0)
     StatusLabel.Font = Enum.Font.GothamBold
     StatusLabel.Text = tostring(conf.Default)
-    StatusLabel.TextColor3 = Color3.fromRGB(255,255,255)
     StatusLabel.TextScaled = true
+    StatusLabel.TextWrapped = true
     StatusLabel.TextTransparency = 0.25
     StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
+    StatusLabel.TextSize = 14
     UICorner.CornerRadius = UDim.new(0,2)
     UICorner.Parent = FunctionStatus
     local el = {
@@ -2443,6 +2445,7 @@ function SectionTable:NewStatus(conf)
     table.insert(SectionTable.Elements, el)
     return el;
 end;
+
 function SectionTable:NewImage(conf)
     conf = Config(conf,{
         Title = "Image",
@@ -2466,13 +2469,16 @@ function SectionTable:NewImage(conf)
     Title.Parent = ImgFrame
     Title.BackgroundTransparency = 1
     Title.Position = UDim2.new(0.02,0,0.02,0)
-    Title.Size = UDim2.new(0.671064615, 0, 0.0518743545, 0)
+    Title.Size = UDim2.new(0.96,0,0.25,0)
     Title.Font = Enum.Font.GothamBold
     Title.Text = conf.Title
     Title.TextColor3 = Color3.fromRGB(255,255,255)
+    -- делаем авто-масштабирование и перенос текста
     Title.TextScaled = true
+    Title.TextWrapped = true
     Title.TextTransparency = 0.25
     Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.TextSize = 14
     Img.Name = "Img"
     Img.Parent = ImgFrame
     Img.AnchorPoint = Vector2.new(0.5,0)
@@ -2492,6 +2498,7 @@ function SectionTable:NewImage(conf)
     table.insert(SectionTable.Elements, el)
     return el;
 end;
+
 function SectionTable:NewCollapsible(conf)
     conf = Config(conf, {
         Title = "Collapsible",
@@ -2508,7 +2515,7 @@ function SectionTable:NewCollapsible(conf)
     Wrapper.Name = "CollapsibleWrapper"
     Wrapper.Parent = Section
     Wrapper.BackgroundTransparency = 1
-    Wrapper.Size = UDim2.new(0.95,0,0, math.max(UIList.AbsoluteContentSize.Y,50) + (UIList.Padding.Offset * 1.12))
+    Wrapper.Size = UDim2.new(0.95,0,0,50)
     Wrapper.ZIndex = 17
     Header.Name = "Header"
     Header.Parent = Wrapper
@@ -2527,6 +2534,8 @@ function SectionTable:NewCollapsible(conf)
     Title.TextScaled = true
     Title.TextTransparency = 0.25
     Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.TextWrapped = true
+    Title.TextSize = 14
     ToggleContainer.Name = "ToggleContainer"
     ToggleContainer.Parent = Header
     ToggleContainer.BackgroundTransparency = 1
@@ -2613,6 +2622,18 @@ function SectionTable:NewCollapsible(conf)
         end
         Wrapper.Size = UDim2.new(0.95,0,0, 40 + (open and math.max(contentHeight,50) or 0))
     end
+
+    local function autoscaleIfTextLike(child)
+        if not child or not child.Parent then return end
+        if child:IsA("TextLabel") or child:IsA("TextBox") or child:IsA("TextButton") then
+            pcall(function()
+                child.TextScaled = true
+                child.TextWrapped = true
+                child.TextSize = 14
+            end)
+        end
+    end
+
     Header.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.MouseButton1 then
             open = not open
@@ -2621,10 +2642,15 @@ function SectionTable:NewCollapsible(conf)
             updateSize()
         end
     end)
+
     local obj = {
         Name = conf.Name,
         AddRaw = function(child)
             child.Parent = Content
+            autoscaleIfTextLike(child)
+            for _,gc in ipairs(child:GetChildren()) do
+                autoscaleIfTextLike(gc)
+            end
             task.delay(0.05, updateSize)
         end,
         SetOpen = function(v)
@@ -2640,6 +2666,7 @@ function SectionTable:NewCollapsible(conf)
     table.insert(SectionTable.Elements, obj)
     return obj;
 end;
+
 return SectionTable;
 end;
 return TabTable;
