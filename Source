@@ -1,4 +1,4 @@
--- yomka ​​modified this -
+-- yomka ​​modified this -------------------
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
 local TextServ = game:GetService('TextService');
@@ -42,11 +42,11 @@ local Icons = (function()
             error("AddIcons: packName must be string, iconsData must be table")
             return
         end
-       
+      
         if not IconModule.Icons[packName] then
             IconModule.Icons[packName] = { Icons = {}, Spritesheets = {} }
         end
-       
+      
         for iconName, iconValue in pairs(iconsData) do
             if type(iconValue) == "number" or (type(iconValue) == "string" and iconValue:match("^rbxassetid://")) then
                 local imageId = type(iconValue) == "number" and "rbxassetid://" .. iconValue or iconValue
@@ -2648,7 +2648,7 @@ FunctionImage.BorderSizePixel = 0
 FunctionImage.Size = cfg.Size
 FunctionImage.ZIndex = 17
 UIAspectRatioConstraint.Parent = FunctionImage
-UIAspectRatioConstraint.AspectRatio = 2.000
+UIAspectRatioConstraint.AspectRatio = 2.500
 UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
 ImageLabel.Name = "ImageLabel"
 ImageLabel.Parent = FunctionImage
@@ -3622,7 +3622,7 @@ end;
 function SectionTable:NewImage(cfg)
 cfg = Config(cfg,{
 ImageId = "rbxassetid://0",
-Size = UDim2.new(0.949999988, 0, 0.5, 0)
+Size = UDim2.new(0.98, 0, 0.5, 0)
 });
 local FunctionImage = Instance.new("Frame")
 local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
@@ -3638,7 +3638,7 @@ FunctionImage.BorderSizePixel = 0
 FunctionImage.Size = cfg.Size
 FunctionImage.ZIndex = 17
 UIAspectRatioConstraint.Parent = FunctionImage
-UIAspectRatioConstraint.AspectRatio = 3.000
+UIAspectRatioConstraint.AspectRatio = 2.500
 UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
 ImageLabel.Name = "ImageLabel"
 ImageLabel.Parent = FunctionImage
