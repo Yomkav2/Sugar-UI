@@ -1957,6 +1957,212 @@ Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 				};
 			end;
 
+function SectionTable:NewLabel(cfg)
+    cfg = Config(cfg, {
+        Text = "Status",
+        Name = cfg.Text or "",
+    })
+    local FunctionLabel = Instance.new("Frame")
+    local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+    local TextInt = Instance.new("TextLabel")
+    local UIGradient = Instance.new("UIGradient")
+    local UICorner = Instance.new("UICorner")
+
+    FunctionLabel.Name = "FunctionLabel"
+    FunctionLabel.Parent = Section
+    FunctionLabel.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+    FunctionLabel.BackgroundTransparency = 0.800
+    FunctionLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    FunctionLabel.BorderSizePixel = 0
+    FunctionLabel.Size = UDim2.new(0.949999988, 0, 0.5, 0)
+    FunctionLabel.ZIndex = 17
+
+    UIAspectRatioConstraint.Parent = FunctionLabel
+    UIAspectRatioConstraint.AspectRatio = 8.000
+    UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
+
+    TextInt.Name = "TextInt"
+    TextInt.Parent = FunctionLabel
+    TextInt.AnchorPoint = Vector2.new(0.5, 0.5)
+    TextInt.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+    TextInt.BackgroundTransparency = 1.000
+    TextInt.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    TextInt.BorderSizePixel = 0
+    TextInt.Position = UDim2.new(0.5, 0, 0.5, 0)
+    TextInt.Size = UDim2.new(0.949999988, 0, 0.600000024, 0)
+    TextInt.ZIndex = 18
+    TextInt.Font = Enum.Font.GothamBold
+    TextInt.Text = cfg.Text
+    TextInt.TextColor3 = Color3.fromRGB(255, 255, 255)
+    TextInt.TextScaled = true
+    TextInt.TextSize = 14.000
+    TextInt.TextTransparency = 0.25
+    TextInt.TextWrapped = true
+    TextInt.TextXAlignment = Enum.TextXAlignment.Left
+
+    UIGradient.Rotation = 90
+    UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
+    UIGradient.Parent = TextInt
+
+    UICorner.CornerRadius = UDim.new(0, 2)
+    UICorner.Parent = FunctionLabel
+
+    local el = {
+        Name = cfg.Name,
+        Get = function() return TextInt.Text end,
+        Set = function(newText) TextInt.Text = newText end,
+        Visible = function(state) FunctionLabel.Visible = state end,
+    }
+    table.insert(SectionTable.Elements, el)
+    return el
+end;
+
+function SectionTable:NewImage(cfg)
+    cfg = Config(cfg, {
+        Image = "rbxassetid://0",
+        Size = UDim2.new(1, 0, 0, 100),
+        Name = "",
+    })
+    local ImageFrame = Instance.new("Frame")
+    local ImageLabel = Instance.new("ImageLabel")
+    local UICorner = Instance.new("UICorner")
+
+    ImageFrame.Name = "ImageFrame"
+    ImageFrame.Parent = Section
+    ImageFrame.BackgroundTransparency = 1
+    ImageFrame.BorderSizePixel = 0
+    ImageFrame.Size = cfg.Size
+    ImageFrame.ZIndex = 17
+
+    ImageLabel.Name = "Image"
+    ImageLabel.Parent = ImageFrame
+    ImageLabel.BackgroundTransparency = 1
+    ImageLabel.Size = UDim2.new(1, 0, 1, 0)
+    ImageLabel.Image = cfg.Image
+    ImageLabel.ZIndex = 18
+
+    UICorner.CornerRadius = UDim.new(0, 4)
+    UICorner.Parent = ImageFrame
+
+    local el = {
+        Name = cfg.Name,
+        Set = function(newId) ImageLabel.Image = newId end,
+        Visible = function(state) ImageFrame.Visible = state end,
+    }
+    table.insert(SectionTable.Elements, el)
+    return el
+end;
+
+function SectionTable:NewCollapsible(cfg)
+    cfg = Config(cfg, {
+        Title = "Collapsible",
+        Icon = "rbxassetid://7733964640",
+        DefaultOpen = false,
+    })
+
+    local Collapsible = Instance.new("Frame")
+    local Header = Instance.new("Frame")
+    local Title = Instance.new("TextLabel")
+    local Icon = Instance.new("ImageLabel")
+    local Arrow = Instance.new("TextLabel")
+    local Content = Instance.new("Frame")
+    local UIListLayout = Instance.new("UIListLayout")
+
+    Collapsible.Name = "Collapsible"
+    Collapsible.Parent = Section
+    Collapsible.BackgroundTransparency = 1
+    Collapsible.Size = UDim2.new(0.98, 0, 0, 50)
+
+    Header.Name = "Header"
+    Header.Parent = Collapsible
+    Header.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    Header.BackgroundTransparency = 0.8
+    Header.Size = UDim2.new(1, 0, 0, 50)
+    Header.ZIndex = 20
+
+    Title.Name = "Title"
+    Title.Parent = Header
+    Title.BackgroundTransparency = 1
+    Title.Position = UDim2.new(0.1, 0, 0, 0)
+    Title.Size = UDim2.new(0.8, 0, 1, 0)
+    Title.Font = Enum.Font.GothamBold
+    Title.Text = cfg.Title
+    Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Title.TextSize = 14
+    Title.TextXAlignment = Enum.TextXAlignment.Left
+    Title.ZIndex = 21
+
+    Icon.Name = "Icon"
+    Icon.Parent = Header
+    Icon.BackgroundTransparency = 1
+    Icon.Position = UDim2.new(0.05, 0, 0.5, 0)
+    Icon.Size = UDim2.new(0, 24, 0, 24)
+    Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+    Icon.Image = cfg.Icon
+    Icon.ZIndex = 21
+
+    Arrow.Name = "Arrow"
+    Arrow.Parent = Header
+    Arrow.BackgroundTransparency = 1
+    Arrow.Position = UDim2.new(0.92, 0, 0.5, 0)
+    Arrow.Size = UDim2.new(0, 20, 0, 20)
+    Arrow.Font = Enum.Font.GothamBold
+    Arrow.Text = "▼"
+    Arrow.TextColor3 = Color3.fromRGB(255, 255, 255)
+    Arrow.TextSize = 14
+    Arrow.ZIndex = 21
+
+    Content.Name = "Content"
+    Content.Parent = Collapsible
+    Content.BackgroundTransparency = 1
+    Content.Position = UDim2.new(0, 0, 0, 50)
+    Content.Size = UDim2.new(1, 0, 0, 0)
+    Content.ClipsDescendants = true
+    Content.ZIndex = 19
+
+    UIListLayout.Parent = Content
+    UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    UIListLayout.Padding = UDim.new(0, 3)
+
+    local open = cfg.DefaultOpen
+    local function Toggle()
+        open = not open
+        Arrow.Text = open and "▲" or "▼"
+        Content.Size = open and UDim2.new(1,0,0,Content.UIListLayout.AbsoluteContentSize.Y + 10) or UDim2.new(1,0,0,0)
+        Twen:Create(Content, TweenInfo.new(0.3), {Size = Content.Size}):Play()
+    end
+
+    Header.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 then
+            Toggle()
+        end
+    end)
+
+    Content.ChildAdded:Connect(function()
+        Content.Size = open and UDim2.new(1,0,0,Content.UIListLayout.AbsoluteContentSize.Y + 10) or UDim2.new(1,0,0,0)
+    end)
+
+    local SubSection = {}
+    setmetatable(SubSection, {
+        __index = function(_, key)
+            local orig = SectionTable[key]
+            if orig then
+                return function(...)
+                    local args = {...}
+                    args[1] = args[1] or {}
+                    args[1].Parent = Content
+                    return orig(table.unpack(args))
+                end
+            end
+            return nil
+        end
+    })
+
+    if open then Toggle() end
+
+    return SubSection
+end;
+
 			function SectionTable:NewButton(cfg)
 				cfg = Config(cfg,{
 					Title = "Button",
