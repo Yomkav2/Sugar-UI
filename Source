@@ -1,4 +1,4 @@
--- yomka ​​modified this -------
+-- yomka ​​modified this -
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
 local TextServ = game:GetService('TextService');
@@ -410,16 +410,8 @@ WindowTable.Elements = {}; -- For config system
 WindowTable.Dropdown = {};
 WindowTable.WindowToggle = true;
 WindowTable.Keybind = config.Keybind;
-function WindowTable.SetToggleKey(self, key)
-    if typeof(key) == "EnumItem" and key.EnumType == Enum.KeyCode then
-        self.Keybind = key
-    elseif type(key) == "string" then
-        local ok, c = pcall(function() return Enum.KeyCode[key] end)
-        if ok and c then self.Keybind = c end
-    end
-end
 WindowTable.ToggleButton = nil
-WindowTable.LastPosition = UDim2.new(0.5, 0, 0.05, 0)
+WindowTable.LastPosition = UDim2.new(0.5, 0, 0.05, 0) -- Для запоминания позиции в свернутом виде
 WindowTable.ConfigFolder = config.ConfigFolder
 local HttpService = game:GetService("HttpService")
 -- Config folder setup
@@ -1482,12 +1474,6 @@ Twen:Create(Section,TweenInfo.new(0.1),{
 Size = UDim2.new(0.98,0,0,math.max(SectionAutoUI.AbsoluteContentSize.Y,50) + (SectionAutoUI.Padding.Offset * 1.12));
 }):Play()
 end)
-local function ForceSectionUpdate()
-    task.spawn(function()
-        task.wait(0.05)
-        Section.Size = UDim2.new(0.98,0,0, math.max(SectionAutoUI.AbsoluteContentSize.Y,50) + (SectionAutoUI.Padding.Offset * 1.12));
-    end)
-end
 UIStroke.Transparency = 1
 UIStroke.Color = Color3.fromRGB(255, 255, 255)
 UIStroke.Parent = Section
@@ -1496,6 +1482,1157 @@ UIGradient_4.Rotation = 90
 UIGradient_4.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.17, 1.00), NumberSequenceKeypoint.new(0.82, 1.00), NumberSequenceKeypoint.new(1.00, 0.00)}
 UIGradient_4.Parent = UIStroke
 table.insert(TabTable.Sections, SectionTable)
+function TabTable:NewCollapsibleSection(c_o_n_f_i_g)
+c_o_n_f_i_g = Config(c_o_n_f_i_g,{
+Position = "Left",
+Title = "Collapsible Section",
+Icon = 'rbxassetid://7733964640',
+DefaultOpen = true
+});
+local CollapsibleTable = {};
+CollapsibleTable.Elements = {}
+local Collapsible = Instance.new("Frame")
+local UICorner = Instance.new("UICorner")
+local Header = Instance.new("Frame")
+local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+local UICorner_2 = Instance.new("UICorner")
+local Icon = Instance.new("ImageLabel")
+local UICorner_3 = Instance.new("UICorner")
+local UIGradient = Instance.new("UIGradient")
+local BlockFrame = Instance.new("Frame")
+local UICorner_4 = Instance.new("UICorner")
+local UIGradient_2 = Instance.new("UIGradient")
+local Title = Instance.new("TextLabel")
+local UIGradient_3 = Instance.new("UIGradient")
+local ToggleButton = Instance.new("TextButton")
+local Content = Instance.new("Frame")  -- Контейнер для содержимого
+local SectionAutoUI = Instance.new("UIListLayout")
+local UIStroke = Instance.new("UIStroke")
+local UIGradient_4 = Instance.new("UIGradient")
+Collapsible.Name = "Collapsible"
+Collapsible.Parent = (c_o_n_f_i_g.Position == "Left" and LeftFrame) or RightFrame;
+Collapsible.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Collapsible.BackgroundTransparency = 0.75
+Collapsible.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Collapsible.BorderSizePixel = 0
+Collapsible.Size = UDim2.new(0.980000019, 0, 0, 200)
+Collapsible.ClipsDescendants = true;
+UICorner.CornerRadius = UDim.new(0, 3)
+UICorner.Parent = Collapsible
+Header.Name = "Header"
+Header.Parent = Collapsible
+Header.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+Header.BackgroundTransparency = 0.900
+Header.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Header.BorderSizePixel = 0
+Header.Size = UDim2.new(1, 0, 0.5, 0)
+UIAspectRatioConstraint.Parent = Header
+UIAspectRatioConstraint.AspectRatio = 8.000
+UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
+UICorner_2.CornerRadius = UDim.new(0, 3)
+UICorner_2.Parent = Header
+Icon.Name = "Icon"
+Icon.Parent = Header
+Icon.AnchorPoint = Vector2.new(0.5, 0.5)
+Icon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Icon.BackgroundTransparency = 1.000
+Icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Icon.BorderSizePixel = 0
+Icon.Position = UDim2.new(0.0649999976, 0, 0.5, 0)
+Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
+Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+Icon.ZIndex = 6
+local ok, iconObj = pcall(function()
+    return Icons.Image({ Icon = c_o_n_f_i_g.Icon, Size = UDim2.new(0.6,0,0.6,0) })
+end)
+if ok and iconObj and iconObj.IconFrame then
+    if Icon and Icon.Parent then Icon:Destroy() end
+    local realIcon = iconObj.IconFrame
+    realIcon.Name = "Icon"
+    realIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+    realIcon.Position = UDim2.new(0.0649999976, 0, 0.5, 0)
+    realIcon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+    realIcon.ZIndex = 6
+    realIcon.Parent = Header
+    Icon = realIcon
+else
+    Icon.Image = c_o_n_f_i_g.Icon
+    Icon.ImageTransparency = 0.1
+end
+UICorner_3.CornerRadius = UDim.new(0, 3)
+UICorner_3.Parent = Icon
+UIGradient.Rotation = 90
+UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.75, 0.27), NumberSequenceKeypoint.new(1.00, 1.00)}
+UIGradient.Parent = Icon
+BlockFrame.Name = "BlockFrame"
+BlockFrame.Parent = Header
+BlockFrame.AnchorPoint = Vector2.new(0.5, 1)
+BlockFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+BlockFrame.BackgroundTransparency = 0.8
+BlockFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+BlockFrame.BorderSizePixel = 0
+BlockFrame.Position = UDim2.new(0.5, 0, 1, 0)
+BlockFrame.Size = UDim2.new(1, 0, 0, 1)
+BlockFrame.ZIndex = 3
+UICorner_4.CornerRadius = UDim.new(0.5, 0)
+UICorner_4.Parent = BlockFrame
+UIGradient_2.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 1.00), NumberSequenceKeypoint.new(0.10, 0.00), NumberSequenceKeypoint.new(0.90, 0.00), NumberSequenceKeypoint.new(1.00, 1.00)}
+UIGradient_2.Parent = BlockFrame
+Title.Name = "Title"
+Title.Parent = Header
+Title.AnchorPoint = Vector2.new(0, 0.5)
+Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Title.BackgroundTransparency = 1.000
+Title.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Title.BorderSizePixel = 0
+Title.Position = UDim2.new(0.125, 0, 0.449999988, 0)
+Title.Size = UDim2.new(1, 0, 0.5, 0)
+Title.Font = Enum.Font.GothamBold
+Title.Text = c_o_n_f_i_g.Title
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextScaled = true
+Title.TextSize = 14.000
+Title.TextWrapped = true
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.TextTransparency = 0
+UIGradient_3.Rotation = 90
+UIGradient_3.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
+UIGradient_3.Parent = Title
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Parent = Header
+ToggleButton.BackgroundTransparency = 1.000
+ToggleButton.Size = UDim2.new(1, 0, 1, 0)
+ToggleButton.ZIndex = 10
+ToggleButton.Font = Enum.Font.SourceSans
+ToggleButton.Text = ""
+ToggleButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+ToggleButton.TextSize = 14.000
+Content.Name = "Content"
+Content.Parent = Collapsible
+Content.BackgroundTransparency = 1.000
+Content.Position = UDim2.new(0, 0, 0.2, 0)  -- Под хедером
+Content.Size = UDim2.new(1, 0, 0.8, 0)
+Content.ClipsDescendants = true
+SectionAutoUI.Name = "SectionAutoUI"
+SectionAutoUI.Parent = Content
+SectionAutoUI.HorizontalAlignment = Enum.HorizontalAlignment.Center
+SectionAutoUI.SortOrder = Enum.SortOrder.LayoutOrder
+SectionAutoUI.Padding = UDim.new(0, 3)
+SectionAutoUI:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(function()
+Twen:Create(Collapsible,TweenInfo.new(0.1),{
+Size = UDim2.new(0.98,0,0,math.max(SectionAutoUI.AbsoluteContentSize.Y + Header.AbsoluteSize.Y,50) + (SectionAutoUI.Padding.Offset * 1.12));
+}):Play()
+end)
+UIStroke.Transparency = 0.9
+UIStroke.Color = Color3.fromRGB(255, 255, 255)
+UIStroke.Parent = Collapsible
+UIGradient_4.Rotation = 90
+UIGradient_4.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.17, 1.00), NumberSequenceKeypoint.new(0.82, 1.00), NumberSequenceKeypoint.new(1.00, 0.00)}
+UIGradient_4.Parent = UIStroke
+local isOpen = c_o_n_f_i_g.DefaultOpen
+local function toggleContent()
+isOpen = not isOpen
+if isOpen then
+Content.Visible = true
+Twen:Create(Content, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {Size = UDim2.new(1, 0, 0.8, 0)}):Play()
+else
+Twen:Create(Content, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {Size = UDim2.new(1, 0, 0, 0)}):Play()
+task.delay(0.3, function() Content.Visible = false end)
+end
+end
+ToggleButton.MouseButton1Click:Connect(toggleContent)
+if not isOpen then Content.Visible = false; Content.Size = UDim2.new(1, 0, 0, 0) end
+table.insert(TabTable.Sections, CollapsibleTable)
+function CollapsibleTable:NewToggle(toggle)
+toggle = Config(toggle,{
+Title = "Toggle",
+Name = toggle.Title,
+Default = false,
+Callback = function() end;
+});
+local FunctionToggle = Instance.new("Frame")
+local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+local TextInt = Instance.new("TextLabel")
+local UIGradient = Instance.new("UIGradient")
+local Button = Instance.new("TextButton")
+local UIStroke = Instance.new("UIStroke")
+local System = Instance.new("Frame")
+local UICorner = Instance.new("UICorner")
+local UIStroke_2 = Instance.new("UIStroke")
+local Icon = Instance.new("Frame")
+local UICorner_2 = Instance.new("UICorner")
+local UICorner_3 = Instance.new("UICorner")
+FunctionToggle.Name = "FunctionToggle"
+FunctionToggle.Parent = Content
+FunctionToggle.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+FunctionToggle.BackgroundTransparency = 1
+FunctionToggle.BorderColor3 = Color3.fromRGB(0, 0, 0)
+FunctionToggle.BorderSizePixel = 0
+FunctionToggle.Size = UDim2.new(0.949999988, 0, 0.5, 0)
+FunctionToggle.ZIndex = 17
+Twen:Create(FunctionToggle,TweenInfo1,{BackgroundTransparency = 0.8}):Play();
+UIAspectRatioConstraint.Parent = FunctionToggle
+UIAspectRatioConstraint.AspectRatio = 8.000
+UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
+TextInt.Name = "TextInt"
+TextInt.Parent = FunctionToggle
+TextInt.AnchorPoint = Vector2.new(0.5, 0.5)
+TextInt.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextInt.BackgroundTransparency = 1.000
+TextInt.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextInt.BorderSizePixel = 0
+TextInt.Position = UDim2.new(0.5, 0, 0.5, 0)
+TextInt.Size = UDim2.new(0.949999988, 0, 0.479999989, 0)
+TextInt.ZIndex = 18
+TextInt.Font = Enum.Font.GothamBold
+TextInt.Text = toggle.Title
+TextInt.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextInt.TextScaled = true
+TextInt.TextSize = 14.000
+TextInt.TextTransparency = 0.250
+TextInt.TextWrapped = true
+TextInt.TextXAlignment = Enum.TextXAlignment.Left
+UIGradient.Rotation = 90
+UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
+UIGradient.Parent = TextInt
+Button.Name = "Button"
+Button.Parent = FunctionToggle
+Button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Button.BackgroundTransparency = 1.000
+Button.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Button.BorderSizePixel = 0
+Button.Size = UDim2.new(1, 0, 1, 0)
+Button.ZIndex = 15
+Button.Font = Enum.Font.SourceSans
+Button.Text = ""
+Button.TextColor3 = Color3.fromRGB(0, 0, 0)
+Button.TextSize = 14.000
+Button.TextTransparency = 1.000
+UIStroke.Transparency = 0.950
+UIStroke.Color = Color3.fromRGB(255, 255, 255)
+UIStroke.Parent = FunctionToggle
+System.Name = "System"
+System.Parent = FunctionToggle
+System.AnchorPoint = Vector2.new(1, 0.5)
+System.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+System.BackgroundTransparency = 1.000
+System.BorderColor3 = Color3.fromRGB(0, 0, 0)
+System.BorderSizePixel = 0
+System.Position = UDim2.new(0.975000024, 0, 0.5, 0)
+System.Size = UDim2.new(0.155000001, 0, 0.600000024, 0)
+System.ZIndex = 18
+UICorner.CornerRadius = UDim.new(0.5, 0)
+UICorner.Parent = System
+UIStroke_2.Transparency = 0.850
+UIStroke_2.Color = Color3.fromRGB(255, 255, 255)
+UIStroke_2.Parent = System
+Icon.Name = "Icon"
+Icon.Parent = System
+Icon.AnchorPoint = Vector2.new(0.5, 0.5)
+Icon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Icon.BackgroundTransparency = 0.500
+Icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Icon.BorderSizePixel = 0
+Icon.Position = UDim2.new(0.25, 0, 0.5, 0)
+Icon.Size = UDim2.new(1, 0, 1, 0)
+Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+Icon.ZIndex = 17
+UICorner_2.CornerRadius = UDim.new(1, 0)
+UICorner_2.Parent = Icon
+UICorner_3.CornerRadius = UDim.new(0, 2)
+UICorner_3.Parent = FunctionToggle
+local function OnChange(value)
+if value then
+Twen:Create(TextInt,TweenInfo.new(0.15,Enum.EasingStyle.Quint),{
+TextTransparency = 0.02
+}):Play()
+Twen:Create(Icon,TweenInfo.new(0.15,Enum.EasingStyle.Quint),{
+Position = UDim2.new(0.75, 0, 0.5, 0),
+BackgroundTransparency = 0.4
+}):Play()
+else
+Twen:Create(Icon,TweenInfo.new(0.15,Enum.EasingStyle.Quint),{
+Position = UDim2.new(0.25, 0, 0.5, 0),
+BackgroundTransparency = 0.500
+}):Play()
+Twen:Create(TextInt,TweenInfo.new(0.15,Enum.EasingStyle.Quint),{
+TextTransparency = 0.25
+}):Play()
+end;
+task.spawn(toggle.Callback, value)
+end;
+OnChange(toggle.Default);
+Button.MouseButton1Click:Connect(function()
+toggle.Default = not toggle.Default;
+OnChange(toggle.Default);
+end)
+local el = {
+Name = toggle.Name,
+Get = function() return toggle.Default end,
+Set = function(v) toggle.Default = v; OnChange(v) end,
+Visible = function(newindx)
+FunctionToggle.Visible = newindx
+end,
+};
+table.insert(CollapsibleTable.Elements, el)
+return el;
+end;
+function CollapsibleTable:NewTitle(lrm)
+local FunctionTitle = Instance.new("Frame")
+local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+local TextInt = Instance.new("TextLabel")
+local UIGradient = Instance.new("UIGradient")
+local UICorner = Instance.new("UICorner")
+FunctionTitle.Name = "FunctionTitle"
+FunctionTitle.Parent = Content
+FunctionTitle.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+FunctionTitle.BackgroundTransparency = 0.800
+FunctionTitle.BorderColor3 = Color3.fromRGB(0, 0, 0)
+FunctionTitle.BorderSizePixel = 0
+FunctionTitle.Size = UDim2.new(0.949999988, 0, 0.5, 0)
+FunctionTitle.ZIndex = 17
+UIAspectRatioConstraint.Parent = FunctionTitle
+UIAspectRatioConstraint.AspectRatio = 8.000
+UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
+TextInt.Name = "TextInt"
+TextInt.Parent = FunctionTitle
+TextInt.AnchorPoint = Vector2.new(0.5, 0.5)
+TextInt.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextInt.BackgroundTransparency = 1.000
+TextInt.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextInt.BorderSizePixel = 0
+TextInt.Position = UDim2.new(0.5, 0, 0.5, 0)
+TextInt.Size = UDim2.new(0.949999988, 0, 0.600000024, 0)
+TextInt.ZIndex = 18
+TextInt.Font = Enum.Font.GothamBold
+TextInt.Text = lrm
+TextInt.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextInt.TextScaled = true
+TextInt.TextSize = 14.000
+TextInt.TextTransparency = 1
+TextInt.TextWrapped = true
+TextInt.TextXAlignment = Enum.TextXAlignment.Left
+Twen:Create(TextInt,TweenInfo1,{TextTransparency = 0.25}):Play();
+UIGradient.Rotation = 90
+UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
+UIGradient.Parent = TextInt
+UICorner.CornerRadius = UDim.new(0, 2)
+UICorner.Parent = FunctionTitle
+return {
+Visible = function(newindx)
+FunctionTitle.Visible = newindx
+end,
+Set = function(a)
+TextInt.Text = a
+end,
+};
+end;
+function CollapsibleTable:NewButton(cfg)
+cfg = Config(cfg,{
+Title = "Button",
+Callback = function() end;
+});
+local FunctionButton = Instance.new("Frame")
+local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+local UICorner = Instance.new("UICorner")
+local DropShadow = Instance.new("ImageLabel")
+local TextInt = Instance.new("TextLabel")
+local UIGradient = Instance.new("UIGradient")
+local Button = Instance.new("TextButton")
+local UIStroke = Instance.new("UIStroke")
+FunctionButton.Name = "FunctionButton"
+FunctionButton.Parent = Content
+FunctionButton.BackgroundColor3 = Color3.fromRGB(71, 71, 71)
+FunctionButton.BackgroundTransparency = 1
+FunctionButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
+FunctionButton.BorderSizePixel = 0
+FunctionButton.Size = UDim2.new(0.949999988, 0, 0.5, 0)
+FunctionButton.ZIndex = 17
+Twen:Create(FunctionButton,TweenInfo1,{
+BackgroundTransparency = 0.750,
+Size = UDim2.new(0.949999988, 0, 0.5, 0)
+}):Play();
+UIAspectRatioConstraint.Parent = FunctionButton
+UIAspectRatioConstraint.AspectRatio = 7.000
+UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
+Twen:Create(UIAspectRatioConstraint,TweenInfo1,{
+AspectRatio = 7.65
+}):Play();
+UICorner.CornerRadius = UDim.new(0, 2)
+UICorner.Parent = FunctionButton
+DropShadow.Name = "DropShadow"
+DropShadow.Parent = FunctionButton
+DropShadow.AnchorPoint = Vector2.new(0.5, 0.5)
+DropShadow.BackgroundTransparency = 1.000
+DropShadow.BorderSizePixel = 0
+DropShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
+DropShadow.Size = UDim2.new(1, 20, 1, 20)
+DropShadow.ZIndex = 16
+DropShadow.Image = "rbxassetid://6015897843"
+DropShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+DropShadow.ImageTransparency = 0.600
+DropShadow.ScaleType = Enum.ScaleType.Slice
+DropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
+TextInt.Name = "TextInt"
+TextInt.Parent = FunctionButton
+TextInt.AnchorPoint = Vector2.new(0.5, 0.5)
+TextInt.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextInt.BackgroundTransparency = 1.000
+TextInt.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextInt.BorderSizePixel = 0
+TextInt.Position = UDim2.new(0.5, 0, 0.5, 0)
+TextInt.Size = UDim2.new(1, 0, 0.479999989, 0)
+TextInt.ZIndex = 18
+TextInt.Font = Enum.Font.GothamBold
+TextInt.Text = cfg.Title
+TextInt.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextInt.TextScaled = true
+TextInt.TextSize = 14.000
+TextInt.TextWrapped = true
+TextInt.TextTransparency = 0.25;
+UIGradient.Rotation = 90
+UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
+UIGradient.Parent = TextInt
+Button.Name = "Button"
+Button.Parent = FunctionButton
+Button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Button.BackgroundTransparency = 1.000
+Button.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Button.BorderSizePixel = 0
+Button.Size = UDim2.new(1, 0, 1, 0)
+Button.ZIndex = 15
+Button.Font = Enum.Font.SourceSans
+Button.Text = ""
+Button.TextColor3 = Color3.fromRGB(0, 0, 0)
+Button.TextSize = 14.000
+Button.TextTransparency = 1.000
+UIStroke.Transparency = 0.920
+UIStroke.Color = Color3.fromRGB(255, 255, 255)
+UIStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+UIStroke.Parent = FunctionButton
+Button.MouseEnter:Connect(function()
+Twen:Create(DropShadow,TweenInfo.new(0.2),{
+ImageTransparency = 0.35
+}):Play()
+Twen:Create(TextInt,TweenInfo.new(0.2),{
+TextTransparency = 0
+}):Play()
+end)
+Button.MouseLeave:Connect(function()
+Twen:Create(DropShadow,TweenInfo.new(0.2),{
+ImageTransparency = 0.600
+}):Play()
+Twen:Create(TextInt,TweenInfo.new(0.2),{
+TextTransparency = 0.25
+}):Play()
+end)
+Button.MouseButton1Click:Connect(function()
+task.spawn(cfg.Callback);
+end)
+return {
+Visible = function(newindx)
+FunctionButton.Visible = newindx
+end,
+Fire = cfg.Callback
+};
+end;
+function CollapsibleTable:NewKeybind(ctfx)
+ctfx = Config(ctfx,{
+Title = "Keybind",
+Name = ctfx.Title,
+Callback = function() end,
+Default = Enum.KeyCode.E,
+});
+local BindEvent = Instance.new('BindableEvent',Content);
+local FunctionKeybind = Instance.new("Frame")
+local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+local TextInt = Instance.new("TextLabel")
+local UIGradient = Instance.new("UIGradient")
+local Button = Instance.new("TextButton")
+local UIStroke = Instance.new("UIStroke")
+local System = Instance.new("Frame")
+local UICorner = Instance.new("UICorner")
+local UIStroke_2 = Instance.new("UIStroke")
+local Bindkey = Instance.new("TextLabel")
+local UICorner_2 = Instance.new("UICorner")
+BindEvent.Name = tostring(ctfx.Title)
+FunctionKeybind.Name = "FunctionKeybind"
+FunctionKeybind.Parent = Content
+FunctionKeybind.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+FunctionKeybind.BackgroundTransparency = 0.800
+FunctionKeybind.BorderColor3 = Color3.fromRGB(0, 0, 0)
+FunctionKeybind.BorderSizePixel = 0
+FunctionKeybind.Size = UDim2.new(0.949999988, 0, 0.5, 0)
+FunctionKeybind.ZIndex = 17
+UIAspectRatioConstraint.Parent = FunctionKeybind
+UIAspectRatioConstraint.AspectRatio = 8.000
+UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
+TextInt.Name = "TextInt"
+TextInt.Parent = FunctionKeybind
+TextInt.AnchorPoint = Vector2.new(0.5, 0.5)
+TextInt.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextInt.BackgroundTransparency = 1.000
+TextInt.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextInt.BorderSizePixel = 0
+TextInt.Position = UDim2.new(0.5, 0, 0.5, 0)
+TextInt.Size = UDim2.new(0.949999988, 0, 0.479999989, 0)
+TextInt.ZIndex = 18
+TextInt.Font = Enum.Font.GothamBold
+TextInt.Text = ctfx.Title
+TextInt.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextInt.TextScaled = true
+TextInt.TextSize = 14.000
+TextInt.TextTransparency = 0.250
+TextInt.TextWrapped = true
+TextInt.TextXAlignment = Enum.TextXAlignment.Left
+UIGradient.Rotation = 90
+UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
+UIGradient.Parent = TextInt
+Button.Name = "Button"
+Button.Parent = FunctionKeybind
+Button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Button.BackgroundTransparency = 1.000
+Button.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Button.BorderSizePixel = 0
+Button.Size = UDim2.new(1, 0, 1, 0)
+Button.ZIndex = 15
+Button.Font = Enum.Font.SourceSans
+Button.Text = ""
+Button.TextColor3 = Color3.fromRGB(0, 0, 0)
+Button.TextSize = 14.000
+Button.TextTransparency = 1.000
+UIStroke.Transparency = 0.950
+UIStroke.Color = Color3.fromRGB(255, 255, 255)
+UIStroke.Parent = FunctionKeybind
+System.Name = "System"
+System.Parent = FunctionKeybind
+System.AnchorPoint = Vector2.new(1, 0.5)
+System.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+System.BackgroundTransparency = 1.000
+System.BorderColor3 = Color3.fromRGB(0, 0, 0)
+System.BorderSizePixel = 0
+System.Position = UDim2.new(0.975000024, 0, 0.5, 0)
+System.Size = UDim2.new(0, 50, 0.600000024, 0)
+System.ZIndex = 18
+UICorner.CornerRadius = UDim.new(0.349999994, 0)
+UICorner.Parent = System
+UIStroke_2.Transparency = 0.950
+UIStroke_2.Color = Color3.fromRGB(255, 255, 255)
+UIStroke_2.Parent = System
+Bindkey.Name = "Bindkey"
+Bindkey.Parent = System
+Bindkey.AnchorPoint = Vector2.new(0.5, 0.5)
+Bindkey.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Bindkey.BackgroundTransparency = 1.000
+Bindkey.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Bindkey.BorderSizePixel = 0
+Bindkey.Position = UDim2.new(0.5, 0, 0.5, 0)
+Bindkey.Size = UDim2.new(1, 0, 0.649999976, 0)
+Bindkey.Font = Enum.Font.GothamBold
+Bindkey.Text = Input:GetStringForKeyCode(ctfx.Default) or ctfx.Default.Name;
+Bindkey.TextColor3 = Color3.fromRGB(255, 255, 255)
+Bindkey.TextScaled = true
+Bindkey.TextSize = 14.000
+Bindkey.TextTransparency = 0.500
+Bindkey.TextWrapped = true
+UICorner_2.CornerRadius = UDim.new(0, 2)
+UICorner_2.Parent = FunctionKeybind
+local IsWIP = false;
+local function UpdateUI(new)
+Bindkey.Text = (typeof(new) == 'string' and new) or new.Name;
+local size = TextServ:GetTextSize(Bindkey.Text,Bindkey.TextSize,Bindkey.Font,Vector2.new(math.huge,math.huge));
+Twen:Create(System,TweenInfo.new(0.2),{
+Size = UDim2.new(0, size.X + 2, 0.600000024, 0)
+}):Play()
+end;
+UpdateUI(ctfx.Default)
+Button.MouseButton1Click:Connect(function()
+if IsWIP then return end;
+IsWIP = true;
+Twen:Create(TextInt,TweenInfo.new(0.1),{
+TextTransparency = 0
+}):Play();
+local Signal = Input.InputBegan:Connect(function(key)
+if key.KeyCode then
+if key.KeyCode ~= Enum.KeyCode.Unknown then
+BindEvent:Fire(key.KeyCode);
+end;
+end;
+end)
+UpdateUI('...')
+local Bind = BindEvent.Event:Wait();
+ctfx.Default = Bind;
+Twen:Create(TextInt,TweenInfo.new(0.1),{
+TextTransparency = 0.250
+}):Play();
+Signal:Disconnect()
+UpdateUI(Bind)
+IsWIP = false;
+ctfx.Callback(Bind);
+end)
+local el = {
+Name = ctfx.Name,
+Get = function() return ctfx.Default.Name end,
+Set = function(v) ctfx.Default = Enum.KeyCode[v]; UpdateUI(ctfx.Default); ctfx.Callback(ctfx.Default) end,
+Visible = function(newindx)
+FunctionKeybind.Visible = newindx
+end,
+};
+table.insert(CollapsibleTable.Elements, el)
+return el;
+end;
+function CollapsibleTable:NewSlider(slider)
+slider = Config(slider,{
+Title = "Slider",
+Name = slider.Title,
+Min = 0,
+Max = 100,
+Default = 50,
+Callback = function()
+end,
+});
+local FunctionSlider = Instance.new("Frame")
+local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+local TextInt = Instance.new("TextLabel")
+local UIGradient = Instance.new("UIGradient")
+local UIStroke = Instance.new("UIStroke")
+local UICorner = Instance.new("UICorner")
+local ValueText = Instance.new("TextLabel")
+local UIGradient_2 = Instance.new("UIGradient")
+local MFrame = Instance.new("Frame")
+local UICorner_2 = Instance.new("UICorner")
+local TFrame = Instance.new("Frame")
+local UICorner_3 = Instance.new("UICorner")
+local UIStroke_2 = Instance.new("UIStroke")
+FunctionSlider.Name = "FunctionSlider"
+FunctionSlider.Parent = Content
+FunctionSlider.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+FunctionSlider.BackgroundTransparency = 0.800
+FunctionSlider.BorderColor3 = Color3.fromRGB(0, 0, 0)
+FunctionSlider.BorderSizePixel = 0
+FunctionSlider.Size = UDim2.new(0.949999988, 0, 0.5, 0)
+FunctionSlider.ZIndex = 17
+UIAspectRatioConstraint.Parent = FunctionSlider
+UIAspectRatioConstraint.AspectRatio = 6.000
+UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
+TextInt.Name = "TextInt"
+TextInt.Parent = FunctionSlider
+TextInt.AnchorPoint = Vector2.new(0.5, 0.5)
+TextInt.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextInt.BackgroundTransparency = 1.000
+TextInt.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextInt.BorderSizePixel = 0
+TextInt.Position = UDim2.new(0.5, 0, 0.25999999, 0)
+TextInt.Size = UDim2.new(0.949999988, 0, 0.379999995, 0)
+TextInt.ZIndex = 18
+TextInt.Font = Enum.Font.GothamBold
+TextInt.Text = slider.Title
+TextInt.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextInt.TextScaled = true
+TextInt.TextSize = 14.000
+TextInt.TextTransparency = 0.250
+TextInt.TextWrapped = true
+TextInt.TextXAlignment = Enum.TextXAlignment.Left
+UIGradient.Rotation = 90
+UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
+UIGradient.Parent = TextInt
+UIStroke.Transparency = 0.950
+UIStroke.Color = Color3.fromRGB(255, 255, 255)
+UIStroke.Parent = FunctionSlider
+UICorner.CornerRadius = UDim.new(0, 2)
+UICorner.Parent = FunctionSlider
+ValueText.Name = "ValueText"
+ValueText.Parent = FunctionSlider
+ValueText.AnchorPoint = Vector2.new(0.5, 0.5)
+ValueText.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ValueText.BackgroundTransparency = 1.000
+ValueText.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ValueText.BorderSizePixel = 0
+ValueText.Position = UDim2.new(0.5, 0, 0.25999999, 0)
+ValueText.Size = UDim2.new(0.949999988, 0, 0.349999994, 0)
+ValueText.ZIndex = 18
+ValueText.Font = Enum.Font.GothamBold
+ValueText.Text = tostring(slider.Default)..'/'..tostring(slider.Max)
+ValueText.TextColor3 = Color3.fromRGB(255, 255, 255)
+ValueText.TextScaled = true
+ValueText.TextSize = 14.000
+ValueText.TextTransparency = 0.500
+ValueText.TextWrapped = true
+ValueText.TextXAlignment = Enum.TextXAlignment.Right
+UIGradient_2.Rotation = 90
+UIGradient_2.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
+UIGradient_2.Parent = ValueText
+MFrame.Name = "MFrame"
+MFrame.Parent = FunctionSlider
+MFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+MFrame.BackgroundTransparency = 0.800
+MFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+MFrame.BorderSizePixel = 0
+MFrame.ClipsDescendants = true
+MFrame.Position = UDim2.new(0.5, 0, 0.75, 0)
+MFrame.Size = UDim2.new(0.949999988, 0, 0.289999992, 0)
+MFrame.ZIndex = 18
+UICorner_2.CornerRadius = UDim.new(0, 2)
+UICorner_2.Parent = MFrame
+TFrame.Name = "TFrame"
+TFrame.Parent = MFrame
+TFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TFrame.BackgroundTransparency = 0.500
+TFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TFrame.BorderSizePixel = 0
+TFrame.Size = UDim2.new((slider.Default / slider.Max), 0, 1, 0)
+TFrame.ZIndex = 17
+UICorner_3.CornerRadius = UDim.new(0, 2)
+UICorner_3.Parent = TFrame
+UIStroke_2.Transparency = 0.975
+UIStroke_2.Color = Color3.fromRGB(255, 255, 255)
+UIStroke_2.Parent = MFrame
+local Holding = false
+local function update(Input)
+local SizeScale = math.clamp((((Input.Position.X) - MFrame.AbsolutePosition.X) / MFrame.AbsoluteSize.X), 0, 1)
+local Main = ((slider.Max - slider.Min) * SizeScale) + slider.Min;
+local Value = math.round(Main)
+local Size = UDim2.fromScale(SizeScale, 1)
+ValueText.Text = tostring(Value)..'/'..tostring(slider.Max)
+Twen:Create(TFrame,TweenInfo.new(0.1),{Size = Size}):Play()
+slider.Callback(Value);
+end
+MFrame.InputBegan:Connect(function(Input)
+if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+Holding = true
+update(Input)
+Twen:Create(TextInt,TweenInfo.new(0.1),{
+TextTransparency = 0
+}):Play()
+end
+end)
+MFrame.InputEnded:Connect(function(Input)
+if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+Holding = false
+Twen:Create(TextInt,TweenInfo.new(0.1),{
+TextTransparency = 0.3
+}):Play()
+end
+end)
+Input.InputChanged:Connect(function(Input)
+if Holding then
+if (Input.UserInputType==Enum.UserInputType.MouseMovement or Input.UserInputType==Enum.UserInputType.Touch) then
+update(Input)
+end
+end
+end)
+local el = {
+Name = slider.Name,
+Get = function() return math.round(((TFrame.Size.X.Scale * slider.Max) - slider.Min) / (slider.Max - slider.Min) * (slider.Max - slider.Min) + slider.Min) end,
+Set = function(v) local scale = (v - slider.Min) / (slider.Max - slider.Min); TFrame.Size = UDim2.new(scale, 0, 1, 0); ValueText.Text = tostring(v)..'/'..tostring(slider.Max); slider.Callback(v) end,
+Visible = function(newindx)
+FunctionSlider.Visible = newindx
+end,
+};
+table.insert(CollapsibleTable.Elements, el)
+return el;
+end;
+function CollapsibleTable:NewDropdown(drop)
+drop = Config(drop,{
+Title = "Dropdown",
+Name = drop.Title,
+Data = {'One','Two','Three','Four'},
+Default = 'Two',
+Callback = function(a)
+end,
+});
+local FunctionDropdown = Instance.new("Frame")
+local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+local TextInt = Instance.new("TextLabel")
+local UIGradient = Instance.new("UIGradient")
+local UIStroke = Instance.new("UIStroke")
+local UICorner = Instance.new("UICorner")
+local MFrame = Instance.new("Frame")
+local UICorner_2 = Instance.new("UICorner")
+local UIStroke_2 = Instance.new("UIStroke")
+local ValueText = Instance.new("TextLabel")
+local UIGradient_2 = Instance.new("UIGradient")
+local Button = Instance.new("TextButton")
+FunctionDropdown.Name = "FunctionDropdown"
+FunctionDropdown.Parent = Content
+FunctionDropdown.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+FunctionDropdown.BackgroundTransparency = 0.800
+FunctionDropdown.BorderColor3 = Color3.fromRGB(0, 0, 0)
+FunctionDropdown.BorderSizePixel = 0
+FunctionDropdown.Size = UDim2.new(0.949999988, 0, 0.5, 0)
+FunctionDropdown.ZIndex = 17
+UIAspectRatioConstraint.Parent = FunctionDropdown
+UIAspectRatioConstraint.AspectRatio = 5.000
+UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
+TextInt.Name = "TextInt"
+TextInt.Parent = FunctionDropdown
+TextInt.AnchorPoint = Vector2.new(0.5, 0.5)
+TextInt.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextInt.BackgroundTransparency = 1.000
+TextInt.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextInt.BorderSizePixel = 0
+TextInt.Position = UDim2.new(0.5, 0, 0.200000003, 0)
+TextInt.Size = UDim2.new(0.949999988, 0, 0.319999993, 0)
+TextInt.ZIndex = 18
+TextInt.Font = Enum.Font.GothamBold
+TextInt.Text = drop.Title
+TextInt.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextInt.TextScaled = true
+TextInt.TextSize = 14.000
+TextInt.TextTransparency = 0.250
+TextInt.TextWrapped = true
+TextInt.TextXAlignment = Enum.TextXAlignment.Left
+UIGradient.Rotation = 90
+UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
+UIGradient.Parent = TextInt
+UIStroke.Transparency = 0.950
+UIStroke.Color = Color3.fromRGB(255, 255, 255)
+UIStroke.Parent = FunctionDropdown
+UICorner.CornerRadius = UDim.new(0, 2)
+UICorner.Parent = FunctionDropdown
+MFrame.Name = "MFrame"
+MFrame.Parent = FunctionDropdown
+MFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+MFrame.BackgroundTransparency = 0.800
+MFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+MFrame.BorderSizePixel = 0
+MFrame.ClipsDescendants = true
+MFrame.Position = UDim2.new(0.5, 0, 0.699999988, 0)
+MFrame.Size = UDim2.new(0.949999988, 0, 0.375, 0)
+MFrame.ZIndex = 18
+UICorner_2.CornerRadius = UDim.new(0, 2)
+UICorner_2.Parent = MFrame
+UIStroke_2.Transparency = 0.975
+UIStroke_2.Color = Color3.fromRGB(255, 255, 255)
+UIStroke_2.Parent = MFrame
+ValueText.Name = "ValueText"
+ValueText.Parent = MFrame
+ValueText.AnchorPoint = Vector2.new(0.5, 0.5)
+ValueText.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ValueText.BackgroundTransparency = 1.000
+ValueText.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ValueText.BorderSizePixel = 0
+ValueText.Position = UDim2.new(0.5, 0, 0.5, 0)
+ValueText.Size = UDim2.new(1, 0, 0.800000012, 0)
+ValueText.ZIndex = 18
+ValueText.Font = Enum.Font.GothamBold
+ValueText.Text = drop.Default or "NONE"
+ValueText.TextColor3 = Color3.fromRGB(255, 255, 255)
+ValueText.TextScaled = true
+ValueText.TextSize = 14.000
+ValueText.TextTransparency = 0.500
+ValueText.TextWrapped = true
+MFrame.MouseEnter:Connect(function()
+Twen:Create(ValueText,TweenInfo.new(0.3),{
+TextTransparency = 0.1
+}):Play()
+end)
+MFrame.MouseLeave:Connect(function()
+Twen:Create(ValueText,TweenInfo.new(0.3),{
+TextTransparency = 0.500
+}):Play()
+end)
+UIGradient_2.Rotation = 90
+UIGradient_2.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
+UIGradient_2.Parent = ValueText
+Button.Name = "Button"
+Button.Parent = FunctionDropdown
+Button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Button.BackgroundTransparency = 1.000
+Button.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Button.BorderSizePixel = 0
+Button.Size = UDim2.new(1, 0, 1, 0)
+Button.ZIndex = 25
+Button.Font = Enum.Font.SourceSans
+Button.Text = "";
+Button.TextColor3 = Color3.fromRGB(0, 0, 0)
+Button.TextSize = 14.000
+Button.TextTransparency = 1.000
+local Updater = function(value)
+drop.Default = value;
+ValueText.Text = tostring(value);
+drop.Callback(value);
+end;
+Button.MouseButton1Click:Connect(function()
+WindowTable.Dropdown:Setup(MFrame)
+WindowTable.Dropdown:Open(drop.Data,drop.Default,Updater)
+end)
+local el = {
+Name = drop.Name,
+Get = function() return drop.Default end,
+Set = function(v) Updater(v) end,
+Visible = function(newindx)
+FunctionDropdown.Visible = newindx
+end,
+Refresh = function(newData)
+if newData then drop.Data = newData end
+WindowTable.Dropdown:Close()
+WindowTable.Dropdown:Open(drop.Data, drop.Default, Updater)
+end,
+Open = function(value)
+WindowTable.Dropdown:Setup(MFrame)
+WindowTable.Dropdown:Open(drop.Data,drop.Default,Updater)
+end,
+Close = function(value)
+WindowTable.Dropdown:Close();
+end,
+Clear = function()
+drop.Data = {}
+end,
+SetOptions = function(table)
+drop.Data = table
+end
+};
+table.insert(CollapsibleTable.Elements, el)
+return el;
+end;
+function CollapsibleTable:NewTextbox(conf)
+conf = Config(conf,{
+Title = "Textbox",
+Name = conf.Title,
+Default = '',
+FileType = "",
+Callback = function(a)
+end,
+})
+local FunctionTextbox = Instance.new("Frame")
+local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+local TextInt = Instance.new("TextLabel")
+local UIGradient = Instance.new("UIGradient")
+local UIStroke = Instance.new("UIStroke")
+local UICorner = Instance.new("UICorner")
+local MFrame = Instance.new("Frame")
+local UICorner_2 = Instance.new("UICorner")
+local UIStroke_2 = Instance.new("UIStroke")
+local FileType = Instance.new("TextLabel")
+local UIGradient_2 = Instance.new("UIGradient")
+local TextBox = Instance.new("TextBox")
+local UICorner_3 = Instance.new("UICorner")
+local Button = Instance.new("TextButton")
+FunctionTextbox.Name = "FunctionTextbox"
+FunctionTextbox.Parent = Content
+FunctionTextbox.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+FunctionTextbox.BackgroundTransparency = 0.800
+FunctionTextbox.BorderColor3 = Color3.fromRGB(0, 0, 0)
+FunctionTextbox.BorderSizePixel = 0
+FunctionTextbox.Size = UDim2.new(0.949999988, 0, 0.5, 0)
+FunctionTextbox.ZIndex = 17
+UIAspectRatioConstraint.Parent = FunctionTextbox
+UIAspectRatioConstraint.AspectRatio = 5.000
+UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
+TextInt.Name = "TextInt"
+TextInt.Parent = FunctionTextbox
+TextInt.AnchorPoint = Vector2.new(0.5, 0.5)
+TextInt.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextInt.BackgroundTransparency = 1.000
+TextInt.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextInt.BorderSizePixel = 0
+TextInt.Position = UDim2.new(0.5, 0, 0.200000003, 0)
+TextInt.Size = UDim2.new(0.949999988, 0, 0.319999993, 0)
+TextInt.ZIndex = 18
+TextInt.Font = Enum.Font.GothamBold
+TextInt.Text = conf.Title
+TextInt.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextInt.TextScaled = true
+TextInt.TextSize = 14.000
+TextInt.TextTransparency = 0.250
+TextInt.TextWrapped = true
+TextInt.TextXAlignment = Enum.TextXAlignment.Left
+UIGradient.Rotation = 90
+UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
+UIGradient.Parent = TextInt
+UIStroke.Transparency = 0.950
+UIStroke.Color = Color3.fromRGB(255, 255, 255)
+UIStroke.Parent = FunctionTextbox
+UICorner.CornerRadius = UDim.new(0, 2)
+UICorner.Parent = FunctionTextbox
+MFrame.Name = "MFrame"
+MFrame.Parent = FunctionTextbox
+MFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+MFrame.BackgroundTransparency = 0.800
+MFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
+MFrame.BorderSizePixel = 0
+MFrame.ClipsDescendants = true
+MFrame.Position = UDim2.new(0.5, 0, 0.699999988, 0)
+MFrame.Size = UDim2.new(0.949999988, 0, 0.375, 0)
+MFrame.ZIndex = 18
+UICorner_2.CornerRadius = UDim.new(0, 2)
+UICorner_2.Parent = MFrame
+UIStroke_2.Transparency = 0.975
+UIStroke_2.Color = Color3.fromRGB(255, 255, 255)
+UIStroke_2.Parent = MFrame
+FileType.Name = "FileType"
+FileType.Parent = MFrame
+FileType.AnchorPoint = Vector2.new(0.5, 0.5)
+FileType.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+FileType.BackgroundTransparency = 1.000
+FileType.BorderColor3 = Color3.fromRGB(0, 0, 0)
+FileType.BorderSizePixel = 0
+FileType.Position = UDim2.new(0.5, 0, 0.5, 0)
+FileType.Size = UDim2.new(0.899999976, 0, 0.800000012, 0)
+FileType.ZIndex = 18
+FileType.Font = Enum.Font.GothamBold
+FileType.Text = conf.FileType
+FileType.TextColor3 = Color3.fromRGB(255, 255, 255)
+FileType.TextScaled = true
+FileType.TextSize = 14.000
+FileType.TextTransparency = 0.100
+FileType.TextWrapped = true
+FileType.TextXAlignment = Enum.TextXAlignment.Right
+UIGradient_2.Rotation = 90
+UIGradient_2.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
+UIGradient_2.Parent = FileType
+TextBox.Parent = MFrame
+TextBox.AnchorPoint = Vector2.new(0.5, 0.5)
+TextBox.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextBox.BackgroundTransparency = 1.000
+TextBox.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextBox.BorderSizePixel = 0
+TextBox.Position = UDim2.new(0.425999999, 0, 0.5, 0)
+TextBox.Size = UDim2.new(0.753000021, 0, 0.800000012, 0)
+TextBox.ZIndex = 35
+TextBox.ClearTextOnFocus = false
+TextBox.Font = Enum.Font.GothamBold
+TextBox.Text = tostring(conf.Default) or "";
+TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextBox.TextScaled = true
+TextBox.TextSize = 14.000
+TextBox.TextTransparency = 0.600
+TextBox.TextWrapped = true
+TextBox.TextXAlignment = Enum.TextXAlignment.Left
+Button.Name = "Button"
+Button.Parent = FunctionTextbox
+Button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+Button.BackgroundTransparency = 1.000
+Button.BorderColor3 = Color3.fromRGB(0, 0, 0)
+Button.BorderSizePixel = 0
+Button.Size = UDim2.new(1, 0, 1, 0)
+Button.ZIndex = 25
+Button.Font = Enum.Font.SourceSans
+Button.Text = "";
+Button.TextColor3 = Color3.fromRGB(0, 0, 0)
+Button.TextSize = 14.000
+Button.TextTransparency = 1.000
+TextBox.FocusLost:Connect(function(enterPressed)
+if enterPressed then
+conf.Callback(TextBox.Text);
+end
+end)
+local el = {
+Name = conf.Name,
+Get = function() return TextBox.Text end,
+Set = function(v) TextBox.Text = v end,
+Visible = function(newindx)
+FunctionTextbox.Visible = newindx
+end,
+};
+table.insert(CollapsibleTable.Elements, el)
+return el;
+end;
+function CollapsibleTable:NewLabel(lrm)
+local FunctionLabel = Instance.new("Frame")
+local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+local TextInt = Instance.new("TextLabel")
+local UIGradient = Instance.new("UIGradient")
+local UICorner = Instance.new("UICorner")
+FunctionLabel.Name = "FunctionLabel"
+FunctionLabel.Parent = Content
+FunctionLabel.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+FunctionLabel.BackgroundTransparency = 0.800
+FunctionLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+FunctionLabel.BorderSizePixel = 0
+FunctionLabel.Size = UDim2.new(0.949999988, 0, 0.5, 0)
+FunctionLabel.ZIndex = 17
+UIAspectRatioConstraint.Parent = FunctionLabel
+UIAspectRatioConstraint.AspectRatio = 8.000
+UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
+TextInt.Name = "TextInt"
+TextInt.Parent = FunctionLabel
+TextInt.AnchorPoint = Vector2.new(0.5, 0.5)
+TextInt.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextInt.BackgroundTransparency = 1.000
+TextInt.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextInt.BorderSizePixel = 0
+TextInt.Position = UDim2.new(0.5, 0, 0.5, 0)
+TextInt.Size = UDim2.new(0.949999988, 0, 0.600000024, 0)
+TextInt.ZIndex = 18
+TextInt.Font = Enum.Font.GothamBold
+TextInt.Text = lrm
+TextInt.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextInt.TextScaled = true
+TextInt.TextSize = 14.000
+TextInt.TextTransparency = 1
+TextInt.TextWrapped = true
+TextInt.TextXAlignment = Enum.TextXAlignment.Left
+Twen:Create(TextInt,TweenInfo1,{TextTransparency = 0.25}):Play();
+UIGradient.Rotation = 90
+UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
+UIGradient.Parent = TextInt
+UICorner.CornerRadius = UDim.new(0, 2)
+UICorner.Parent = FunctionLabel
+return {
+Visible = function(newindx)
+FunctionLabel.Visible = newindx
+end,
+Set = function(a)
+TextInt.Text = a
+end,
+};
+end;
+function CollapsibleTable:NewImage(cfg)
+cfg = Config(cfg,{
+ImageId = "rbxassetid://0",
+Size = UDim2.new(0.949999988, 0, 0.5, 0)  -- Точно как у других элементов
+});
+local FunctionImage = Instance.new("Frame")
+local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+local ImageLabel = Instance.new("ImageLabel")
+local UICorner = Instance.new("UICorner")
+local UIGradient = Instance.new("UIGradient")
+FunctionImage.Name = "FunctionImage"
+FunctionImage.Parent = Content
+FunctionImage.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+FunctionImage.BackgroundTransparency = 0.800
+FunctionImage.BorderColor3 = Color3.fromRGB(0, 0, 0)
+FunctionImage.BorderSizePixel = 0
+FunctionImage.Size = cfg.Size
+FunctionImage.ZIndex = 17
+UIAspectRatioConstraint.Parent = FunctionImage
+UIAspectRatioConstraint.AspectRatio = 8.000
+UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
+ImageLabel.Name = "ImageLabel"
+ImageLabel.Parent = FunctionImage
+ImageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+ImageLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ImageLabel.BackgroundTransparency = 1.000
+ImageLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ImageLabel.BorderSizePixel = 0
+ImageLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+ImageLabel.Size = UDim2.new(1, 0, 1, 0)
+ImageLabel.ZIndex = 18
+ImageLabel.Image = cfg.ImageId
+ImageLabel.ImageTransparency = 1
+ImageLabel.ScaleType = Enum.ScaleType.Fit
+Twen:Create(ImageLabel,TweenInfo1,{ImageTransparency = 0}):Play();
+UICorner.CornerRadius = UDim.new(0, 2)
+UICorner.Parent = FunctionImage
+UIGradient.Rotation = 90
+UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.75, 0.27), NumberSequenceKeypoint.new(1.00, 1.00)}
+UIGradient.Parent = ImageLabel
+return {
+Visible = function(newindx)
+FunctionImage.Visible = newindx
+end,
+SetImage = function(newId)
+ImageLabel.Image = newId
+end,
+};
+end;
+return CollapsibleTable;
+end;
 function SectionTable:NewToggle(toggle)
 toggle = Config(toggle,{
 Title = "Toggle",
@@ -2385,288 +3522,105 @@ end,
 table.insert(SectionTable.Elements, el)
 return el;
 end;
-function SectionTable:NewStatus(conf)
-    conf = Config(conf, {
-        Title = "Status",
-        Name = conf and conf.Title or "Status",
-        Default = "",
-    });
-    local FunctionStatus = Instance.new("Frame")
-    local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
-    local Title = Instance.new("TextLabel")
-    local StatusLabel = Instance.new("TextLabel")
-    local UICorner = Instance.new("UICorner")
-    FunctionStatus.Name = "FunctionStatus"
-    FunctionStatus.Parent = Section
-    FunctionStatus.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
-    FunctionStatus.BackgroundTransparency = 0.8
-    FunctionStatus.BorderSizePixel = 0
-    FunctionStatus.Size = UDim2.new(0.95, 0, 0.5, 0)
-    FunctionStatus.ZIndex = 17
-    UIAspectRatioConstraint.Parent = FunctionStatus
-    UIAspectRatioConstraint.AspectRatio = 8.0
-    UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
-    Title.Name = "Title"
-    Title.Parent = FunctionStatus
-    Title.BackgroundTransparency = 1
-    Title.Position = UDim2.new(0.02, 0, 0.15, 0)
-    Title.Size = UDim2.new(0.6, 0, 0.3, 0)
-    Title.Font = Enum.Font.GothamBold
-    Title.Text = conf.Title
-    Title.TextColor3 = Color3.fromRGB(255,255,255)
-    Title.TextScaled = true
-    Title.TextTransparency = 0.25
-    Title.TextXAlignment = Enum.TextXAlignment.Left
-    Title.TextSize = 14
-    StatusLabel.Name = "StatusLabel"
-    StatusLabel.Parent = FunctionStatus
-    StatusLabel.BackgroundTransparency = 1
-    StatusLabel.Position = UDim2.new(0.02, 0, 0.5, 0)
-    StatusLabel.Size = UDim2.new(0.96, 0, 0.45, 0)
-    StatusLabel.Font = Enum.Font.GothamBold
-    StatusLabel.Text = tostring(conf.Default)
-    StatusLabel.TextScaled = true
-    StatusLabel.TextWrapped = true
-    StatusLabel.TextTransparency = 0.25
-    StatusLabel.TextXAlignment = Enum.TextXAlignment.Left
-    StatusLabel.TextSize = 14
-    UICorner.CornerRadius = UDim.new(0,2)
-    UICorner.Parent = FunctionStatus
-    local el = {
-        Name = conf.Name,
-        Get = function() return StatusLabel.Text end,
-        Set = function(v)
-            StatusLabel.Text = tostring(v)
-        end,
-        Visible = function(v)
-            FunctionStatus.Visible = v
-        end
-    };
-    table.insert(SectionTable.Elements, el)
-    return el;
+function SectionTable:NewLabel(lrm)
+local FunctionLabel = Instance.new("Frame")
+local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+local TextInt = Instance.new("TextLabel")
+local UIGradient = Instance.new("UIGradient")
+local UICorner = Instance.new("UICorner")
+FunctionLabel.Name = "FunctionLabel"
+FunctionLabel.Parent = Section
+FunctionLabel.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+FunctionLabel.BackgroundTransparency = 0.800
+FunctionLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+FunctionLabel.BorderSizePixel = 0
+FunctionLabel.Size = UDim2.new(0.949999988, 0, 0.5, 0)
+FunctionLabel.ZIndex = 17
+UIAspectRatioConstraint.Parent = FunctionLabel
+UIAspectRatioConstraint.AspectRatio = 8.000
+UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
+TextInt.Name = "TextInt"
+TextInt.Parent = FunctionLabel
+TextInt.AnchorPoint = Vector2.new(0.5, 0.5)
+TextInt.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+TextInt.BackgroundTransparency = 1.000
+TextInt.BorderColor3 = Color3.fromRGB(0, 0, 0)
+TextInt.BorderSizePixel = 0
+TextInt.Position = UDim2.new(0.5, 0, 0.5, 0)
+TextInt.Size = UDim2.new(0.949999988, 0, 0.600000024, 0)
+TextInt.ZIndex = 18
+TextInt.Font = Enum.Font.GothamBold
+TextInt.Text = lrm
+TextInt.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextInt.TextScaled = true
+TextInt.TextSize = 14.000
+TextInt.TextTransparency = 1
+TextInt.TextWrapped = true
+TextInt.TextXAlignment = Enum.TextXAlignment.Left
+Twen:Create(TextInt,TweenInfo1,{TextTransparency = 0.25}):Play();
+UIGradient.Rotation = 90
+UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
+UIGradient.Parent = TextInt
+UICorner.CornerRadius = UDim.new(0, 2)
+UICorner.Parent = FunctionLabel
+return {
+Visible = function(newindx)
+FunctionLabel.Visible = newindx
+end,
+Set = function(a)
+TextInt.Text = a
+end,
+};
 end;
-
-function SectionTable:NewImage(conf)
-    conf = Config(conf,{
-        Title = "Image",
-        Name = conf and conf.Title or "Image",
-        Image = "rbxassetid://7733964640",
-        Size = UDim2.new(0,100,0,100),
-    });
-    local ImgFrame = Instance.new("Frame")
-    local UICorner = Instance.new("UICorner")
-    local Img = Instance.new("ImageLabel")
-    local Title = Instance.new("TextLabel")
-    ImgFrame.Name = "FunctionImage"
-    ImgFrame.Parent = Section
-    ImgFrame.BackgroundColor3 = Color3.fromRGB(17,17,17)
-    ImgFrame.BackgroundTransparency = 0.8
-    ImgFrame.Size = UDim2.new(0.95,0,0.5,0)
-    ImgFrame.ZIndex = 17
-    UICorner.CornerRadius = UDim.new(0,2)
-    UICorner.Parent = ImgFrame
-    Title.Name = "Title"
-    Title.Parent = ImgFrame
-    Title.BackgroundTransparency = 1
-    Title.Position = UDim2.new(0.02,0,0.02,0)
-    Title.Size = UDim2.new(0.96,0,0.25,0)
-    Title.Font = Enum.Font.GothamBold
-    Title.Text = conf.Title
-    Title.TextColor3 = Color3.fromRGB(255,255,255)
-    -- делаем авто-масштабирование и перенос текста
-    Title.TextScaled = true
-    Title.TextWrapped = true
-    Title.TextTransparency = 0.25
-    Title.TextXAlignment = Enum.TextXAlignment.Left
-    Title.TextSize = 14
-    Img.Name = "Img"
-    Img.Parent = ImgFrame
-    Img.AnchorPoint = Vector2.new(0.5,0)
-    Img.Position = UDim2.new(0.5,0,0.35,0)
-    Img.Size = conf.Size
-    Img.BackgroundTransparency = 1
-    Img.Image = conf.Image
-    Img.SizeConstraint = Enum.SizeConstraint.RelativeYY
-    Img.ZIndex = 18
-    local el = {
-        Name = conf.Name,
-        Get = function() return Img.Image end,
-        Set = function(v) Img.Image = v end,
-        Visible = function(v) ImgFrame.Visible = v end,
-        Raw = ImgFrame,
-    };
-    table.insert(SectionTable.Elements, el)
-    return el;
+function SectionTable:NewImage(cfg)
+cfg = Config(cfg,{
+ImageId = "rbxassetid://0",
+Size = UDim2.new(0.949999988, 0, 0.5, 0)
+});
+local FunctionImage = Instance.new("Frame")
+local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+local ImageLabel = Instance.new("ImageLabel")
+local UICorner = Instance.new("UICorner")
+local UIGradient = Instance.new("UIGradient")
+FunctionImage.Name = "FunctionImage"
+FunctionImage.Parent = Section
+FunctionImage.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+FunctionImage.BackgroundTransparency = 0.800
+FunctionImage.BorderColor3 = Color3.fromRGB(0, 0, 0)
+FunctionImage.BorderSizePixel = 0
+FunctionImage.Size = cfg.Size
+FunctionImage.ZIndex = 17
+UIAspectRatioConstraint.Parent = FunctionImage
+UIAspectRatioConstraint.AspectRatio = 8.000
+UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
+ImageLabel.Name = "ImageLabel"
+ImageLabel.Parent = FunctionImage
+ImageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+ImageLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+ImageLabel.BackgroundTransparency = 1.000
+ImageLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
+ImageLabel.BorderSizePixel = 0
+ImageLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+ImageLabel.Size = UDim2.new(1, 0, 1, 0)
+ImageLabel.ZIndex = 18
+ImageLabel.Image = cfg.ImageId
+ImageLabel.ImageTransparency = 1
+ImageLabel.ScaleType = Enum.ScaleType.Fit
+Twen:Create(ImageLabel,TweenInfo1,{ImageTransparency = 0}):Play();
+UICorner.CornerRadius = UDim.new(0, 2)
+UICorner.Parent = FunctionImage
+UIGradient.Rotation = 90
+UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.75, 0.27), NumberSequenceKeypoint.new(1.00, 1.00)}
+UIGradient.Parent = ImageLabel
+return {
+Visible = function(newindx)
+FunctionImage.Visible = newindx
+end,
+SetImage = function(newId)
+ImageLabel.Image = newId
+end,
+};
 end;
-
-function SectionTable:NewCollapsible(conf)
-    conf = Config(conf, {
-        Title = "Collapsible",
-        DefaultOpen = true,
-        Name = conf and conf.Title or "Collapsible"
-    });
-    local Wrapper = Instance.new("Frame")
-    local Header = Instance.new("Frame")
-    local Title = Instance.new("TextLabel")
-    local ToggleContainer = Instance.new("Frame")
-    local Content = Instance.new("Frame")
-    local UICorner = Instance.new("UICorner")
-    local UIList = Instance.new("UIListLayout")
-    Wrapper.Name = "CollapsibleWrapper"
-    Wrapper.Parent = Section
-    Wrapper.BackgroundTransparency = 1
-    Wrapper.Size = UDim2.new(0.95,0,0,50)
-    Wrapper.ZIndex = 17
-    Header.Name = "Header"
-    Header.Parent = Wrapper
-    Header.BackgroundColor3 = Color3.fromRGB(17,17,17)
-    Header.BackgroundTransparency = 0.85
-    Header.Size = UDim2.new(1,0,0,40)
-    Header.ZIndex = 18
-    Title.Name = "Title"
-    Title.Parent = Header
-    Title.BackgroundTransparency = 1
-    Title.Position = UDim2.new(0.02,0,0,0)
-    Title.Size = UDim2.new(0.78,0,1,0)
-    Title.Font = Enum.Font.GothamBold
-    Title.Text = conf.Title
-    Title.TextColor3 = Color3.fromRGB(255,255,255)
-    Title.TextScaled = true
-    Title.TextTransparency = 0.25
-    Title.TextXAlignment = Enum.TextXAlignment.Left
-    Title.TextWrapped = true
-    Title.TextSize = 14
-    ToggleContainer.Name = "ToggleContainer"
-    ToggleContainer.Parent = Header
-    ToggleContainer.BackgroundTransparency = 1
-    ToggleContainer.Size = UDim2.new(0.18,0,1,0)
-    ToggleContainer.Position = UDim2.new(0.82,0,0,0)
-    ToggleContainer.ClipsDescendants = true
-    Content.Name = "Content"
-    Content.Parent = Wrapper
-    Content.Position = UDim2.new(0,0,1,0)
-    Content.Size = UDim2.new(1,0,0,0)
-    Content.BackgroundTransparency = 1
-    Content.ClipsDescendants = true
-    Content.Visible = conf.DefaultOpen
-    UIList.Parent = Content
-    UIList.SortOrder = Enum.SortOrder.LayoutOrder
-    UIList.Padding = UDim.new(0,3)
-    UICorner.Parent = Header
-    UICorner.CornerRadius = UDim.new(0,2)
-    local downIcon, upIcon = nil, nil
-    do
-        local okD, objD = pcall(function() return Icons.Image({ Icon = "lucide:chevron-down", Size = UDim2.new(0,18,0,18) }) end)
-        local okU, objU = pcall(function() return Icons.Image({ Icon = "lucide:chevron-up", Size = UDim2.new(0,18,0,18) }) end)
-        if okD and objD and objD.IconFrame then
-            downIcon = objD.IconFrame
-            downIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-            downIcon.Position = UDim2.new(0.5,0,0.5,0)
-            downIcon.Size = UDim2.new(0,18,0,18)
-            downIcon.ZIndex = 19
-        end
-        if okU and objU and objU.IconFrame then
-            upIcon = objU.IconFrame
-            upIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-            upIcon.Position = UDim2.new(0.5,0,0.5,0)
-            upIcon.Size = UDim2.new(0,18,0,18)
-            upIcon.ZIndex = 19
-        end
-    end
-    local fallbackDown = nil
-    local fallbackUp = nil
-    if not downIcon then
-        fallbackDown = Instance.new("TextLabel")
-        fallbackDown.BackgroundTransparency = 1
-        fallbackDown.Font = Enum.Font.GothamBold
-        fallbackDown.Text = "˅"
-        fallbackDown.TextScaled = true
-        fallbackDown.Size = UDim2.new(1,0,1,0)
-        fallbackDown.TextColor3 = Color3.fromRGB(255,255,255)
-    end
-    if not upIcon then
-        fallbackUp = Instance.new("TextLabel")
-        fallbackUp.BackgroundTransparency = 1
-        fallbackUp.Font = Enum.Font.GothamBold
-        fallbackUp.Text = "˄"
-        fallbackUp.TextScaled = true
-        fallbackUp.Size = UDim2.new(1,0,1,0)
-        fallbackUp.TextColor3 = Color3.fromRGB(255,255,255)
-    end
-    local open = conf.DefaultOpen
-    local function showIcon(isOpen)
-        for _,v in pairs(ToggleContainer:GetChildren()) do v:Destroy() end
-        if isOpen then
-            if downIcon then
-                local clone = downIcon:Clone()
-                clone.Parent = ToggleContainer
-            else
-                fallbackDown.Parent = ToggleContainer
-            end
-        else
-            if upIcon then
-                local clone = upIcon:Clone()
-                clone.Parent = ToggleContainer
-            else
-                fallbackUp.Parent = ToggleContainer
-            end
-        end
-    end
-    showIcon(open)
-    local function updateSize()
-        local contentHeight = 0
-        for _,v in ipairs(Content:GetChildren()) do
-            if v:IsA('GuiObject') and v.Visible then
-                contentHeight = contentHeight + (v.AbsoluteSize.Y or 30)
-            end
-        end
-        Wrapper.Size = UDim2.new(0.95,0,0, 40 + (open and math.max(contentHeight,50) or 0))
-    end
-
-    local function autoscaleIfTextLike(child)
-        if not child or not child.Parent then return end
-        if child:IsA("TextLabel") or child:IsA("TextBox") or child:IsA("TextButton") then
-            pcall(function()
-                child.TextScaled = true
-                child.TextWrapped = true
-                child.TextSize = 14
-            end)
-        end
-    end
-
-    Header.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 then
-            open = not open
-            Content.Visible = open
-            showIcon(open)
-            updateSize()
-        end
-    end)
-
-    local obj = {
-        Name = conf.Name,
-        AddRaw = function(child)
-            child.Parent = Content
-            autoscaleIfTextLike(child)
-            for _,gc in ipairs(child:GetChildren()) do
-                autoscaleIfTextLike(gc)
-            end
-            task.delay(0.05, updateSize)
-        end,
-        SetOpen = function(v)
-            open = v
-            Content.Visible = v
-            showIcon(v)
-            updateSize()
-        end,
-        GetOpen = function() return open end,
-        Visible = function(v) Wrapper.Visible = v end,
-    }
-    task.delay(0.05, updateSize)
-    table.insert(SectionTable.Elements, obj)
-    return obj;
-end;
-
 return SectionTable;
 end;
 return TabTable;
@@ -2704,6 +3658,9 @@ updateInput(input);
 end;
 end;
 end)
+WindowTable.SetKeybind = function(newKey)
+    WindowTable.Keybind = newKey
+end
 return WindowTable;
 end;
 Library.NewAuth = function(conf)
