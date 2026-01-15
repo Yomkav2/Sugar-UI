@@ -1,4 +1,4 @@
--- yomka ​​modified this -
+-- yomka ​​modified this -----
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
 local TextServ = game:GetService('TextService');
@@ -1504,8 +1504,9 @@ local UICorner_4 = Instance.new("UICorner")
 local UIGradient_2 = Instance.new("UIGradient")
 local Title = Instance.new("TextLabel")
 local UIGradient_3 = Instance.new("UIGradient")
+local ArrowIcon = Instance.new("ImageLabel")
 local ToggleButton = Instance.new("TextButton")
-local Content = Instance.new("Frame")  -- Контейнер для содержимого
+local Content = Instance.new("Frame")
 local SectionAutoUI = Instance.new("UIListLayout")
 local UIStroke = Instance.new("UIStroke")
 local UIGradient_4 = Instance.new("UIGradient")
@@ -1586,7 +1587,7 @@ Title.BackgroundTransparency = 1.000
 Title.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Title.BorderSizePixel = 0
 Title.Position = UDim2.new(0.125, 0, 0.449999988, 0)
-Title.Size = UDim2.new(1, 0, 0.5, 0)
+Title.Size = UDim2.new(0.85, 0, 0.5, 0)
 Title.Font = Enum.Font.GothamBold
 Title.Text = c_o_n_f_i_g.Title
 Title.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -1598,6 +1599,23 @@ Title.TextTransparency = 0
 UIGradient_3.Rotation = 90
 UIGradient_3.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
 UIGradient_3.Parent = Title
+ArrowIcon.Name = "ArrowIcon"
+ArrowIcon.Parent = Header
+ArrowIcon.AnchorPoint = Vector2.new(1, 0.5)
+ArrowIcon.BackgroundTransparency = 1.000
+ArrowIcon.Position = UDim2.new(0.975, 0, 0.5, 0)
+ArrowIcon.Size = UDim2.new(0.6, 0, 0.6, 0)
+ArrowIcon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+ArrowIcon.ZIndex = 6
+local arrowObj = Icons.Image({ Icon = "chevron-down", Size = UDim2.new(0.6,0,0.6,0) })
+if arrowObj and arrowObj.IconFrame then
+    arrowObj.IconFrame.Parent = Header
+    arrowObj.IconFrame.AnchorPoint = Vector2.new(1, 0.5)
+    arrowObj.IconFrame.Position = UDim2.new(0.975, 0, 0.5, 0)
+    arrowObj.IconFrame.SizeConstraint = Enum.SizeConstraint.RelativeYY
+    arrowObj.IconFrame.ZIndex = 6
+    ArrowIcon = arrowObj.IconFrame
+end
 ToggleButton.Name = "ToggleButton"
 ToggleButton.Parent = Header
 ToggleButton.BackgroundTransparency = 1.000
@@ -1610,8 +1628,8 @@ ToggleButton.TextSize = 14.000
 Content.Name = "Content"
 Content.Parent = Collapsible
 Content.BackgroundTransparency = 1.000
-Content.Position = UDim2.new(0, 0, 0.2, 0)  -- Под хедером
-Content.Size = UDim2.new(1, 0, 0.8, 0)
+Content.Position = UDim2.new(0, 0, 0.15, 0)
+Content.Size = UDim2.new(1, 0, 0.85, 0)
 Content.ClipsDescendants = true
 SectionAutoUI.Name = "SectionAutoUI"
 SectionAutoUI.Parent = Content
@@ -1634,14 +1652,47 @@ local function toggleContent()
 isOpen = not isOpen
 if isOpen then
 Content.Visible = true
-Twen:Create(Content, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {Size = UDim2.new(1, 0, 0.8, 0)}):Play()
+Twen:Create(Content, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {Size = UDim2.new(1, 0, 0.85, 0)}):Play()
+local arrowUp = Icons.Image({ Icon = "chevron-up", Size = UDim2.new(0.6,0,0.6,0) })
+if arrowUp and arrowUp.IconFrame then
+    ArrowIcon:Destroy()
+    ArrowIcon = arrowUp.IconFrame
+    ArrowIcon.Parent = Header
+    ArrowIcon.AnchorPoint = Vector2.new(1, 0.5)
+    ArrowIcon.Position = UDim2.new(0.975, 0, 0.5, 0)
+    ArrowIcon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+    ArrowIcon.ZIndex = 6
+end
 else
 Twen:Create(Content, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {Size = UDim2.new(1, 0, 0, 0)}):Play()
 task.delay(0.3, function() Content.Visible = false end)
+local arrowDown = Icons.Image({ Icon = "chevron-down", Size = UDim2.new(0.6,0,0.6,0) })
+if arrowDown and arrowDown.IconFrame then
+    ArrowIcon:Destroy()
+    ArrowIcon = arrowDown.IconFrame
+    ArrowIcon.Parent = Header
+    ArrowIcon.AnchorPoint = Vector2.new(1, 0.5)
+    ArrowIcon.Position = UDim2.new(0.975, 0, 0.5, 0)
+    ArrowIcon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+    ArrowIcon.ZIndex = 6
+end
 end
 end
 ToggleButton.MouseButton1Click:Connect(toggleContent)
-if not isOpen then Content.Visible = false; Content.Size = UDim2.new(1, 0, 0, 0) end
+if not isOpen then 
+Content.Visible = false; 
+Content.Size = UDim2.new(1, 0, 0, 0) 
+local arrowDown = Icons.Image({ Icon = "chevron-down", Size = UDim2.new(0.6,0,0.6,0) })
+if arrowDown and arrowDown.IconFrame then
+    ArrowIcon:Destroy()
+    ArrowIcon = arrowDown.IconFrame
+    ArrowIcon.Parent = Header
+    ArrowIcon.AnchorPoint = Vector2.new(1, 0.5)
+    ArrowIcon.Position = UDim2.new(0.975, 0, 0.5, 0)
+    ArrowIcon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+    ArrowIcon.ZIndex = 6
+end
+end
 table.insert(TabTable.Sections, CollapsibleTable)
 function CollapsibleTable:NewToggle(toggle)
 toggle = Config(toggle,{
@@ -2585,7 +2636,7 @@ end;
 function CollapsibleTable:NewImage(cfg)
 cfg = Config(cfg,{
 ImageId = "rbxassetid://0",
-Size = UDim2.new(0.949999988, 0, 0.5, 0)  -- Точно как у других элементов
+Size = UDim2.new(0.949999988, 0, 0.5, 0)
 });
 local FunctionImage = Instance.new("Frame")
 local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
@@ -2601,7 +2652,7 @@ FunctionImage.BorderSizePixel = 0
 FunctionImage.Size = cfg.Size
 FunctionImage.ZIndex = 17
 UIAspectRatioConstraint.Parent = FunctionImage
-UIAspectRatioConstraint.AspectRatio = 8.000
+UIAspectRatioConstraint.AspectRatio = 3.000
 UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
 ImageLabel.Name = "ImageLabel"
 ImageLabel.Parent = FunctionImage
@@ -3591,7 +3642,7 @@ FunctionImage.BorderSizePixel = 0
 FunctionImage.Size = cfg.Size
 FunctionImage.ZIndex = 17
 UIAspectRatioConstraint.Parent = FunctionImage
-UIAspectRatioConstraint.AspectRatio = 8.000
+UIAspectRatioConstraint.AspectRatio = 3.000
 UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
 ImageLabel.Name = "ImageLabel"
 ImageLabel.Parent = FunctionImage
