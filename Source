@@ -1,4 +1,4 @@
--- yomka ​​modified this ----
+-- yomka ​​modified this -
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -1744,19 +1744,41 @@ CollapseIcon.TextScaled = true
 CollapseIcon.ZIndex = 21
 
 local collapsed = false
-local savedHeight = Section.Size.Y.Offset
+
+local function getExpandedHeight()
+    local contentHeight = 0
+    pcall(function()
+        if SectionAutoUI and SectionAutoUI.AbsoluteContentSize then
+            contentHeight = math.max(SectionAutoUI.AbsoluteContentSize.Y, 50)
+        end
+    end)
+    local paddingOffset = 0
+    pcall(function()
+        paddingOffset = SectionAutoUI and SectionAutoUI.Padding and SectionAutoUI.Padding.Offset or 0
+    end)
+    return math.floor(contentHeight + (paddingOffset * 1.12))
+end
+
+local savedHeight = getExpandedHeight()
+
+local function safeSetVisible(obj, state)
+    pcall(function()
+        obj.Visible = state
+    end)
+end
 
 local function collapse()
     if collapsed then return end
     collapsed = true
     CollapseIcon.Text = "+"
     for _, child in ipairs(Section:GetChildren()) do
-        if child ~= Header and child ~= CollapseBtn and child ~= UICorner and child ~= UIStroke then
-            child.Visible = false
+        if child ~= Header and child ~= CollapseBtn then
+            safeSetVisible(child, false)
         end
     end
+    local targetH = pcall(function() return Header.AbsoluteSize.Y end) and Header.AbsoluteSize.Y or 30
     Twen:Create(Section, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-        Size = UDim2.new(Section.Size.X.Scale, Section.Size.X.Offset, 0, Header.AbsoluteSize.Y)
+        Size = UDim2.new(Section.Size.X.Scale, Section.Size.X.Offset, 0, targetH)
     }):Play()
 end
 
@@ -1765,12 +1787,16 @@ local function expand()
     collapsed = false
     CollapseIcon.Text = "-"
     for _, child in ipairs(Section:GetChildren()) do
-        if child ~= Header and child ~= CollapseBtn and child ~= UICorner and child ~= UIStroke then
-            child.Visible = true
+        if child ~= Header and child ~= CollapseBtn then
+            safeSetVisible(child, true)
         end
     end
+    local expandH = getExpandedHeight()
+    if expandH == 0 then
+        expandH = (savedHeight > 0) and savedHeight or (Header.AbsoluteSize.Y * 3)
+    end
     Twen:Create(Section, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-        Size = UDim2.new(Section.Size.X.Scale, Section.Size.X.Offset, 0, math.max(SectionAutoUI.AbsoluteContentSize.Y,50) + (SectionAutoUI.Padding.Offset * 1.12))
+        Size = UDim2.new(Section.Size.X.Scale, Section.Size.X.Offset, 0, expandH)
     }):Play()
 end
 
@@ -1784,6 +1810,7 @@ end
 function SectionTable:Expand()
     expand()
 end
+
 			SectionAutoUI.Name = "SectionAutoUI"
 			SectionAutoUI.Parent = Section
 			SectionAutoUI.HorizontalAlignment = Enum.HorizontalAlignment.Center
