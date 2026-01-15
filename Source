@@ -1,4 +1,4 @@
--- yomka ​​modified thissss
+-- yomka ​​modified this ----
 
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
@@ -490,16 +490,18 @@ function Library.new(config)
 	WindowTable.WindowToggle = true;
 	WindowTable.Keybind = config.Keybind;
 	WindowTable.ToggleButton = nil
-	WindowTable.LastPosition = UDim2.new(0.5, 0, 0.05, 0)
+	WindowTable.LastPosition = UDim2.new(0.5, 0, 0.05, 0)  -- Для запоминания позиции в свернутом виде
 	WindowTable.ConfigFolder = config.ConfigFolder
 	
 	local HttpService = game:GetService("HttpService")
 
+	-- Config folder setup
 	local configFolder = WindowTable.ConfigFolder
 	if not isfolder(configFolder) then
 		makefolder(configFolder)
 	end
 
+	-- Load configs
 	local function listConfigs()
 		local files = listfiles(configFolder) or {}
 		local confNames = {}
@@ -603,6 +605,7 @@ function Library.new(config)
 				CornerRadius = UDim.new(0, 7)
 			}):Play()
 
+			-- Adjust InputFrame for drag only top
 			InputFrame.Size = UDim2.new(1, 0, 0.12, 0)
 
 		else
@@ -641,6 +644,7 @@ function Library.new(config)
 
 			WindowTable.ElBlurUI.Enabled = false;
 
+			-- Full drag when minimized
 			InputFrame.Size = UDim2.new(1, 0, 1, 0)
 		end;
 
@@ -660,10 +664,6 @@ function Library.new(config)
 		WindowTable.WindowToggle = not WindowTable.WindowToggle
 		Update()
 	end)
-
-	WindowTable.ChangeToggleKeybind = function(newKeybind)
-		WindowTable.Keybind = newKeybind
-	end
 
 	Input.InputBegan:Connect(function(io)
 		if io.KeyCode == WindowTable.Keybind then
@@ -1361,25 +1361,25 @@ function Library.new(config)
 		Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 		Icon.ZIndex = 6
 		local ok, iconObj = pcall(function()
-			return Icons.Image({ Icon = cfg.Icon, Size = UDim2.new(0.6,0,0.6,0) })
-		end)
+    return Icons.Image({ Icon = cfg.Icon, Size = UDim2.new(0.6,0,0.6,0) })
+end)
 
-		if ok and iconObj and iconObj.IconFrame then
-			if Icon and Icon.Parent then Icon:Destroy() end
-			local realIcon = iconObj.IconFrame
-			realIcon.Name = "Icon"
-			realIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-			realIcon.Position = UDim2.new(0.100000001, 0, 0.5, 0)
-			realIcon.SizeConstraint = Enum.SizeConstraint.RelativeYY
-			realIcon.ZIndex = 6
-			realIcon.Parent = TabButton
-			Icon = realIcon
-		else
-			Icon.Image = cfg.Icon
-			Icon.ImageTransparency = 1
-		end
+if ok and iconObj and iconObj.IconFrame then
+    if Icon and Icon.Parent then Icon:Destroy() end
+    local realIcon = iconObj.IconFrame
+    realIcon.Name = "Icon"
+    realIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+    realIcon.Position = UDim2.new(0.100000001, 0, 0.5, 0)
+    realIcon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+    realIcon.ZIndex = 6
+    realIcon.Parent = TabButton
+    Icon = realIcon
+else
+    Icon.Image = cfg.Icon
+    Icon.ImageTransparency = 1
+end
 
-		Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
+Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
 
 		UICorner_2.CornerRadius = UDim.new(0, 3)
@@ -1649,26 +1649,26 @@ function Library.new(config)
 			Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
 			Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 			Icon.ZIndex = 6
-			local ok, iconObj = pcall(function()
-				return Icons.Image({ Icon = c_o_n_f_i_g.Icon, Size = UDim2.new(0.6,0,0.6,0) })
-			end)
+            local ok, iconObj = pcall(function()
+    return Icons.Image({ Icon = c_o_n_f_i_g.Icon, Size = UDim2.new(0.6,0,0.6,0) })
+end)
 
-			if ok and iconObj and iconObj.IconFrame then
-				if Icon and Icon.Parent then Icon:Destroy() end
-				local realIcon = iconObj.IconFrame
-				realIcon.Name = "Icon"
-				realIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-				realIcon.Position = UDim2.new(0.0649999976, 0, 0.5, 0)
-				realIcon.SizeConstraint = Enum.SizeConstraint.RelativeYY
-				realIcon.ZIndex = 6
-				realIcon.Parent = Header
-				Icon = realIcon
-			else
-				Icon.Image = c_o_n_f_i_g.Icon
-				Icon.ImageTransparency = 1
-			end
+if ok and iconObj and iconObj.IconFrame then
+    if Icon and Icon.Parent then Icon:Destroy() end
+    local realIcon = iconObj.IconFrame
+    realIcon.Name = "Icon"
+    realIcon.AnchorPoint = Vector2.new(0.5, 0.5)
+    realIcon.Position = UDim2.new(0.0649999976, 0, 0.5, 0)
+    realIcon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+    realIcon.ZIndex = 6
+    realIcon.Parent = Header
+    Icon = realIcon
+else
+    Icon.Image = c_o_n_f_i_g.Icon
+    Icon.ImageTransparency = 1
+end
 
-			Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
+Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
 
 
 			UICorner_3.CornerRadius = UDim.new(0, 3)
@@ -1719,6 +1719,71 @@ function Library.new(config)
 			UIGradient_3.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
 			UIGradient_3.Parent = Title
 
+local CollapseBtn = Instance.new("TextButton")
+local CollapseIcon = Instance.new("TextLabel")
+CollapseBtn.Name = "CollapseBtn"
+CollapseBtn.Parent = Header
+CollapseBtn.AnchorPoint = Vector2.new(1,0.5)
+CollapseBtn.BackgroundTransparency = 1
+CollapseBtn.BorderSizePixel = 0
+CollapseBtn.Position = UDim2.new(1, -8, 0.5, 0)
+CollapseBtn.Size = UDim2.new(0, 24, 0, 24)
+CollapseBtn.ZIndex = 20
+CollapseBtn.Text = ""
+CollapseBtn.AutoButtonColor = true
+
+CollapseIcon.Name = "CollapseIcon"
+CollapseIcon.Parent = CollapseBtn
+CollapseIcon.AnchorPoint = Vector2.new(0.5,0.5)
+CollapseIcon.BackgroundTransparency = 1
+CollapseIcon.Size = UDim2.new(1,0,1,0)
+CollapseIcon.Font = Enum.Font.GothamBold
+CollapseIcon.Text = "-"
+CollapseIcon.TextColor3 = Color3.new(1,1,1)
+CollapseIcon.TextScaled = true
+CollapseIcon.ZIndex = 21
+
+local collapsed = false
+local savedHeight = Section.Size.Y.Offset
+
+local function collapse()
+    if collapsed then return end
+    collapsed = true
+    CollapseIcon.Text = "+"
+    for _, child in ipairs(Section:GetChildren()) do
+        if child ~= Header and child ~= CollapseBtn and child ~= UICorner and child ~= UIStroke then
+            child.Visible = false
+        end
+    end
+    Twen:Create(Section, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        Size = UDim2.new(Section.Size.X.Scale, Section.Size.X.Offset, 0, Header.AbsoluteSize.Y)
+    }):Play()
+end
+
+local function expand()
+    if not collapsed then return end
+    collapsed = false
+    CollapseIcon.Text = "-"
+    for _, child in ipairs(Section:GetChildren()) do
+        if child ~= Header and child ~= CollapseBtn and child ~= UICorner and child ~= UIStroke then
+            child.Visible = true
+        end
+    end
+    Twen:Create(Section, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+        Size = UDim2.new(Section.Size.X.Scale, Section.Size.X.Offset, 0, math.max(SectionAutoUI.AbsoluteContentSize.Y,50) + (SectionAutoUI.Padding.Offset * 1.12))
+    }):Play()
+end
+
+CollapseBtn.MouseButton1Click:Connect(function()
+    if collapsed then expand() else collapse() end
+end)
+
+function SectionTable:Collapse()
+    collapse()
+end
+function SectionTable:Expand()
+    expand()
+end
 			SectionAutoUI.Name = "SectionAutoUI"
 			SectionAutoUI.Parent = Section
 			SectionAutoUI.HorizontalAlignment = Enum.HorizontalAlignment.Center
@@ -1731,6 +1796,111 @@ function Library.new(config)
 				}):Play()
 			end)
 
+function SectionTable:NewStatus(conf)
+    conf = Config(conf,{
+        Title = "Status",
+        Name = conf and conf.Title or "Status",
+        Default = "offline",
+        Font = Enum.Font.GothamBold,
+        TextSize = 14,
+        Callback = function() end,
+    })
+    local Frame = Instance.new("Frame")
+    local Label = Instance.new("TextLabel")
+    local UICorner = Instance.new("UICorner")
+
+    Frame.Name = "FunctionStatus"
+    Frame.Parent = Section
+    Frame.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
+    Frame.BackgroundTransparency = 0.8
+    Frame.BorderSizePixel = 0
+    Frame.Size = UDim2.new(0.95,0,0.5,0)
+    Frame.ZIndex = 17
+
+    Label.Name = "StatusLabel"
+    Label.Parent = Frame
+    Label.AnchorPoint = Vector2.new(0.5,0.5)
+    Label.BackgroundTransparency = 1
+    Label.Position = UDim2.new(0.5,0,0.5,0)
+    Label.Size = UDim2.new(0.95,0,0.8,0)
+    Label.Font = conf.Font
+    Label.Text = tostring(conf.Default)
+    Label.TextColor3 = Color3.fromRGB(255,255,255)
+    Label.TextScaled = true
+    Label.TextSize = conf.TextSize
+    Label.TextWrapped = true
+    Label.TextXAlignment = Enum.TextXAlignment.Left
+
+    UICorner.CornerRadius = UDim.new(0,2)
+    UICorner.Parent = Frame
+
+    local function setText(new)
+        Label.Text = tostring(new)
+        pcall(conf.Callback, new)
+    end
+
+    local el = {
+        Name = conf.Name,
+        Get = function() return Label.Text end,
+        Set = function(v) setText(v) end,
+        Visible = function(v) Frame.Visible = v end,
+    }
+    table.insert(SectionTable.Elements, el)
+    return el
+end
+
+function SectionTable:NewImage(conf)
+    conf = Config(conf, {
+        Title = "Image",
+        Name = conf and conf.Title or "Image",
+        Image = "",
+        Size = UDim2.new(0.9,0,0.5,0),
+        ScaleType = Enum.ScaleType.Fit,
+    })
+    local Frame = Instance.new("Frame")
+    local Img = Instance.new("ImageLabel")
+    local UICorner = Instance.new("UICorner")
+
+    Frame.Name = "FunctionImage"
+    Frame.Parent = Section
+    Frame.BackgroundTransparency = 1
+    Frame.Size = UDim2.new(0.95,0,0.5,0)
+    Frame.ZIndex = 17
+
+    Img.Name = "Image"
+    Img.Parent = Frame
+    Img.AnchorPoint = Vector2.new(0.5,0.5)
+    Img.BackgroundTransparency = 1
+    Img.Position = UDim2.new(0.5,0,0.5,0)
+    Img.Size = conf.Size
+    Img.ScaleType = conf.ScaleType
+    Img.ZIndex = 18
+
+    local function applyImage(imgInput)
+        if type(imgInput) == "number" then
+            Img.Image = "rbxassetid://"..tostring(imgInput)
+        elseif type(imgInput) == "string" and imgInput:match("^%d+$") then
+            Img.Image = "rbxassetid://"..imgInput
+        else
+            Img.Image = tostring(imgInput or "")
+        end
+    end
+
+    applyImage(conf.Image)
+
+    UICorner.CornerRadius = UDim.new(0,2)
+    UICorner.Parent = Frame
+
+    local el = {
+        Name = conf.Name,
+        Get = function() return Img.Image end,
+        Set = function(v) applyImage(v) end,
+        Visible = function(v) Frame.Visible = v end,
+    }
+    table.insert(SectionTable.Elements, el)
+    return el
+end
+
 			UIStroke.Transparency = 1
 			UIStroke.Color = Color3.fromRGB(255, 255, 255)
 			UIStroke.Parent = Section
@@ -1742,394 +1912,7 @@ function Library.new(config)
 
 			table.insert(TabTable.Sections, SectionTable)
 
-			function SectionTable:NewLabel(config)
-				config = Config(config,{
-					Text = "Label",
-					Name = config.Text or "Label"
-				});
-
-				local FunctionLabel = Instance.new("Frame")
-				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
-				local TextInt = Instance.new("TextLabel")
-				local UIGradient = Instance.new("UIGradient")
-				local UICorner = Instance.new("UICorner")
-
-				FunctionLabel.Name = "FunctionLabel"
-				FunctionLabel.Parent = Section
-				FunctionLabel.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
-				FunctionLabel.BackgroundTransparency = 0.800
-				FunctionLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				FunctionLabel.BorderSizePixel = 0
-				FunctionLabel.Size = UDim2.new(0.949999988, 0, 0.5, 0)
-				FunctionLabel.ZIndex = 17
-
-				UIAspectRatioConstraint.Parent = FunctionLabel
-				UIAspectRatioConstraint.AspectRatio = 8.000
-				UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
-
-				TextInt.Name = "TextInt"
-				TextInt.Parent = FunctionLabel
-				TextInt.AnchorPoint = Vector2.new(0.5, 0.5)
-				TextInt.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				TextInt.BackgroundTransparency = 1.000
-				TextInt.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				TextInt.BorderSizePixel = 0
-				TextInt.Position = UDim2.new(0.5, 0, 0.5, 0)
-				TextInt.Size = UDim2.new(0.949999988, 0, 0.600000024, 0)
-				TextInt.ZIndex = 18
-				TextInt.Font = Enum.Font.GothamBold
-				TextInt.Text = config.Text
-				TextInt.TextColor3 = Color3.fromRGB(255, 255, 255)
-				TextInt.TextScaled = true
-				TextInt.TextSize = 14.000
-				TextInt.TextTransparency = 1
-				TextInt.TextWrapped = true
-				TextInt.TextXAlignment = Enum.TextXAlignment.Left
-				Twen:Create(TextInt,TweenInfo1,{TextTransparency = 0.25}):Play();
-
-				UIGradient.Rotation = 90
-				UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
-				UIGradient.Parent = TextInt
-
-				UICorner.CornerRadius = UDim.new(0, 2)
-				UICorner.Parent = FunctionLabel
-
-				local el = {
-					Name = config.Name,
-					Get = function() return TextInt.Text end,
-					Set = function(text) TextInt.Text = text end,
-					Visible = function(newindx)
-						FunctionLabel.Visible = newindx
-					end,
-				};
-
-				table.insert(SectionTable.Elements, el)
-
-				return el;
-			end;
-			function SectionTable:NewImage(config)
-				config = Config(config,{
-					Image = "rbxassetid://0",
-					Size = UDim2.new(0.949999988, 0, 0.5, 0),
-					Name = "Image"
-				});
-
-				local FunctionImage = Instance.new("Frame")
-				local UICorner = Instance.new("UICorner")
-				local ImageLabel = Instance.new("ImageLabel")
-				local UICorner_2 = Instance.new("UICorner")
-
-				FunctionImage.Name = "FunctionImage"
-				FunctionImage.Parent = Section
-				FunctionImage.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
-				FunctionImage.BackgroundTransparency = 0.800
-				FunctionImage.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				FunctionImage.BorderSizePixel = 0
-				FunctionImage.Size = config.Size
-				FunctionImage.ClipsDescendants = true
-				FunctionImage.ZIndex = 17
-
-				UICorner.CornerRadius = UDim.new(0, 3)
-				UICorner.Parent = FunctionImage
-
-				ImageLabel.Parent = FunctionImage
-				ImageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-				ImageLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				ImageLabel.BackgroundTransparency = 1.000
-				ImageLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				ImageLabel.BorderSizePixel = 0
-				ImageLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
-				ImageLabel.Size = UDim2.new(0.949999988, 0, 0.949999988, 0)
-				ImageLabel.Image = config.Image
-				ImageLabel.ScaleType = Enum.ScaleType.Fit
-				ImageLabel.ZIndex = 18
-				ImageLabel.ImageTransparency = 1
-				Twen:Create(ImageLabel,TweenInfo1,{ImageTransparency = 0}):Play();
-
-				UICorner_2.CornerRadius = UDim.new(0, 2)
-				UICorner_2.Parent = ImageLabel
-
-				local el = {
-					Name = config.Name,
-					Get = function() return ImageLabel.Image end,
-					Set = function(imageId) ImageLabel.Image = imageId end,
-					Visible = function(newindx)
-						FunctionImage.Visible = newindx
-					end,
-				};
-
-				table.insert(SectionTable.Elements, el)
-
-				return el;
-			end;
-
-			function SectionTable:NewAccordion(config)
-				config = Config(config,{
-					Title = "Accordion",
-					Icon = "rbxassetid://7733964640",
-					Expanded = true,
-					Name = "Accordion"
-				});
-
-				local AccordionTable = {};
-				AccordionTable.Elements = {};
-				AccordionTable.Container = nil;
-
-				local Accordion = Instance.new("Frame")
-				local UICorner = Instance.new("UICorner")
-				local Header = Instance.new("Frame")
-				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
-				local UICorner_2 = Instance.new("UICorner")
-				local Icon = Instance.new("ImageLabel")
-				local UICorner_3 = Instance.new("UICorner")
-				local UIGradient = Instance.new("UIGradient")
-				local Title = Instance.new("TextLabel")
-				local UIGradient_2 = Instance.new("UIGradient")
-				local ExpandIcon = Instance.new("ImageLabel")
-				local Button = Instance.new("TextButton")
-				local Container = Instance.new("Frame")
-				local UIListLayout = Instance.new("UIListLayout")
-				local UIStroke = Instance.new("UIStroke")
-				local UIGradient_3 = Instance.new("UIGradient")
-
-				Accordion.Name = "Accordion"
-				Accordion.Parent = Section
-				Accordion.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-				Accordion.BackgroundTransparency = 0.750
-				Accordion.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				Accordion.BorderSizePixel = 0
-				Accordion.Size = UDim2.new(0.980000019, 0, 0, 50)
-				Accordion.ClipsDescendants = true;
-
-				UICorner.CornerRadius = UDim.new(0, 3)
-				UICorner.Parent = Accordion
-
-				Header.Name = "Header"
-				Header.Parent = Accordion
-				Header.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-				Header.BackgroundTransparency = 0.900
-				Header.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				Header.BorderSizePixel = 0
-				Header.Size = UDim2.new(1, 0, 0, 30)
-
-				UIAspectRatioConstraint.Parent = Header
-				UIAspectRatioConstraint.AspectRatio = 10.000
-				UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
-
-				UICorner_2.CornerRadius = UDim.new(0, 3)
-				UICorner_2.Parent = Header
-
-				Icon.Name = "Icon"
-				Icon.Parent = Header
-				Icon.AnchorPoint = Vector2.new(0.5, 0.5)
-				Icon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				Icon.BackgroundTransparency = 1.000
-				Icon.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				Icon.BorderSizePixel = 0
-				Icon.Position = UDim2.new(0.04, 0, 0.5, 0)
-				Icon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
-				Icon.SizeConstraint = Enum.SizeConstraint.RelativeYY
-				Icon.ZIndex = 6
-				local ok, iconObj = pcall(function()
-					return Icons.Image({ Icon = config.Icon, Size = UDim2.new(0.6,0,0.6,0) })
-				end)
-
-				if ok and iconObj and iconObj.IconFrame then
-					if Icon and Icon.Parent then Icon:Destroy() end
-					local realIcon = iconObj.IconFrame
-					realIcon.Name = "Icon"
-					realIcon.AnchorPoint = Vector2.new(0.5, 0.5)
-					realIcon.Position = UDim2.new(0.04, 0, 0.5, 0)
-					realIcon.SizeConstraint = Enum.SizeConstraint.RelativeYY
-					realIcon.ZIndex = 6
-					realIcon.Parent = Header
-					Icon = realIcon
-				else
-					Icon.Image = config.Icon
-					Icon.ImageTransparency = 1
-				end
-
-				Twen:Create(Icon,TweenInfo2,{ImageTransparency = 0.1}):Play();
-
-				UICorner_3.CornerRadius = UDim.new(0, 3)
-				UICorner_3.Parent = Icon
-
-				UIGradient.Rotation = 90
-				UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.75, 0.27), NumberSequenceKeypoint.new(1.00, 1.00)}
-				UIGradient.Parent = Icon
-
-				Title.Name = "Title"
-				Title.Parent = Header
-				Title.AnchorPoint = Vector2.new(0, 0.5)
-				Title.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				Title.BackgroundTransparency = 1.000
-				Title.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				Title.BorderSizePixel = 0
-				Title.Position = UDim2.new(0.1, 0, 0.5, 0)
-				Title.Size = UDim2.new(0.8, 0, 0.8, 0)
-				Title.Font = Enum.Font.GothamBold
-				Title.Text = config.Title
-				Title.TextColor3 = Color3.fromRGB(255, 255, 255)
-				Title.TextScaled = true
-				Title.TextSize = 14.000
-				Title.TextTransparency = 1
-				Title.TextWrapped = true
-				Title.TextXAlignment = Enum.TextXAlignment.Left
-				Twen:Create(Title,TweenInfo2,{TextTransparency = 0}):Play();
-
-				UIGradient_2.Rotation = 90
-				UIGradient_2.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.84, 0.25), NumberSequenceKeypoint.new(1.00, 1.00)}
-				UIGradient_2.Parent = Title
-
-				ExpandIcon.Name = "ExpandIcon"
-				ExpandIcon.Parent = Header
-				ExpandIcon.AnchorPoint = Vector2.new(1, 0.5)
-				ExpandIcon.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				ExpandIcon.BackgroundTransparency = 1.000
-				ExpandIcon.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				ExpandIcon.BorderSizePixel = 0
-				ExpandIcon.Position = UDim2.new(0.97, 0, 0.5, 0)
-				ExpandIcon.Size = UDim2.new(0.600000024, 0, 0.600000024, 0)
-				ExpandIcon.SizeConstraint = Enum.SizeConstraint.RelativeYY
-				ExpandIcon.ZIndex = 6
-				ExpandIcon.Image = "rbxassetid://7733964640"
-				ExpandIcon.ImageTransparency = 0.1
-				ExpandIcon.Rotation = config.Expanded and 0 or 180
-
-				Button.Name = "Button"
-				Button.Parent = Header
-				Button.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				Button.BackgroundTransparency = 1.000
-				Button.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				Button.BorderSizePixel = 0
-				Button.Size = UDim2.new(1, 0, 1, 0)
-				Button.ZIndex = 10
-				Button.Font = Enum.Font.SourceSans
-				Button.Text = ""
-				Button.TextColor3 = Color3.fromRGB(0, 0, 0)
-				Button.TextSize = 14.000
-				Button.TextTransparency = 1.000
-
-				Container.Name = "Container"
-				Container.Parent = Accordion
-				Container.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				Container.BackgroundTransparency = 1.000
-				Container.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				Container.BorderSizePixel = 0
-				Container.Position = UDim2.new(0, 0, 0, 35)
-				Container.Size = UDim2.new(1, 0, 0, 0)
-				Container.Visible = config.Expanded
-
-				UIListLayout.Parent = Container
-				UIListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-				UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
-				UIListLayout.Padding = UDim.new(0, 3)
-
-				UIStroke.Transparency = 0.900
-				UIStroke.Color = Color3.fromRGB(255, 255, 255)
-				UIStroke.Parent = Accordion
-
-				UIGradient_3.Rotation = 90
-				UIGradient_3.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.17, 1.00), NumberSequenceKeypoint.new(0.82, 1.00), NumberSequenceKeypoint.new(1.00, 0.00)}
-				UIGradient_3.Parent = UIStroke
-
-				AccordionTable.Container = Container
-
-				local isExpanded = config.Expanded
-
-				local function updateSize()
-					local totalHeight = 0
-					for _, child in ipairs(Container:GetChildren()) do
-						if child:IsA("Frame") then
-							totalHeight = totalHeight + child.Size.Y.Offset
-						end
-					end
-					Container.Size = UDim2.new(1, 0, 0, totalHeight + UIListLayout.Padding.Offset * (#Container:GetChildren() - 1))
-					Accordion.Size = UDim2.new(0.980000019, 0, 0, 35 + (isExpanded and Container.Size.Y.Offset or 0))
-				end
-
-				UIListLayout:GetPropertyChangedSignal('AbsoluteContentSize'):Connect(updateSize)
-
-				Button.MouseButton1Click:Connect(function()
-					isExpanded = not isExpanded
-					Container.Visible = isExpanded
-					
-					Twen:Create(ExpandIcon, TweenInfo.new(0.3, Enum.EasingStyle.Quint), {
-						Rotation = isExpanded and 0 or 180
-					}):Play()
-					
-					updateSize()
-				end)
-
-				function AccordionTable:AddLabel(config)
-					return SectionTable:NewLabel(config, Container)
-				end
-
-				function AccordionTable:AddToggle(config)
-					return SectionTable:NewToggle(config, Container)
-				end
-
-				function AccordionTable:AddButton(config)
-					return SectionTable:NewButton(config, Container)
-				end
-
-				function AccordionTable:AddSlider(config)
-					return SectionTable:NewSlider(config, Container)
-				end
-
-				function AccordionTable:AddDropdown(config)
-					return SectionTable:NewDropdown(config, Container)
-				end
-
-				function AccordionTable:AddTextbox(config)
-					return SectionTable:NewTextbox(config, Container)
-				end
-
-				function AccordionTable:AddKeybind(config)
-					return SectionTable:NewKeybind(config, Container)
-				end
-
-				function AccordionTable:AddImage(config)
-					return SectionTable:NewImage(config, Container)
-				end
-
-				local el = {
-					Name = config.Name,
-					Get = function() return isExpanded end,
-					Set = function(value) 
-						isExpanded = value
-						Container.Visible = isExpanded
-						ExpandIcon.Rotation = isExpanded and 0 or 180
-						updateSize()
-					end,
-					Visible = function(newindx)
-						Accordion.Visible = newindx
-					end,
-					AddLabel = AccordionTable.AddLabel,
-					AddToggle = AccordionTable.AddToggle,
-					AddButton = AccordionTable.AddButton,
-					AddSlider = AccordionTable.AddSlider,
-					AddDropdown = AccordionTable.AddDropdown,
-					AddTextbox = AccordionTable.AddTextbox,
-					AddKeybind = AccordionTable.AddKeybind,
-					AddImage = AccordionTable.AddImage
-				};
-
-				table.insert(SectionTable.Elements, el)
-
-				return el;
-			end;
-
-			local function createInParent(parent, config, funcName)
-				local originalParent = Section
-				Section = parent
-				local result = SectionTable[funcName](SectionTable, config)
-				Section = originalParent
-				return result
-			end
-
-			function SectionTable:NewToggle(toggle, parent)
-				parent = parent or Section
+			function SectionTable:NewToggle(toggle)
 				toggle = Config(toggle,{
 					Title = "Toggle",
 					Name = toggle.Title,
@@ -2151,7 +1934,7 @@ function Library.new(config)
 				local UICorner_3 = Instance.new("UICorner")
 
 				FunctionToggle.Name = "FunctionToggle"
-				FunctionToggle.Parent = parent
+				FunctionToggle.Parent = Section
 				FunctionToggle.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
 				FunctionToggle.BackgroundTransparency = 1
 				FunctionToggle.BorderColor3 = Color3.fromRGB(0, 0, 0)
@@ -2281,15 +2064,12 @@ function Library.new(config)
 					end,
 				};
 
-				if parent == Section then
-					table.insert(SectionTable.Elements, el)
-				end
+				table.insert(SectionTable.Elements, el)
 
 				return el;
 			end;
 
-			function SectionTable:NewTitle(lrm, parent)
-				parent = parent or Section
+			function SectionTable:NewTitle(lrm)
 				local FunctionTitle = Instance.new("Frame")
 				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
 				local TextInt = Instance.new("TextLabel")
@@ -2298,7 +2078,7 @@ function Library.new(config)
 
 
 				FunctionTitle.Name = "FunctionTitle"
-				FunctionTitle.Parent = parent
+				FunctionTitle.Parent = Section
 				FunctionTitle.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
 				FunctionTitle.BackgroundTransparency = 0.800
 				FunctionTitle.BorderColor3 = Color3.fromRGB(0, 0, 0)
@@ -2347,8 +2127,7 @@ function Library.new(config)
 				};
 			end;
 
-			function SectionTable:NewButton(cfg, parent)
-				parent = parent or Section
+			function SectionTable:NewButton(cfg)
 				cfg = Config(cfg,{
 					Title = "Button",
 					Callback = function() end;
@@ -2364,7 +2143,7 @@ function Library.new(config)
 				local UIStroke = Instance.new("UIStroke")
 
 				FunctionButton.Name = "FunctionButton"
-				FunctionButton.Parent = parent
+				FunctionButton.Parent = Section
 				FunctionButton.BackgroundColor3 = Color3.fromRGB(71, 71, 71)
 				FunctionButton.BackgroundTransparency = 1
 				FunctionButton.BorderColor3 = Color3.fromRGB(0, 0, 0)
@@ -2474,8 +2253,7 @@ function Library.new(config)
 				};
 			end;
 
-			function SectionTable:NewKeybind(ctfx, parent)
-				parent = parent or Section
+			function SectionTable:NewKeybind(ctfx)
 				ctfx = Config(ctfx,{
 					Title = "Keybind",
 					Name = ctfx.Title,
@@ -2484,7 +2262,7 @@ function Library.new(config)
 
 				});
 
-				local BindEvent = Instance.new('BindableEvent',parent);
+				local BindEvent = Instance.new('BindableEvent',Section);
 				local FunctionKeybind = Instance.new("Frame")
 				local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
 				local TextInt = Instance.new("TextLabel")
@@ -2498,7 +2276,7 @@ function Library.new(config)
 				local UICorner_2 = Instance.new("UICorner")
 				BindEvent.Name = tostring(ctfx.Title)
 				FunctionKeybind.Name = "FunctionKeybind"
-				FunctionKeybind.Parent = parent
+				FunctionKeybind.Parent = Section
 				FunctionKeybind.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
 				FunctionKeybind.BackgroundTransparency = 0.800
 				FunctionKeybind.BorderColor3 = Color3.fromRGB(0, 0, 0)
@@ -2644,15 +2422,12 @@ function Library.new(config)
 					end,
 				};
 
-				if parent == Section then
-					table.insert(SectionTable.Elements, el)
-				end
+				table.insert(SectionTable.Elements, el)
 
 				return el;
 			end;
 
-			function SectionTable:NewSlider(slider, parent)
-				parent = parent or Section
+			function SectionTable:NewSlider(slider)
 				slider = Config(slider,{
 					Title = "Slider",
 					Name = slider.Title,
@@ -2679,7 +2454,7 @@ function Library.new(config)
 				local UIStroke_2 = Instance.new("UIStroke")
 
 				FunctionSlider.Name = "FunctionSlider"
-				FunctionSlider.Parent = parent
+				FunctionSlider.Parent = Section
 				FunctionSlider.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
 				FunctionSlider.BackgroundTransparency = 0.800
 				FunctionSlider.BorderColor3 = Color3.fromRGB(0, 0, 0)
@@ -2823,15 +2598,12 @@ function Library.new(config)
 					end,
 				};
 
-				if parent == Section then
-					table.insert(SectionTable.Elements, el)
-				end
+				table.insert(SectionTable.Elements, el)
 
 				return el;
 			end;
 
-			function SectionTable:NewDropdown(drop, parent)
-				parent = parent or Section
+			function SectionTable:NewDropdown(drop)
 				drop = Config(drop,{
 					Title = "Dropdown",
 					Name = drop.Title,
@@ -2856,7 +2628,7 @@ function Library.new(config)
 				local Button = Instance.new("TextButton")
 
 				FunctionDropdown.Name = "FunctionDropdown"
-				FunctionDropdown.Parent = parent
+				FunctionDropdown.Parent = Section
 				FunctionDropdown.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
 				FunctionDropdown.BackgroundTransparency = 0.800
 				FunctionDropdown.BorderColor3 = Color3.fromRGB(0, 0, 0)
@@ -3007,15 +2779,12 @@ function Library.new(config)
 					end
 				};
 
-				if parent == Section then
-					table.insert(SectionTable.Elements, el)
-				end
+				table.insert(SectionTable.Elements, el)
 
 				return el;
 			end;
 
-			function SectionTable:NewTextbox(conf, parent)
-				parent = parent or Section
+			function SectionTable:NewTextbox(conf)
 				conf = Config(conf,{
 					Title = "Textbox",
 					Name = conf.Title,
@@ -3042,7 +2811,7 @@ function Library.new(config)
 				local Button = Instance.new("TextButton")
 
 				FunctionTextbox.Name = "FunctionTextbox"
-				FunctionTextbox.Parent = parent
+				FunctionTextbox.Parent = Section
 				FunctionTextbox.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
 				FunctionTextbox.BackgroundTransparency = 0.800
 				FunctionTextbox.BorderColor3 = Color3.fromRGB(0, 0, 0)
@@ -3175,68 +2944,7 @@ function Library.new(config)
 					end,
 				};
 
-				if parent == Section then
-					table.insert(SectionTable.Elements, el)
-				end
-
-				return el;
-			end;
-
-			function SectionTable:NewImage(config, parent)
-				parent = parent or Section
-				config = Config(config,{
-					Image = "rbxassetid://0",
-					Size = UDim2.new(0.949999988, 0, 0.5, 0),
-					Name = "Image"
-				});
-
-				local FunctionImage = Instance.new("Frame")
-				local UICorner = Instance.new("UICorner")
-				local ImageLabel = Instance.new("ImageLabel")
-				local UICorner_2 = Instance.new("UICorner")
-
-				FunctionImage.Name = "FunctionImage"
-				FunctionImage.Parent = parent
-				FunctionImage.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
-				FunctionImage.BackgroundTransparency = 0.800
-				FunctionImage.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				FunctionImage.BorderSizePixel = 0
-				FunctionImage.Size = config.Size
-				FunctionImage.ClipsDescendants = true
-				FunctionImage.ZIndex = 17
-
-				UICorner.CornerRadius = UDim.new(0, 3)
-				UICorner.Parent = FunctionImage
-
-				ImageLabel.Parent = FunctionImage
-				ImageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
-				ImageLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
-				ImageLabel.BackgroundTransparency = 1.000
-				ImageLabel.BorderColor3 = Color3.fromRGB(0, 0, 0)
-				ImageLabel.BorderSizePixel = 0
-				ImageLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
-				ImageLabel.Size = UDim2.new(0.949999988, 0, 0.949999988, 0)
-				ImageLabel.Image = config.Image
-				ImageLabel.ScaleType = Enum.ScaleType.Fit
-				ImageLabel.ZIndex = 18
-				ImageLabel.ImageTransparency = 1
-				Twen:Create(ImageLabel,TweenInfo1,{ImageTransparency = 0}):Play();
-
-				UICorner_2.CornerRadius = UDim.new(0, 2)
-				UICorner_2.Parent = ImageLabel
-
-				local el = {
-					Name = config.Name,
-					Get = function() return ImageLabel.Image end,
-					Set = function(imageId) ImageLabel.Image = imageId end,
-					Visible = function(newindx)
-						FunctionImage.Visible = newindx
-					end,
-				};
-
-				if parent == Section then
-					table.insert(SectionTable.Elements, el)
-				end
+				table.insert(SectionTable.Elements, el)
 
 				return el;
 			end;
@@ -3283,6 +2991,21 @@ function Library.new(config)
 			end;
 		end;
 	end)
+
+function WindowTable:SetKeybind(newKey)
+    if typeof(newKey) == "EnumItem" then
+        self.Keybind = newKey
+    elseif type(newKey) == "string" then
+        local ok, key = pcall(function() return Enum.KeyCode[newKey] end)
+        if ok and key then
+            self.Keybind = key
+        end
+    end
+    if self.ToggleButton then
+        pcall(self.ToggleButton)
+    end
+end
+
 
 	return WindowTable;
 end;
@@ -3709,45 +3432,45 @@ Library.Notification = function()
 			UICorner_2.CornerRadius = UDim.new(0,4)
 			UICorner_2.Parent = icon
 
-			icon.Name = "icon"
-			icon.Parent = Notifiy
-			icon.AnchorPoint = Vector2.new(0, 0.5)
-			icon.BackgroundTransparency = 1.000
-			icon.Position = UDim2.new(0.05, 0, 0.5, 0)
-			icon.Size = iconSize
+	icon.Name = "icon"
+	icon.Parent = Notifiy
+	icon.AnchorPoint = Vector2.new(0, 0.5)
+	icon.BackgroundTransparency = 1.000
+	icon.Position = UDim2.new(0.05, 0, 0.5, 0)
+	icon.Size = iconSize
 
-			-- try create lucide icon, fallback to plain ImageLabel
-			local ok, iconObj = pcall(function()
-				return Icons.Image({ Icon = ctfx.Icon, Size = iconSize })
-			end)
+	-- try create lucide icon, fallback to plain ImageLabel
+	local ok, iconObj = pcall(function()
+		return Icons.Image({ Icon = ctfx.Icon, Size = iconSize })
+	end)
 
-			if ok and iconObj and iconObj.IconFrame then
-				-- remove placeholder and use actual IconFrame
-				if icon and icon.Parent then icon:Destroy() end
+	if ok and iconObj and iconObj.IconFrame then
+		-- remove placeholder and use actual IconFrame
+		if icon and icon.Parent then icon:Destroy() end
 
-				local realIcon = iconObj.IconFrame
-				realIcon.Name = "icon"
-				realIcon.AnchorPoint = Vector2.new(0, 0.5)
-				realIcon.Position = UDim2.new(0.05, 0, 0.5, 0)
-				realIcon.Size = iconSize
-				realIcon.SizeConstraint = Enum.SizeConstraint.RelativeYY
-				realIcon.ZIndex = 49
-				realIcon.Parent = Notifiy
+		local realIcon = iconObj.IconFrame
+		realIcon.Name = "icon"
+		realIcon.AnchorPoint = Vector2.new(0, 0.5)
+		realIcon.Position = UDim2.new(0.05, 0, 0.5, 0)
+		realIcon.Size = iconSize
+		realIcon.SizeConstraint = Enum.SizeConstraint.RelativeYY
+		realIcon.ZIndex = 49
+		realIcon.Parent = Notifiy
 
-				-- crucial: переназначаем локальную переменную, чтобы скрытие целилось в тот же объект
-				icon = realIcon
+		-- crucial: переназначаем локальную переменную, чтобы скрытие целилось в тот же объект
+		icon = realIcon
 
-				Twen:Create(icon, css_style, {
-					ImageTransparency = 0
-				}):Play()
-			else
-				-- fallback: keep simple image label behavior
-				icon.Image = ctfx.Icon
-				icon.ImageTransparency = 1;
-				Twen:Create(icon, css_style, {
-					ImageTransparency = 0
-				}):Play()
-			end
+		Twen:Create(icon, css_style, {
+			ImageTransparency = 0
+		}):Play()
+	else
+		-- fallback: keep simple image label behavior
+		icon.Image = ctfx.Icon
+		icon.ImageTransparency = 1;
+		Twen:Create(icon, css_style, {
+			ImageTransparency = 0
+		}):Play()
+	end
 
 
 			TextLabel.Parent = Notifiy
