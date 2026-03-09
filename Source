@@ -406,20 +406,31 @@ local MainTabFrame = Instance.new("Frame")
 local UICorner_7 = Instance.new("UICorner")
 local InputFrame = Instance.new("Frame")
 WindowTable.Tabs = {};
-WindowTable.Elements = {}; -- For config system
+WindowTable.Elements = {};
 WindowTable.Dropdown = {};
 WindowTable.WindowToggle = true;
 WindowTable.Keybind = config.Keybind;
 WindowTable.ToggleButton = nil
-WindowTable.LastPosition = UDim2.new(0.5, 0, 0.05, 0) -- Для запоминания позиции в свернутом виде
+WindowTable.LastPosition = UDim2.new(0.5, 0, 0.05, 0)
 WindowTable.ConfigFolder = config.ConfigFolder
 local HttpService = game:GetService("HttpService")
--- Config folder setup
+
 local configFolder = WindowTable.ConfigFolder
-if not isfolder(configFolder) then
-makefolder(configFolder)
+local success, err = pcall(function()
+    if not isfolder(configFolder) then
+        makefolder(configFolder)
+    end
+end)
+if not success then
+    warn("Не удалось создать папку конфигов: " .. tostring(err))
+    task.wait(2)
+    pcall(function()
+        if not isfolder(configFolder) then
+            makefolder(configFolder)
+        end
+    end)
 end
--- Load configs
+
 local function listConfigs()
 local files = listfiles(configFolder) or {}
 local confNames = {}
@@ -506,7 +517,7 @@ ImageButton.Image = "rbxassetid://10002398990"
 Twen:Create(UICorner,TweenInfo.new(0.5),{
 CornerRadius = UDim.new(0, 7)
 }):Play()
--- Adjust InputFrame for drag only top
+
 InputFrame.Size = UDim2.new(1, 0, 0.12, 0)
 else
 Twen:Create(MainFrame,TweenInfo.new(0.5,Enum.EasingStyle.Quint),{BackgroundTransparency = 1,Size = UDim2.new(0.085, 10,0.05, 0)}):Play();
@@ -535,7 +546,7 @@ Twen:Create(BlockFrame1,TweenInfo1,{BackgroundTransparency = 1}):Play();
 Twen:Create(BlockFrame2,TweenInfo1,{BackgroundTransparency = 1}):Play();
 Twen:Create(BlockFrame3,TweenInfo1,{BackgroundTransparency = 1}):Play();
 WindowTable.ElBlurUI.Enabled = false;
--- Full drag when minimized
+
 InputFrame.Size = UDim2.new(1, 0, 1, 0)
 end;
 WindowTable.Dropdown:Close()
@@ -565,7 +576,7 @@ ScreenGui.Name = "RobloxGameGui";
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 5, 5) -- Darker red
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 5, 5)
 MainFrame.BackgroundTransparency = 1
 MainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 MainFrame.BorderSizePixel = 0
@@ -574,7 +585,7 @@ MainFrame.Size = UDim2.fromOffset(config.Size.X.Offset,config.Size.Y.Offset)
 MainFrame.Active = true;
 MainFrame.ClipsDescendants = true;
 WindowTable.AddEffect = function(color)
-Library.GradientImage(MainFrame,color or Color3.fromRGB(100, 0, 0)) -- Darker gradient
+Library.GradientImage(MainFrame,color or Color3.fromRGB(100, 0, 0))
 end
 Twen:Create(MainFrame,TweenInfo1,{BackgroundTransparency = 0.4,Size = config.Size}):Play();
 WindowTable.ElBlurUI = ElBlurSource.new(MainFrame);
@@ -589,7 +600,7 @@ MainDropShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
 MainDropShadow.Size = UDim2.new(1, 47, 1, 47)
 MainDropShadow.ZIndex = 0
 MainDropShadow.Image = "rbxassetid://6015897843"
-MainDropShadow.ImageColor3 = Color3.fromRGB(50, 0, 0) -- Darker red shadow
+MainDropShadow.ImageColor3 = Color3.fromRGB(50, 0, 0)
 MainDropShadow.ImageTransparency = 1
 MainDropShadow.ScaleType = Enum.ScaleType.Slice
 MainDropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
@@ -597,7 +608,7 @@ MainDropShadow.Rotation = 0.0001;
 Twen:Create(MainDropShadow,TweenInfo2,{ImageTransparency = 0.6}):Play();
 Headers.Name = "Headers"
 Headers.Parent = MainFrame
-Headers.BackgroundColor3 = Color3.fromRGB(20, 5, 5) -- Darker red
+Headers.BackgroundColor3 = Color3.fromRGB(20, 5, 5)
 Headers.BackgroundTransparency = 1
 Headers.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Headers.BorderSizePixel = 0
@@ -661,7 +672,7 @@ Twen:Create(Description,TweenInfo2,{TextTransparency = 0.5}):Play();
 BlockFrame1.Name = "BlockFrame1"
 BlockFrame1.Parent = MainFrame
 BlockFrame1.AnchorPoint = Vector2.new(0, 0.5)
-BlockFrame1.BackgroundColor3 = Color3.fromRGB(150, 0, 0) -- Darker red
+BlockFrame1.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 BlockFrame1.BackgroundTransparency = 1
 BlockFrame1.BorderColor3 = Color3.fromRGB(0, 0, 0)
 BlockFrame1.BorderSizePixel = 0
@@ -677,7 +688,7 @@ UIGradient_3.Parent = BlockFrame1
 BlockFrame3.Name = "BlockFrame3"
 BlockFrame3.Parent = MainFrame
 BlockFrame3.AnchorPoint = Vector2.new(0, 0.5)
-BlockFrame3.BackgroundColor3 = Color3.fromRGB(150, 0, 0) -- Darker red
+BlockFrame3.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 BlockFrame3.BackgroundTransparency = 1
 BlockFrame3.BorderColor3 = Color3.fromRGB(0, 0, 0)
 BlockFrame3.BorderSizePixel = 0
@@ -692,7 +703,7 @@ UIGradient_4.Parent = BlockFrame3
 BlockFrame2.Name = "BlockFrame2"
 BlockFrame2.Parent = MainFrame
 BlockFrame2.AnchorPoint = Vector2.new(0, 0.5)
-BlockFrame2.BackgroundColor3 = Color3.fromRGB(150, 0, 0) -- Darker red
+BlockFrame2.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 BlockFrame2.BackgroundTransparency = 1
 BlockFrame2.BorderColor3 = Color3.fromRGB(0, 0, 0)
 BlockFrame2.BorderSizePixel = 0
@@ -708,7 +719,7 @@ UIGradient_5.Parent = BlockFrame2
 TabButtonFrame.Name = "TabButtonFrame"
 TabButtonFrame.Parent = MainFrame
 TabButtonFrame.AnchorPoint = Vector2.new(0.5, 0)
-TabButtonFrame.BackgroundColor3 = Color3.fromRGB(20, 5, 5) -- Darker red
+TabButtonFrame.BackgroundColor3 = Color3.fromRGB(20, 5, 5)
 TabButtonFrame.BackgroundTransparency = 1
 TabButtonFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 TabButtonFrame.BorderSizePixel = 0
@@ -740,7 +751,7 @@ UIListLayout.Padding = UDim.new(0, 3)
 MainTabFrame.Name = "MainTabFrame"
 MainTabFrame.Parent = MainFrame
 MainTabFrame.AnchorPoint = Vector2.new(0.5, 0)
-MainTabFrame.BackgroundColor3 = Color3.fromRGB(20, 5, 5) -- Darker red
+MainTabFrame.BackgroundColor3 = Color3.fromRGB(20, 5, 5)
 MainTabFrame.BackgroundTransparency = 1
 MainTabFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 MainTabFrame.BorderSizePixel = 0
@@ -757,7 +768,7 @@ InputFrame.BackgroundTransparency = 1.000
 InputFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 InputFrame.BorderSizePixel = 0
 InputFrame.Position = UDim2.new(0, 0, 0, 0)
-InputFrame.Size = UDim2.new(1, 0, 0.12, 0) -- Only top for drag
+InputFrame.Size = UDim2.new(1, 0, 0.12, 0)
 InputFrame.ZIndex = 15;
 task.spawn(function()
 local Locked = nil;
@@ -1081,7 +1092,7 @@ end)
 function WindowTable:GetAllElements()
 local all = {}
 for _, tab in ipairs(self.Tabs) do
-for _, section in ipairs(tab.Sections or {}) do -- Assume tabs have Sections
+for _, section in ipairs(tab.Sections or {}) do 
 for _, el in ipairs(section.Elements or {}) do
 table.insert(all, el)
 end
@@ -1112,7 +1123,7 @@ Description = "Tab: "..tostring(#WindowTable.Tabs + 1),
 Icon = "rbxassetid://7733964640"
 });
 local TabTable = {};
-TabTable.Sections = {} -- For config
+TabTable.Sections = {} 
 local TabButton = Instance.new("Frame")
 local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
 local UICorner = Instance.new("UICorner")
@@ -1218,7 +1229,7 @@ UIGradient_3.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 
 UIGradient_3.Parent = Description
 Frame.Parent = TabButton
 Frame.AnchorPoint = Vector2.new(1, 0.5)
-Frame.BackgroundColor3 = Color3.fromRGB(150, 0, 0) -- Darker red
+Frame.BackgroundColor3 = Color3.fromRGB(150, 0, 0) 
 Frame.BackgroundTransparency = 1
 Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Frame.BorderSizePixel = 0
@@ -3683,7 +3694,7 @@ local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
 startPos.Y.Scale, startPos.Y.Offset + delta.Y);
 game:GetService('TweenService'):Create(MainFrame, TweenInfo.new(dragSpeed), {Position = position}):Play()
 if not WindowTable.WindowToggle then
-WindowTable.LastPosition = position -- Запоминаем позицию в свернутом виде
+WindowTable.LastPosition = position 
 end
 end;
 InputFrame.InputBegan:Connect(function(input)
@@ -4017,7 +4028,7 @@ Frame.BackgroundTransparency = 1.000
 Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Frame.BorderSizePixel = 0
 Frame.Position = UDim2.new(0.98, 0, 0.98, 0)
-Frame.Size = UDim2.new(0.25, 0, 0.5, 0) -- Slightly smaller width
+Frame.Size = UDim2.new(0.25, 0, 0.5, 0)
 UIListLayout.Parent = Frame
 UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
@@ -4030,7 +4041,7 @@ Description = "Description",
 Duration = 5,
 Icon = "rbxassetid://8997385628"
 })
-local css_style = TweenInfo.new(0.5,Enum.EasingStyle.Quint,Enum.EasingDirection.Out); -- Smoother animation
+local css_style = TweenInfo.new(0.5,Enum.EasingStyle.Quint,Enum.EasingDirection.Out); 
 local Notifiy = Instance.new("Frame")
 local UICorner = Instance.new("UICorner")
 local icon = Instance.new("ImageLabel")
@@ -4081,12 +4092,10 @@ icon.AnchorPoint = Vector2.new(0, 0.5)
 icon.BackgroundTransparency = 1.000
 icon.Position = UDim2.new(0.05, 0, 0.5, 0)
 icon.Size = iconSize
--- try create lucide icon, fallback to plain ImageLabel
 local ok, iconObj = pcall(function()
 return Icons.Image({ Icon = ctfx.Icon, Size = iconSize })
 end)
 if ok and iconObj and iconObj.IconFrame then
--- remove placeholder and use actual IconFrame
 if icon and icon.Parent then icon:Destroy() end
 local realIcon = iconObj.IconFrame
 realIcon.Name = "icon"
@@ -4096,13 +4105,11 @@ realIcon.Size = iconSize
 realIcon.SizeConstraint = Enum.SizeConstraint.RelativeYY
 realIcon.ZIndex = 49
 realIcon.Parent = Notifiy
--- crucial: переназначаем локальную переменную, чтобы скрытие целилось в тот же объект
 icon = realIcon
 Twen:Create(icon, css_style, {
 ImageTransparency = 0
 }):Play()
 else
--- fallback: keep simple image label behavior
 icon.Image = ctfx.Icon
 icon.ImageTransparency = 1;
 Twen:Create(icon, css_style, {
@@ -4370,7 +4377,7 @@ v:Destroy()
 end
 end
 end,
-sudo = function(args) -- root
+sudo = function(args)
 local ctype = args[1];
 local arg1 = args[2];
 local arg2 = args[3];
