@@ -1,4 +1,4 @@
-
+-- yomka and Dara modified it
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
 local TextServ = game:GetService('TextService');
