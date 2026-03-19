@@ -1,4 +1,4 @@
--- yomka ​​modified this -------------------
+
 local Twen = game:GetService('TweenService');
 local Input = game:GetService('UserInputService');
 local TextServ = game:GetService('TextService');
@@ -16,16 +16,47 @@ local Icons = (function()
             ["sfsymbols"] = {},
         },
     }
+    
+    local function downloadImage(url)
+        if url:match("^rbxassetid://") then
+            return url
+        end
+        
+        local filename = "TempIcon_" .. tostring(math.random(1000, 9999)) .. "_" .. tick() .. ".png"
+        local filepath = filename
+        local imageAsset = url
+        
+        local httpRequest = syn and syn.request or http_request or request
+        
+        if httpRequest then
+            pcall(function()
+                local response = httpRequest({
+                    Url = url,
+                    Method = "GET"
+                })
+                
+                if response and response.Body then
+                    writefile(filepath, response.Body)
+                    imageAsset = getcustomasset(filepath)
+                end
+            end)
+        end
+        
+        return imageAsset
+    end
+    
     local function safeLoad(url)
         local success, result = pcall(function()
             return loadstring(game:HttpGet(url))()
         end)
         return success and result or {}
     end
+    
     IconModule.Icons["lucide"] = safeLoad("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/lucide/dist/Icons.lua")
     IconModule.Icons["craft"] = safeLoad("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/craft/dist/Icons.lua")
     IconModule.Icons["geist"] = safeLoad("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/geist/dist/Icons.lua")
     IconModule.Icons["sfsymbols"] = safeLoad("https://raw.githubusercontent.com/Footagesus/Icons/refs/heads/main/sfsymbols/dist/Icons.lua")
+    
     local function parseIconString(iconString)
         if type(iconString) == "string" then
             local splitIndex = iconString:find(":")
@@ -37,16 +68,15 @@ local Icons = (function()
         end
         return nil, iconString
     end
+    
     function IconModule.AddIcons(packName, iconsData)
         if type(packName) ~= "string" or type(iconsData) ~= "table" then
             error("AddIcons: packName must be string, iconsData must be table")
             return
         end
-      
         if not IconModule.Icons[packName] then
             IconModule.Icons[packName] = { Icons = {}, Spritesheets = {} }
         end
-      
         for iconName, iconValue in pairs(iconsData) do
             if type(iconValue) == "number" or (type(iconValue) == "string" and iconValue:match("^rbxassetid://")) then
                 local imageId = type(iconValue) == "number" and "rbxassetid://" .. iconValue or iconValue
@@ -69,31 +99,98 @@ local Icons = (function()
             end
         end
     end
+    
     function IconModule.SetIconsType(iconType)
         IconModule.IconsType = iconType
     end
+    
     function IconModule.Init(New, IconThemeTag)
         IconModule.New = New
         IconModule.IconThemeTag = IconThemeTag
         return IconModule
     end
+    
     function IconModule.Icon(Icon, Type)
-        local iconType, iconName = parseIconString(Icon)
-        local targetType = iconType or Type or IconModule.IconsType
-        local targetName = iconName or Icon
-        local iconSet = IconModule.Icons[targetType]
-        if not iconSet then return nil end
-        if iconSet[targetName] and (type(iconSet[targetName]) == "string" or type(iconSet[targetName]) == "number") then
-            local asset = type(iconSet[targetName]) == "number" and "rbxassetid://" .. iconSet[targetName] or iconSet[targetName]
-            return { asset, { ImageRectSize = Vector2.new(0,0), ImageRectPosition = Vector2.new(0,0), Parts = nil } }
+    local iconType, iconName = parseIconString(Icon)
+    local targetType = iconType or Type or IconModule.IconsType
+    local targetName = iconName or Icon
+    local iconSet = IconModule.Icons[targetType]
+    
+    if not iconSet then 
+        if targetName and (targetName:match("^rbxassetid://") or targetName:match("^https?://")) then
+            if targetName:match("^https?://") then
+                -- Download URL image
+                local filename = "TempIcon_" .. tostring(math.random(1000, 9999)) .. "_" .. tick() .. ".png"
+                local filepath = filename
+                local imageAsset = targetName
+                
+                local httpRequest = syn and syn.request or http_request or request
+                
+                if httpRequest then
+                    pcall(function()
+                        local response = httpRequest({
+                            Url = targetName,
+                            Method = "GET"
+                        })
+                        
+                        if response and response.Body then
+                            writefile(filepath, response.Body)
+                            imageAsset = getcustomasset(filepath)
+                        end
+                    end)
+                end
+                
+                return { imageAsset, { ImageRectSize = Vector2.new(0,0), ImageRectPosition = Vector2.new(0,0), Parts = nil } }
+            else
+                return { targetName, { ImageRectSize = Vector2.new(0,0), ImageRectPosition = Vector2.new(0,0), Parts = nil } }
+            end
         end
-        if iconSet.Icons and iconSet.Icons[targetName] then
-            local data = iconSet.Icons[targetName]
-            local imageId = type(data.Image) == "number" and "rbxassetid://" .. data.Image or data.Image
-            return { iconSet.Spritesheets[imageId] or imageId, data }
-        end
-        return nil
+        return nil 
     end
+    
+    if iconSet[targetName] and (type(iconSet[targetName]) == "string" or type(iconSet[targetName]) == "number") then
+        local asset = type(iconSet[targetName]) == "number" and "rbxassetid://" .. iconSet[targetName] or iconSet[targetName]
+        return { asset, { ImageRectSize = Vector2.new(0,0), ImageRectPosition = Vector2.new(0,0), Parts = nil } }
+    end
+    
+    if iconSet.Icons and iconSet.Icons[targetName] then
+        local data = iconSet.Icons[targetName]
+        local imageId = type(data.Image) == "number" and "rbxassetid://" .. data.Image or data.Image
+        return { iconSet.Spritesheets[imageId] or imageId, data }
+    end
+    
+    if targetName and (targetName:match("^rbxassetid://") or targetName:match("^https?://")) then
+        if targetName:match("^https?://") then
+            -- Download URL image
+            local filename = "TempIcon_" .. tostring(math.random(1000, 9999)) .. "_" .. tick() .. ".png"
+            local filepath = filename
+            local imageAsset = targetName
+            
+            local httpRequest = syn and syn.request or http_request or request
+            
+            if httpRequest then
+                pcall(function()
+                    local response = httpRequest({
+                        Url = targetName,
+                        Method = "GET"
+                    })
+                    
+                    if response and response.Body then
+                        writefile(filepath, response.Body)
+                        imageAsset = getcustomasset(filepath)
+                    end
+                end)
+            end
+            
+            return { imageAsset, { ImageRectSize = Vector2.new(0,0), ImageRectPosition = Vector2.new(0,0), Parts = nil } }
+        else
+            return { targetName, { ImageRectSize = Vector2.new(0,0), ImageRectPosition = Vector2.new(0,0), Parts = nil } }
+        end
+    end
+    
+    return nil
+end
+    
     function IconModule.Image(IconConfig)
         IconConfig = IconConfig or {}
         local Icon = {
@@ -103,6 +200,7 @@ local Icons = (function()
             Size = IconConfig.Size or UDim2.new(0,24,0,24),
             IconFrame = nil,
         }
+        
         local Colors = {}
         for i, color in ipairs(Icon.Colors) do
             Colors[i] = {
@@ -110,19 +208,24 @@ local Icons = (function()
                 Color = typeof(color) == "Color3" and color,
             }
         end
+        
         local IconLabel = IconModule.Icon(Icon.Icon, Icon.Type)
+        
         if not IconLabel then
             local fallback = Instance.new("ImageLabel")
             fallback.Size = Icon.Size
             fallback.BackgroundTransparency = 1
-            if typeof(Icon.Icon) == "string" and Icon.Icon:match("^rbxassetid://") then
-                fallback.Image = Icon.Icon
+            if typeof(Icon.Icon) == "string" and (Icon.Icon:match("^rbxassetid://") or Icon.Icon:match("^http")) then
+                local asset = Icon.Icon:match("^http") and downloadImage(Icon.Icon) or Icon.Icon
+                fallback.Image = asset
             end
             Icon.IconFrame = fallback
             return Icon
         end
+        
         local image = type(IconLabel) == "table" and IconLabel[1] or IconLabel
         local data = type(IconLabel) == "table" and IconLabel[2] or { ImageRectSize = Vector2.new(0,0), ImageRectPosition = Vector2.new(0,0), Parts = nil }
+        
         if IconModule.New then
             local New = IconModule.New
             local frame = New("ImageLabel", {
@@ -134,6 +237,7 @@ local Icons = (function()
                 ImageRectSize = data.ImageRectSize,
                 ImageRectOffset = data.ImageRectPosition,
             })
+            
             if data.Parts then
                 for i, partName in ipairs(data.Parts) do
                     local part = IconModule.Icon(partName, Icon.Type)
@@ -160,6 +264,7 @@ local Icons = (function()
             frame.Image = image
             frame.ImageRectSize = data.ImageRectSize
             frame.ImageRectOffset = data.ImageRectPosition
+            
             if data.Parts then
                 for i, partName in ipairs(data.Parts) do
                     local part = IconModule.Icon(partName, Icon.Type)
@@ -177,8 +282,10 @@ local Icons = (function()
             end
             Icon.IconFrame = frame
         end
+        
         return Icon
     end
+    
     return IconModule
 end)()
 Icons.SetIconsType("lucide")
@@ -370,13 +477,49 @@ return str
 end;
 function Library.new(config)
 config = Config(config,{
-Title = "UI Library",
-Description = "discord.gg/BHRUtyTbk2",
+Title = "Title",
+Description = "Description",
 Keybind = Enum.KeyCode.LeftControl,
-Logo = "http://www.roblox.com/asset/?id=18810965406",
+Logo = "rbxassetid://0",
 Size = UDim2.new(0.100000001, 445, 0.100000001, 315),
-ConfigFolder = "SugarConfigs"
+ConfigFolder = "/"
 });
+local function processLogo(logo)
+    if type(logo) == "string" then
+        if logo:match("^%d+$") then
+            return "rbxassetid://" .. logo
+        end
+        if logo:match("roblox%.com") and logo:match("id=(%d+)") then
+            local id = logo:match("id=(%d+)")
+            if id then
+                return "rbxassetid://" .. id
+            end
+        end
+        if logo:match("^https?://") then
+            local filename = "TempLogo_" .. tostring(math.random(1000, 9999)) .. "_" .. tick() .. ".png"
+            local filepath = filename
+            local imageAsset = logo 
+            local httpRequest = syn and syn.request or http_request or request
+            if httpRequest then
+                pcall(function()
+                    local response = httpRequest({
+                        Url = logo,
+                        Method = "GET"
+                    })
+                    if response and response.Body then
+                        writefile(filepath, response.Body)
+                        imageAsset = getcustomasset(filepath)
+                    end
+                end)
+            end
+            return imageAsset
+        end
+    elseif type(logo) == "number" then
+        return "rbxassetid://" .. logo
+    end
+    return logo 
+end
+config.Logo = processLogo(config.Logo)
 local TweenInfo1 = TweenInfo.new(0.5,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut);
 local TweenInfo2 = TweenInfo.new(0.3,Enum.EasingStyle.Quint,Enum.EasingDirection.InOut);
 local WindowTable = {};
@@ -405,32 +548,91 @@ local UIListLayout = Instance.new("UIListLayout")
 local MainTabFrame = Instance.new("Frame")
 local UICorner_7 = Instance.new("UICorner")
 local InputFrame = Instance.new("Frame")
+local UIHelper = {}
+
+function UIHelper.IsMouseOverFrame(Frame: GuiObject, Position: Vector3): boolean
+	local AbsPos, AbsSize = Frame.AbsolutePosition, Frame.AbsoluteSize
+	return Position.X >= AbsPos.X
+		and Position.X <= AbsPos.X + AbsSize.X
+		and Position.Y >= AbsPos.Y
+		and Position.Y <= AbsPos.Y + AbsSize.Y
+end
+
+function UIHelper.IsClickInput(Input: InputObject): boolean
+	return Input.UserInputState == Enum.UserInputState.Begin
+		and (Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch)
+end
+
+function UIHelper.IsMoveInput(Input: InputObject): boolean
+	return Input.UserInputState == Enum.UserInputState.Change
+		and (Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch)
+end
+
+local dragToggle = false
+local dragStart = nil
+local startPos = nil
+
+local function updateInput(input)
+    if not dragToggle then return end
+    
+    WindowTable.ElBlurUI.Update()
+    
+    local delta = input.Position - dragStart
+    local position = UDim2.new(
+        startPos.X.Scale, 
+        startPos.X.Offset + delta.X,
+        startPos.Y.Scale, 
+        startPos.Y.Offset + delta.Y
+    )
+    
+    MainFrame.Position = position
+    
+    if not WindowTable.WindowToggle then
+        WindowTable.LastPosition = position 
+    end
+end
+
+InputFrame.InputBegan:Connect(function(input)
+    if UIHelper.IsClickInput(input) then
+        if UIHelper.IsMouseOverFrame(InputFrame, input.Position) then
+            dragToggle = true
+            dragStart = input.Position
+            startPos = MainFrame.Position
+            
+            input.Changed:Connect(function()
+                if input.UserInputState == Enum.UserInputState.End then
+                    dragToggle = false
+                end
+            end)
+        end
+    end
+end)
+
+InputFrame.InputChanged:Connect(function(input)
+    if UIHelper.IsMoveInput(input) and dragToggle then
+        updateInput(input)
+    end
+end)
+
+local UserInputService = game:GetService("UserInputService")
+UserInputService.InputChanged:Connect(function(input)
+    if UIHelper.IsMoveInput(input) and dragToggle then
+        updateInput(input)
+    end
+end)
 WindowTable.Tabs = {};
-WindowTable.Elements = {};
+WindowTable.Elements = {}; 
 WindowTable.Dropdown = {};
 WindowTable.WindowToggle = true;
 WindowTable.Keybind = config.Keybind;
 WindowTable.ToggleButton = nil
-WindowTable.LastPosition = UDim2.new(0.5, 0, 0.05, 0)
+WindowTable.LastPosition = UDim2.new(0.5, 0, 0.05, 0) 
 WindowTable.ConfigFolder = config.ConfigFolder
 local HttpService = game:GetService("HttpService")
-
 local configFolder = WindowTable.ConfigFolder
-local success, err = pcall(function()
-    if not isfolder(configFolder) then
-        makefolder(configFolder)
-    end
-end)
-if not success then
-    warn("Не удалось создать папку конфигов: " .. tostring(err))
-    task.wait(2)
-    pcall(function()
-        if not isfolder(configFolder) then
-            makefolder(configFolder)
-        end
-    end)
+if not isfolder(configFolder) then
+makefolder(configFolder)
 end
-
 local function listConfigs()
 local files = listfiles(configFolder) or {}
 local confNames = {}
@@ -517,7 +719,6 @@ ImageButton.Image = "rbxassetid://10002398990"
 Twen:Create(UICorner,TweenInfo.new(0.5),{
 CornerRadius = UDim.new(0, 7)
 }):Play()
-
 InputFrame.Size = UDim2.new(1, 0, 0.12, 0)
 else
 Twen:Create(MainFrame,TweenInfo.new(0.5,Enum.EasingStyle.Quint),{BackgroundTransparency = 1,Size = UDim2.new(0.085, 10,0.05, 0)}):Play();
@@ -546,7 +747,6 @@ Twen:Create(BlockFrame1,TweenInfo1,{BackgroundTransparency = 1}):Play();
 Twen:Create(BlockFrame2,TweenInfo1,{BackgroundTransparency = 1}):Play();
 Twen:Create(BlockFrame3,TweenInfo1,{BackgroundTransparency = 1}):Play();
 WindowTable.ElBlurUI.Enabled = false;
-
 InputFrame.Size = UDim2.new(1, 0, 1, 0)
 end;
 WindowTable.Dropdown:Close()
@@ -572,11 +772,11 @@ ScreenGui.Parent = CoreGui;
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Global;
 ScreenGui.ResetOnSpawn = false;
 ScreenGui.IgnoreGuiInset = true;
-ScreenGui.Name = "RobloxGameGui";
+ScreenGui.Name = [[Yomka Sugar GUI]];
 MainFrame.Name = "MainFrame"
 MainFrame.Parent = ScreenGui
 MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
-MainFrame.BackgroundColor3 = Color3.fromRGB(15, 5, 5)
+MainFrame.BackgroundColor3 = Color3.fromRGB(15, 5, 5) 
 MainFrame.BackgroundTransparency = 1
 MainFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 MainFrame.BorderSizePixel = 0
@@ -585,7 +785,7 @@ MainFrame.Size = UDim2.fromOffset(config.Size.X.Offset,config.Size.Y.Offset)
 MainFrame.Active = true;
 MainFrame.ClipsDescendants = true;
 WindowTable.AddEffect = function(color)
-Library.GradientImage(MainFrame,color or Color3.fromRGB(100, 0, 0))
+Library.GradientImage(MainFrame,color or Color3.fromRGB(100, 0, 0)) 
 end
 Twen:Create(MainFrame,TweenInfo1,{BackgroundTransparency = 0.4,Size = config.Size}):Play();
 WindowTable.ElBlurUI = ElBlurSource.new(MainFrame);
@@ -600,7 +800,7 @@ MainDropShadow.Position = UDim2.new(0.5, 0, 0.5, 0)
 MainDropShadow.Size = UDim2.new(1, 47, 1, 47)
 MainDropShadow.ZIndex = 0
 MainDropShadow.Image = "rbxassetid://6015897843"
-MainDropShadow.ImageColor3 = Color3.fromRGB(50, 0, 0)
+MainDropShadow.ImageColor3 = Color3.fromRGB(50, 0, 0) 
 MainDropShadow.ImageTransparency = 1
 MainDropShadow.ScaleType = Enum.ScaleType.Slice
 MainDropShadow.SliceCenter = Rect.new(49, 49, 450, 450)
@@ -608,7 +808,7 @@ MainDropShadow.Rotation = 0.0001;
 Twen:Create(MainDropShadow,TweenInfo2,{ImageTransparency = 0.6}):Play();
 Headers.Name = "Headers"
 Headers.Parent = MainFrame
-Headers.BackgroundColor3 = Color3.fromRGB(20, 5, 5)
+Headers.BackgroundColor3 = Color3.fromRGB(20, 5, 5) 
 Headers.BackgroundTransparency = 1
 Headers.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Headers.BorderSizePixel = 0
@@ -672,7 +872,7 @@ Twen:Create(Description,TweenInfo2,{TextTransparency = 0.5}):Play();
 BlockFrame1.Name = "BlockFrame1"
 BlockFrame1.Parent = MainFrame
 BlockFrame1.AnchorPoint = Vector2.new(0, 0.5)
-BlockFrame1.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+BlockFrame1.BackgroundColor3 = Color3.fromRGB(150, 0, 0) 
 BlockFrame1.BackgroundTransparency = 1
 BlockFrame1.BorderColor3 = Color3.fromRGB(0, 0, 0)
 BlockFrame1.BorderSizePixel = 0
@@ -688,7 +888,7 @@ UIGradient_3.Parent = BlockFrame1
 BlockFrame3.Name = "BlockFrame3"
 BlockFrame3.Parent = MainFrame
 BlockFrame3.AnchorPoint = Vector2.new(0, 0.5)
-BlockFrame3.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+BlockFrame3.BackgroundColor3 = Color3.fromRGB(150, 0, 0) 
 BlockFrame3.BackgroundTransparency = 1
 BlockFrame3.BorderColor3 = Color3.fromRGB(0, 0, 0)
 BlockFrame3.BorderSizePixel = 0
@@ -703,7 +903,7 @@ UIGradient_4.Parent = BlockFrame3
 BlockFrame2.Name = "BlockFrame2"
 BlockFrame2.Parent = MainFrame
 BlockFrame2.AnchorPoint = Vector2.new(0, 0.5)
-BlockFrame2.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
+BlockFrame2.BackgroundColor3 = Color3.fromRGB(150, 0, 0) 
 BlockFrame2.BackgroundTransparency = 1
 BlockFrame2.BorderColor3 = Color3.fromRGB(0, 0, 0)
 BlockFrame2.BorderSizePixel = 0
@@ -719,7 +919,7 @@ UIGradient_5.Parent = BlockFrame2
 TabButtonFrame.Name = "TabButtonFrame"
 TabButtonFrame.Parent = MainFrame
 TabButtonFrame.AnchorPoint = Vector2.new(0.5, 0)
-TabButtonFrame.BackgroundColor3 = Color3.fromRGB(20, 5, 5)
+TabButtonFrame.BackgroundColor3 = Color3.fromRGB(20, 5, 5) 
 TabButtonFrame.BackgroundTransparency = 1
 TabButtonFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 TabButtonFrame.BorderSizePixel = 0
@@ -751,7 +951,7 @@ UIListLayout.Padding = UDim.new(0, 3)
 MainTabFrame.Name = "MainTabFrame"
 MainTabFrame.Parent = MainFrame
 MainTabFrame.AnchorPoint = Vector2.new(0.5, 0)
-MainTabFrame.BackgroundColor3 = Color3.fromRGB(20, 5, 5)
+MainTabFrame.BackgroundColor3 = Color3.fromRGB(20, 5, 5) 
 MainTabFrame.BackgroundTransparency = 1
 MainTabFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 MainTabFrame.BorderSizePixel = 0
@@ -768,7 +968,7 @@ InputFrame.BackgroundTransparency = 1.000
 InputFrame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 InputFrame.BorderSizePixel = 0
 InputFrame.Position = UDim2.new(0, 0, 0, 0)
-InputFrame.Size = UDim2.new(1, 0, 0.12, 0)
+InputFrame.Size = UDim2.new(1, 0, 0.12, 0) 
 InputFrame.ZIndex = 15;
 task.spawn(function()
 local Locked = nil;
@@ -974,6 +1174,185 @@ Selector:Destroy()
 end,
 }
 end;
+function WindowTable.Dropdown:OpenMulti(config)
+Looped = true;
+ValueId.Text = config.AllowMulti and "Select items..." or (config.Selected[1] or "...")
+Twen:Create(DropdownFrame,TweenInfo.new(0.3),{
+BackgroundTransparency = 0.1;
+}):Play()
+Twen:Create(MiniDropShadow,TweenInfo.new(0.3),{
+ImageTransparency = 0.6;
+}):Play()
+Twen:Create(ValueId,TweenInfo.new(0.3),{
+TextTransparency = 0.8;
+}):Play()
+Twen:Create(UIStroke,TweenInfo.new(0.3),{
+Transparency = 0.9;
+}):Play()
+local SearchBox = nil
+for i,v in pairs(ScrollingFrame:GetChildren()) do
+    if v ~= Block then
+        if v:IsA('Frame') then
+            v:Destroy();
+        end;
+    end;
+end;
+for i,v in pairs(DropdownFrame:GetChildren()) do
+    if v.Name == "SearchBox" then
+        v:Destroy();
+    end;
+end;
+if config.SearchEnabled then
+    ValueId.Visible = false
+    SearchBox = Instance.new("TextBox")
+    SearchBox.Name = "SearchBox"
+    SearchBox.Parent = DropdownFrame
+    SearchBox.AnchorPoint = Vector2.new(0.5, 0)
+    SearchBox.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
+    SearchBox.BackgroundTransparency = 0.3
+    SearchBox.BorderColor3 = Color3.fromRGB(0, 0, 0)
+    SearchBox.BorderSizePixel = 0
+    SearchBox.Position = UDim2.new(0.5, 0, 0, 8)
+    SearchBox.Size = UDim2.new(0.92, 0, 0, 28)
+    SearchBox.ZIndex = 110
+    SearchBox.Font = Enum.Font.GothamBold
+    SearchBox.PlaceholderText = "Search..."
+    SearchBox.PlaceholderColor3 = Color3.fromRGB(200, 200, 200)
+    SearchBox.Text = ""
+    SearchBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SearchBox.TextSize = 14.000
+    SearchBox.TextTransparency = 0.2
+    SearchBox.ClearTextOnFocus = false
+    local SearchCorner = Instance.new("UICorner")
+    SearchCorner.CornerRadius = UDim.new(0, 4)
+    SearchCorner.Parent = SearchBox
+    local SearchStroke = Instance.new("UIStroke")
+    SearchStroke.Transparency = 0.8
+    SearchStroke.Color = Color3.fromRGB(255, 255, 255)
+    SearchStroke.Parent = SearchBox
+    ValueId.Position = UDim2.new(0.5, 0, 0, 40)
+    ScrollingFrame.Position = UDim2.new(0.5, 0, 0, 100)
+    ScrollingFrame.Size = UDim2.new(0.92, 0, 0.67, 0)
+else
+    ValueId.Position = UDim2.new(0.5, 0, 0, 0)
+    ScrollingFrame.Position = UDim2.new(0.5, 0, 0.555985212, 0)
+    ScrollingFrame.Size = UDim2.new(0.92, 0, 0.888029099, 0)
+end
+Twen:Create(ScrollingFrame,TweenInfo.new(0.3),{
+ScrollBarImageTransparency = 0.5;
+}):Play()
+Twen:Create(BlockFrame3,TweenInfo.new(0.3),{
+BackgroundTransparency = 0.8;
+}):Play()
+local selectedLookup = {}
+for _, val in ipairs(config.Selected) do
+    selectedLookup[val] = true
+end
+local optionButtons = {}
+local allOptions = config.Data
+local function filterOptions(searchText)
+    searchText = searchText:lower()
+    local filtered = {}
+    for _, optionName in ipairs(allOptions) do
+        if searchText == "" or tostring(optionName):lower():find(searchText, 1, true) then
+            table.insert(filtered, optionName)
+        end
+    end
+    return filtered
+end
+local function refreshOptions(filteredOptions)
+    for i,v in pairs(ScrollingFrame:GetChildren()) do
+        if v ~= Block then
+            if v:IsA('Frame') then
+                v:Destroy();
+            end;
+        end;
+    end;
+    optionButtons = {}
+    for i, optionName in ipairs(filteredOptions) do
+        local isSelected = false
+        if config.AllowMulti then
+            isSelected = selectedLookup[optionName] == true
+        else
+            isSelected = config.Selected[1] == optionName
+        end
+        local butt = GetSelector(tostring(optionName), isSelected);
+        optionButtons[optionName] = butt.effect
+        if config.OnOptionCreated then
+            config.OnOptionCreated(optionName, function(state)
+                butt.effect(state)
+            end)
+        end
+        butt.button.MouseButton1Click:Connect(function()
+            if config.AllowMulti then
+                local currentState = not selectedLookup[optionName]
+                butt.effect(currentState)
+                if config.OnOptionSelected then
+                    config.OnOptionSelected(optionName, currentState)
+                end
+                if currentState then
+                    selectedLookup[optionName] = true
+                else
+                    selectedLookup[optionName] = nil
+                end
+                if not config.AllowNone then
+                    local hasAnySelected = false
+                    for _, val in ipairs(allOptions) do
+                        if selectedLookup[val] then
+                            hasAnySelected = true
+                            break
+                        end
+                    end
+                    if not hasAnySelected then
+                        selectedLookup[optionName] = true
+                        butt.effect(true)
+                        if config.OnOptionSelected then
+                            config.OnOptionSelected(optionName, true)
+                        end
+                    end
+                end
+            else
+                if optionName == config.Selected[1] and config.AllowNone then
+                    for name, effectFunc in pairs(optionButtons) do
+                        effectFunc(false)
+                    end
+                    if config.OnOptionSelected then
+                        config.OnOptionSelected(optionName, false)
+                    end
+                elseif optionName ~= config.Selected[1] then
+                    for name, effectFunc in pairs(optionButtons) do
+                        effectFunc(name == optionName)
+                    end
+                    if config.OnOptionSelected then
+                        config.OnOptionSelected(optionName, true)
+                    end
+                end
+            end
+        end)
+    end
+end
+refreshOptions(allOptions)
+if SearchBox then
+    SearchBox:GetPropertyChangedSignal("Text"):Connect(function()
+        local filtered = filterOptions(SearchBox.Text)
+        refreshOptions(filtered)
+    end)
+end
+local function Cleanup()
+    if SearchBox then
+        SearchBox:Destroy()
+        SearchBox = nil
+    end
+    ValueId.Visible = true
+    ValueId.Position = UDim2.new(0.5, 0, 0, 0)
+end
+local originalClose = WindowTable.Dropdown.Close
+WindowTable.Dropdown.Close = function(...)
+    Cleanup()
+    originalClose(...)
+    WindowTable.Dropdown.Close = originalClose
+end
+end;
 local MouseInFrame = false;
 local MouseInMyFrame = false;
 function WindowTable.Dropdown:Setup(target_frame:Frame)
@@ -1026,6 +1405,13 @@ end;
 end;
 function WindowTable.Dropdown:Close(args)
 Looped = false;
+for i,v in pairs(DropdownFrame:GetChildren()) do
+    if v.Name == "SearchBox" then
+        v:Destroy();
+    end;
+end;
+ValueId.Position = UDim2.new(0.5, 0, 0, 0)
+ValueId.Visible = true
 Twen:Create(UIStroke,TweenInfo.new(0.3),{
 Transparency = 1;
 }):Play()
@@ -1045,12 +1431,14 @@ Twen:Create(BlockFrame3,TweenInfo.new(0.3),{
 BackgroundTransparency = 1;
 }):Play()
 for i,v in pairs(ScrollingFrame:GetChildren()) do
-if v ~= Block then
-if v:IsA('Frame') then
-v:Destroy();
+    if v ~= Block then
+        if v:IsA('Frame') then
+            v:Destroy();
+        end;
+    end;
 end;
-end;
-end;
+ScrollingFrame.Position = UDim2.new(0.5, 0, 0.555985212, 0)
+ScrollingFrame.Size = UDim2.new(0.949999988, 0, 0.888029099, 0)
 end;
 DropdownFrame.MouseEnter:Connect(function()
 MouseInMyFrame = true
@@ -2643,13 +3031,18 @@ end;
 function CollapsibleTable:NewImage(cfg)
 cfg = Config(cfg,{
 ImageId = "rbxassetid://0",
+Image = nil,
+ImageUrl = nil,
 Size = UDim2.new(0.98, 0, 0.5, 0)
 });
+
 local FunctionImage = Instance.new("Frame")
 local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
 local ImageLabel = Instance.new("ImageLabel")
 local UICorner = Instance.new("UICorner")
 local UIGradient = Instance.new("UIGradient")
+local LoadingLabel = Instance.new("TextLabel")
+
 FunctionImage.Name = "FunctionImage"
 FunctionImage.Parent = Content
 FunctionImage.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
@@ -2658,9 +3051,25 @@ FunctionImage.BorderColor3 = Color3.fromRGB(0, 0, 0)
 FunctionImage.BorderSizePixel = 0
 FunctionImage.Size = cfg.Size
 FunctionImage.ZIndex = 17
+FunctionImage.ClipsDescendants = true
+
 UIAspectRatioConstraint.Parent = FunctionImage
 UIAspectRatioConstraint.AspectRatio = 2.500
 UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
+
+LoadingLabel.Name = "LoadingLabel"
+LoadingLabel.Parent = FunctionImage
+LoadingLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+LoadingLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+LoadingLabel.Size = UDim2.new(0.8, 0, 0.3, 0)
+LoadingLabel.BackgroundTransparency = 1
+LoadingLabel.Font = Enum.Font.GothamBold
+LoadingLabel.Text = "Loading Image..."
+LoadingLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+LoadingLabel.TextScaled = true
+LoadingLabel.Visible = true
+LoadingLabel.ZIndex = 19
+
 ImageLabel.Name = "ImageLabel"
 ImageLabel.Parent = FunctionImage
 ImageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -2671,22 +3080,145 @@ ImageLabel.BorderSizePixel = 0
 ImageLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
 ImageLabel.Size = UDim2.new(1, 0, 1, 0)
 ImageLabel.ZIndex = 18
-ImageLabel.Image = cfg.ImageId
+ImageLabel.Image = ""
 ImageLabel.ImageTransparency = 1
 ImageLabel.ScaleType = Enum.ScaleType.Fit
-Twen:Create(ImageLabel,TweenInfo1,{ImageTransparency = 0}):Play();
+ImageLabel.Visible = false
+
 UICorner.CornerRadius = UDim.new(0, 2)
 UICorner.Parent = FunctionImage
+
 UIGradient.Rotation = 90
 UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.75, 0.27), NumberSequenceKeypoint.new(1.00, 1.00)}
 UIGradient.Parent = ImageLabel
+
+local function getImageSource()
+    if cfg.Image then
+        if type(cfg.Image) == "string" then
+            if cfg.Image:match("^rbxassetid://") or cfg.Image:match("^http") then
+                return cfg.Image
+            else
+                return "rbxassetid://" .. cfg.Image
+            end
+        end
+    elseif cfg.ImageUrl then
+        return cfg.ImageUrl
+    elseif cfg.ImageId then
+        if type(cfg.ImageId) == "number" then
+            return "rbxassetid://" .. cfg.ImageId
+        elseif cfg.ImageId:match("^rbxassetid://") then
+            return cfg.ImageId
+        else
+            return "rbxassetid://" .. cfg.ImageId
+        end
+    end
+    return nil
+end
+
+local function downloadImage(url)
+    if url:match("^rbxassetid://") then
+        return url
+    end
+    
+    local filename = "TempImage_" .. tostring(math.random(1000, 9999)) .. "_" .. tick() .. ".png"
+    local filepath = filename
+    local imageAsset = url
+    
+    local httpRequest = syn and syn.request or http_request or request
+    
+    if httpRequest then
+        pcall(function()
+            local response = httpRequest({
+                Url = url,
+                Method = "GET"
+            })
+            
+            if response and response.Body then
+                writefile(filepath, response.Body)
+                imageAsset = getcustomasset(filepath)
+            end
+        end)
+    end
+    
+    return imageAsset
+end
+
+local imageSource = getImageSource()
+if imageSource then
+    LoadingLabel.Visible = true
+    ImageLabel.Visible = false
+    
+    local finalImage = downloadImage(imageSource)
+    
+    ImageLabel.Image = finalImage
+    
+    task.wait(0.1)
+    LoadingLabel.Visible = false
+    ImageLabel.Visible = true
+    
+    Twen:Create(ImageLabel,TweenInfo1,{ImageTransparency = 0}):Play()
+else
+    LoadingLabel.Text = "No Image Source"
+end
+
 return {
-Visible = function(newindx)
-FunctionImage.Visible = newindx
-end,
-SetImage = function(newId)
-ImageLabel.Image = newId
-end,
+    Visible = function(newindx)
+        FunctionImage.Visible = newindx
+    end,
+    
+    SetImage = function(newId, isUrl)
+        LoadingLabel.Visible = true
+        ImageLabel.Visible = false
+        
+        local source = newId
+        if isUrl then
+            source = downloadImage(newId)
+        else
+            if type(source) == "number" then
+                source = "rbxassetid://" .. source
+            elseif not source:match("^rbxassetid://") then
+                source = "rbxassetid://" .. source
+            end
+        end
+        
+        ImageLabel.Image = source
+        LoadingLabel.Visible = false
+        ImageLabel.Visible = true
+        Twen:Create(ImageLabel,TweenInfo1,{ImageTransparency = 0}):Play()
+    end,
+    
+    SetImageUrl = function(url)
+        LoadingLabel.Visible = true
+        ImageLabel.Visible = false
+        
+        local source = downloadImage(url)
+        
+        ImageLabel.Image = source
+        LoadingLabel.Visible = false
+        ImageLabel.Visible = true
+        Twen:Create(ImageLabel,TweenInfo1,{ImageTransparency = 0}):Play()
+    end,
+    
+    SetImageAsset = function(assetId)
+        LoadingLabel.Visible = true
+        ImageLabel.Visible = false
+        
+        local source = assetId
+        if type(source) == "number" then
+            source = "rbxassetid://" .. source
+        elseif not source:match("^rbxassetid://") then
+            source = "rbxassetid://" .. source
+        end
+        
+        ImageLabel.Image = source
+        LoadingLabel.Visible = false
+        ImageLabel.Visible = true
+        Twen:Create(ImageLabel,TweenInfo1,{ImageTransparency = 0}):Play()
+    end,
+    
+    GetImage = function()
+        return ImageLabel.Image
+    end
 };
 end;
 return CollapsibleTable;
@@ -3287,9 +3819,55 @@ Title = "Dropdown",
 Name = drop.Title,
 Data = {'One','Two','Three','Four'},
 Default = 'Two',
+AllowMulti = false,
+AllowNone = false,
+SearchEnabled = false, 
 Callback = function(a)
 end,
 });
+local selectedValues = {}
+local selectedLookup = {}
+local function updateSelectedLookup()
+    selectedLookup = {}
+    for _, v in ipairs(selectedValues) do
+        selectedLookup[v] = true
+    end
+end
+if drop.AllowMulti then
+    if type(drop.Default) == "table" then
+        selectedValues = drop.Default
+    else
+        selectedValues = {drop.Default}
+    end
+else
+    if drop.Default == nil and drop.AllowNone then
+        selectedValues = {}
+    else
+        selectedValues = {drop.Default}
+    end
+end
+local validData = {}
+for _, v in ipairs(drop.Data) do
+    validData[v] = true
+end
+if drop.AllowMulti then
+    local filtered = {}
+    for _, v in ipairs(selectedValues) do
+        if validData[v] then
+            table.insert(filtered, v)
+        end
+    end
+    selectedValues = filtered
+else
+    if selectedValues[1] and not validData[selectedValues[1]] then
+        if drop.AllowNone then
+            selectedValues = {}
+        else
+            selectedValues = {drop.Data[1]}
+        end
+    end
+end
+updateSelectedLookup()
 local FunctionDropdown = Instance.new("Frame")
 local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
 local TextInt = Instance.new("TextLabel")
@@ -3366,7 +3944,6 @@ ValueText.Position = UDim2.new(0.5, 0, 0.5, 0)
 ValueText.Size = UDim2.new(1, 0, 0.800000012, 0)
 ValueText.ZIndex = 18
 ValueText.Font = Enum.Font.GothamBold
-ValueText.Text = drop.Default or "NONE"
 ValueText.TextColor3 = Color3.fromRGB(255, 255, 255)
 ValueText.TextScaled = true
 ValueText.TextSize = 14.000
@@ -3398,39 +3975,211 @@ Button.Text = "";
 Button.TextColor3 = Color3.fromRGB(0, 0, 0)
 Button.TextSize = 14.000
 Button.TextTransparency = 1.000
-local Updater = function(value)
-drop.Default = value;
-ValueText.Text = tostring(value);
-drop.Callback(value);
-end;
+local function updateDisplay()
+    if drop.AllowMulti then
+        if #selectedValues == 0 then
+            ValueText.Text = "..."
+        else
+            ValueText.Text = table.concat(selectedValues, ", ")
+        end
+    else
+        if #selectedValues == 0 then
+            ValueText.Text = "..."
+        else
+            ValueText.Text = selectedValues[1]
+        end
+    end
+end
+updateDisplay()
+local optionButtons = {}
+local function handleSelection(optionName, isSelected)
+    if drop.AllowMulti then
+        if isSelected then
+            if not table.find(selectedValues, optionName) then
+                table.insert(selectedValues, optionName)
+                selectedLookup[optionName] = true
+            end
+        else
+            local index = table.find(selectedValues, optionName)
+            if index then
+                table.remove(selectedValues, index)
+                selectedLookup[optionName] = nil
+            end
+        end
+        if not drop.AllowNone and #selectedValues == 0 then
+            table.insert(selectedValues, optionName)
+            selectedLookup[optionName] = true
+            if optionButtons[optionName] then
+                optionButtons[optionName](true)
+            end
+        end
+        updateDisplay()
+        drop.Callback(selectedValues)
+    else
+        if optionName == selectedValues[1] and drop.AllowNone then
+            selectedValues = {}
+            selectedLookup = {}
+            if optionButtons[optionName] then
+                optionButtons[optionName](false)
+            end
+            updateDisplay()
+            drop.Callback(nil)
+        elseif optionName ~= selectedValues[1] then
+            if #selectedValues > 0 then
+                local oldValue = selectedValues[1]
+                if optionButtons[oldValue] then
+                    optionButtons[oldValue](false)
+                end
+            end
+            selectedValues = {optionName}
+            selectedLookup = {[optionName] = true}
+            if optionButtons[optionName] then
+                optionButtons[optionName](true)
+            end
+            updateDisplay()
+            drop.Callback(optionName)
+        end
+    end
+end
 Button.MouseButton1Click:Connect(function()
-WindowTable.Dropdown:Setup(MFrame)
-WindowTable.Dropdown:Open(drop.Data,drop.Default,Updater)
+    WindowTable.Dropdown:Setup(MFrame)
+    optionButtons = {}
+    WindowTable.Dropdown:OpenMulti({
+        Data = drop.Data,
+        Selected = selectedValues,
+        AllowMulti = drop.AllowMulti,
+        AllowNone = drop.AllowNone,
+        SearchEnabled = drop.SearchEnabled, 
+        OnOptionCreated = function(optionName, setSelectedFunc)
+            optionButtons[optionName] = setSelectedFunc
+            if drop.AllowMulti then
+                setSelectedFunc(selectedLookup[optionName] == true)
+            else
+                setSelectedFunc(selectedValues[1] == optionName)
+            end
+        end,
+        OnOptionSelected = function(optionName, isSelected)
+            handleSelection(optionName, isSelected)
+        end
+    })
 end)
 local el = {
 Name = drop.Name,
-Get = function() return drop.Default end,
-Set = function(v) Updater(v) end,
+Get = function() 
+    if drop.AllowMulti then
+        return selectedValues
+    else
+        return selectedValues[1]
+    end
+end,
+Set = function(v) 
+    if drop.AllowMulti then
+        if type(v) == "table" then
+            selectedValues = {}
+            for _, val in ipairs(v) do
+                if table.find(drop.Data, val) then
+                    table.insert(selectedValues, val)
+                end
+            end
+        end
+    else
+        if v == nil and drop.AllowNone then
+            selectedValues = {}
+        else
+            selectedValues = {v}
+        end
+    end
+    updateSelectedLookup()
+    updateDisplay()
+    if drop.AllowMulti then
+        drop.Callback(selectedValues)
+    else
+        drop.Callback(selectedValues[1])
+    end
+end,
 Visible = function(newindx)
-FunctionDropdown.Visible = newindx
+    FunctionDropdown.Visible = newindx
 end,
 Refresh = function(newData)
-if newData then drop.Data = newData end
-WindowTable.Dropdown:Close()
-WindowTable.Dropdown:Open(drop.Data, drop.Default, Updater)
+    if newData then 
+        drop.Data = newData
+        if drop.AllowMulti then
+            local filtered = {}
+            for _, v in ipairs(selectedValues) do
+                if table.find(drop.Data, v) then
+                    table.insert(filtered, v)
+                end
+            end
+            selectedValues = filtered
+        else
+            if selectedValues[1] and not table.find(drop.Data, selectedValues[1]) then
+                if drop.AllowNone then
+                    selectedValues = {}
+                else
+                    selectedValues = {drop.Data[1]}
+                end
+            end
+        end
+        updateSelectedLookup()
+        updateDisplay()
+    end
 end,
-Open = function(value)
-WindowTable.Dropdown:Setup(MFrame)
-WindowTable.Dropdown:Open(drop.Data,drop.Default,Updater)
+Open = function()
+    Button.MouseButton1Click:Fire()
 end,
-Close = function(value)
-WindowTable.Dropdown:Close();
+Close = function()
+    WindowTable.Dropdown:Close()
 end,
 Clear = function()
-drop.Data = {}
+    drop.Data = {}
+    selectedValues = {}
+    selectedLookup = {}
+    updateDisplay()
 end,
 SetOptions = function(table)
-drop.Data = table
+    drop.Data = table
+    if drop.AllowMulti then
+        local filtered = {}
+        for _, v in ipairs(selectedValues) do
+            if table.find(drop.Data, v) then
+                table.insert(filtered, v)
+            end
+        end
+        selectedValues = filtered
+    else
+        if selectedValues[1] and not table.find(drop.Data, selectedValues[1]) then
+            if drop.AllowNone then
+                selectedValues = {}
+            else
+                selectedValues = {drop.Data[1]}
+            end
+        end
+    end
+    updateSelectedLookup()
+    updateDisplay()
+end,
+SetSelected = function(values)
+    if drop.AllowMulti then
+        if type(values) == "table" then
+            selectedValues = {}
+            for _, val in ipairs(values) do
+                if table.find(drop.Data, val) then
+                    table.insert(selectedValues, val)
+                end
+            end
+        end
+    else
+        if values == nil and drop.AllowNone then
+            selectedValues = {}
+        else
+            selectedValues = {values}
+        end
+    end
+    updateSelectedLookup()
+    updateDisplay()
+end,
+GetSelected = function()
+    return selectedValues
 end
 };
 table.insert(SectionTable.Elements, el)
@@ -3633,13 +4382,18 @@ end;
 function SectionTable:NewImage(cfg)
 cfg = Config(cfg,{
 ImageId = "rbxassetid://0",
+Image = nil,
+ImageUrl = nil,
 Size = UDim2.new(0.98, 0, 0.5, 0)
 });
+
 local FunctionImage = Instance.new("Frame")
 local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
 local ImageLabel = Instance.new("ImageLabel")
 local UICorner = Instance.new("UICorner")
 local UIGradient = Instance.new("UIGradient")
+local LoadingLabel = Instance.new("TextLabel")
+
 FunctionImage.Name = "FunctionImage"
 FunctionImage.Parent = Section
 FunctionImage.BackgroundColor3 = Color3.fromRGB(17, 17, 17)
@@ -3648,9 +4402,25 @@ FunctionImage.BorderColor3 = Color3.fromRGB(0, 0, 0)
 FunctionImage.BorderSizePixel = 0
 FunctionImage.Size = cfg.Size
 FunctionImage.ZIndex = 17
+FunctionImage.ClipsDescendants = true
+
 UIAspectRatioConstraint.Parent = FunctionImage
 UIAspectRatioConstraint.AspectRatio = 2.500
 UIAspectRatioConstraint.AspectType = Enum.AspectType.ScaleWithParentSize
+
+LoadingLabel.Name = "LoadingLabel"
+LoadingLabel.Parent = FunctionImage
+LoadingLabel.AnchorPoint = Vector2.new(0.5, 0.5)
+LoadingLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
+LoadingLabel.Size = UDim2.new(0.8, 0, 0.3, 0)
+LoadingLabel.BackgroundTransparency = 1
+LoadingLabel.Font = Enum.Font.GothamBold
+LoadingLabel.Text = "Loading Image..."
+LoadingLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+LoadingLabel.TextScaled = true
+LoadingLabel.Visible = true
+LoadingLabel.ZIndex = 19
+
 ImageLabel.Name = "ImageLabel"
 ImageLabel.Parent = FunctionImage
 ImageLabel.AnchorPoint = Vector2.new(0.5, 0.5)
@@ -3661,61 +4431,151 @@ ImageLabel.BorderSizePixel = 0
 ImageLabel.Position = UDim2.new(0.5, 0, 0.5, 0)
 ImageLabel.Size = UDim2.new(1, 0, 1, 0)
 ImageLabel.ZIndex = 18
-ImageLabel.Image = cfg.ImageId
+ImageLabel.Image = ""
 ImageLabel.ImageTransparency = 1
 ImageLabel.ScaleType = Enum.ScaleType.Fit
-Twen:Create(ImageLabel,TweenInfo1,{ImageTransparency = 0}):Play();
+ImageLabel.Visible = false
+
 UICorner.CornerRadius = UDim.new(0, 2)
 UICorner.Parent = FunctionImage
+
 UIGradient.Rotation = 90
 UIGradient.Transparency = NumberSequence.new{NumberSequenceKeypoint.new(0.00, 0.00), NumberSequenceKeypoint.new(0.75, 0.27), NumberSequenceKeypoint.new(1.00, 1.00)}
 UIGradient.Parent = ImageLabel
+
+local function getImageSource()
+    if cfg.Image then
+        if type(cfg.Image) == "string" then
+            if cfg.Image:match("^rbxassetid://") or cfg.Image:match("^http") then
+                return cfg.Image
+            else
+                return "rbxassetid://" .. cfg.Image
+            end
+        end
+    elseif cfg.ImageUrl then
+        return cfg.ImageUrl
+    elseif cfg.ImageId then
+        if type(cfg.ImageId) == "number" then
+            return "rbxassetid://" .. cfg.ImageId
+        elseif cfg.ImageId:match("^rbxassetid://") then
+            return cfg.ImageId
+        else
+            return "rbxassetid://" .. cfg.ImageId
+        end
+    end
+    return nil
+end
+
+local function downloadImage(url)
+    if url:match("^rbxassetid://") then
+        return url
+    end
+    
+    local filename = "TempImage_" .. tostring(math.random(1000, 9999)) .. "_" .. tick() .. ".png"
+    local filepath = filename
+    local imageAsset = url
+    
+    local httpRequest = syn and syn.request or http_request or request
+    
+    if httpRequest then
+        pcall(function()
+            local response = httpRequest({
+                Url = url,
+                Method = "GET"
+            })
+            
+            if response and response.Body then
+                writefile(filepath, response.Body)
+                imageAsset = getcustomasset(filepath)
+            end
+        end)
+    end
+    
+    return imageAsset
+end
+
+local imageSource = getImageSource()
+if imageSource then
+    LoadingLabel.Visible = true
+    ImageLabel.Visible = false
+    
+    local finalImage = downloadImage(imageSource)
+    
+    ImageLabel.Image = finalImage
+    
+    task.wait(0.1)
+    LoadingLabel.Visible = false
+    ImageLabel.Visible = true
+    
+    Twen:Create(ImageLabel,TweenInfo1,{ImageTransparency = 0}):Play()
+else
+    LoadingLabel.Text = "No Image Source"
+end
+
 return {
-Visible = function(newindx)
-FunctionImage.Visible = newindx
-end,
-SetImage = function(newId)
-ImageLabel.Image = newId
-end,
+    Visible = function(newindx)
+        FunctionImage.Visible = newindx
+    end,
+    
+    SetImage = function(newId, isUrl)
+        LoadingLabel.Visible = true
+        ImageLabel.Visible = false
+        
+        local source = newId
+        if isUrl then
+            source = downloadImage(newId)
+        else
+            if type(source) == "number" then
+                source = "rbxassetid://" .. source
+            elseif not source:match("^rbxassetid://") then
+                source = "rbxassetid://" .. source
+            end
+        end
+        
+        ImageLabel.Image = source
+        LoadingLabel.Visible = false
+        ImageLabel.Visible = true
+        Twen:Create(ImageLabel,TweenInfo1,{ImageTransparency = 0}):Play()
+    end,
+    
+    SetImageUrl = function(url)
+        LoadingLabel.Visible = true
+        ImageLabel.Visible = false
+        
+        local source = downloadImage(url)
+        
+        ImageLabel.Image = source
+        LoadingLabel.Visible = false
+        ImageLabel.Visible = true
+        Twen:Create(ImageLabel,TweenInfo1,{ImageTransparency = 0}):Play()
+    end,
+    
+    SetImageAsset = function(assetId)
+        LoadingLabel.Visible = true
+        ImageLabel.Visible = false
+        
+        local source = assetId
+        if type(source) == "number" then
+            source = "rbxassetid://" .. source
+        elseif not source:match("^rbxassetid://") then
+            source = "rbxassetid://" .. source
+        end
+        
+        ImageLabel.Image = source
+        LoadingLabel.Visible = false
+        ImageLabel.Visible = true
+        Twen:Create(ImageLabel,TweenInfo1,{ImageTransparency = 0}):Play()
+    end,
+    
+    GetImage = function()
+        return ImageLabel.Image
+    end
 };
 end;
 return SectionTable;
 end;
 return TabTable;
 end;
-local dragToggle = nil;
-local dragSpeed = 0.1;
-local dragStart = nil;
-local startPos = nil;
-local function updateInput(input)
-WindowTable.ElBlurUI.Update()
-local delta = input.Position - dragStart;
-local position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
-startPos.Y.Scale, startPos.Y.Offset + delta.Y);
-game:GetService('TweenService'):Create(MainFrame, TweenInfo.new(dragSpeed), {Position = position}):Play()
-if not WindowTable.WindowToggle then
-WindowTable.LastPosition = position 
-end
-end;
-InputFrame.InputBegan:Connect(function(input)
-if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) then
-dragToggle = true
-dragStart = input.Position
-startPos = MainFrame.Position
-input.Changed:Connect(function()
-if input.UserInputState == Enum.UserInputState.End then
-dragToggle = false;
-end;
-end)
-end;
-end)
-Input.InputChanged:Connect(function(input)
-if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-if dragToggle then
-updateInput(input);
-end;
-end;
-end)
 WindowTable.SetKeybind = function(newKey)
     WindowTable.Keybind = newKey
 end
@@ -4028,7 +4888,7 @@ Frame.BackgroundTransparency = 1.000
 Frame.BorderColor3 = Color3.fromRGB(0, 0, 0)
 Frame.BorderSizePixel = 0
 Frame.Position = UDim2.new(0.98, 0, 0.98, 0)
-Frame.Size = UDim2.new(0.25, 0, 0.5, 0)
+Frame.Size = UDim2.new(0.25, 0, 0.5, 0) 
 UIListLayout.Parent = Frame
 UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
 UIListLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
@@ -4369,6 +5229,7 @@ local default =
 <font color="rgb(255,125,0)">UI</font>: KDE Plasma 6
 ]];
 overview:print(default)
+local UIHelper = require(path.to.UIHelper)
 end,
 clear = function()
 for i,v in ipairs(cmdFrame:GetChildren()) do
@@ -4377,7 +5238,7 @@ v:Destroy()
 end
 end
 end,
-sudo = function(args)
+sudo = function(args) 
 local ctype = args[1];
 local arg1 = args[2];
 local arg2 = args[3];
@@ -4490,3 +5351,53 @@ return overview;
 end;
 print(' [ DONE <3 ]: Sugar UI LOADED!! YOMKA MODIFIED IT')
 return table.freeze(Library);
+
+
+
+
+
+
+--[[ Play audio when loaded ( optional )
+local SoundService = game:GetService("SoundService")
+
+local success, result = pcall(function()
+    local request = syn and syn.request or http_request or request
+    if not request then
+        return nil
+    end
+    
+    local response = request({
+        Url = "https://github.com/mounsokdara/Blogger-resources/raw/refs/heads/main/audio/Yomka/yoxi%20hub-mc.mp3",
+        Method = "GET",
+        Headers = {
+            ["User-Agent"] = "Roblox/Luau"
+        }
+    })
+    
+    if response and response.StatusCode == 200 then
+        return response.Body
+    else
+        return nil
+    end
+end)
+
+if success and result then
+    local writeSuccess = pcall(function()
+        writefile("YoxiHub.mp3", result)
+    end)
+    
+    if writeSuccess then
+        local sound = Instance.new("Sound")
+        sound.SoundId = getcustomasset("YoxiHub.mp3")
+        sound.Volume = 1
+        sound.Parent = SoundService
+        
+        sound:Play()
+        
+        sound.Stopped:Connect(function()
+            sound:Destroy()
+            pcall(function() delfile("YoxiHub.mp3") end)
+        end)
+    end
+end
+]]
